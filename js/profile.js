@@ -31,7 +31,7 @@ const PROFILE = (() => {
     'Relizane','Saïda','Laghouat','Bouira','Bouikerdane','Adrar',
     'Ghardaïa','Béchar','Illizi','Tamanrasset','Tindouf',
     /* Tunisie */
-    'Tunis','Ariana','Ben Arous','La Manouba','La Marsa','Carthage',
+    'Tunis','Ariana','Ben Arous','La Manouba',
     'Bizerte','Béja','Jendouba','Le Kef','Siliana','Tabarka',
     'Sousse','Monastir','Mahdia','Sfax',
     'Kairouan','Kasserine','Sidi Bouzid',
