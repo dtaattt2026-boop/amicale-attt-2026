@@ -35,14 +35,14 @@
  */
 
 /* ─── Activer/Désactiver Firebase ───────────────────────────── */
-const FIREBASE_ENABLED = false;   /* ← Mettre true après avoir renseigné la config */
+const FIREBASE_ENABLED = true;
 
 /* ─── Votre configuration Firebase ─────────────────────────── */
 const FIREBASE_CONFIG = {
-  apiKey:            'VOTRE_API_KEY',
-  authDomain:        'votre-projet.firebaseapp.com',
-  projectId:         'votre-projet-id',
-  storageBucket:     'votre-projet.appspot.com',
-  messagingSenderId: '000000000000',
-  appId:             '1:000000000000:web:xxxxxxxxxxxxxxxx'
+  apiKey:            'AIzaSyAZs_Mok0RZLjqq360CNWVumLMg2Ia8pjU',
+  authDomain:        'amicale-attt.firebaseapp.com',
+  projectId:         'amicale-attt',
+  storageBucket:     'amicale-attt.firebasestorage.app',
+  messagingSenderId: '778227653817',
+  appId:             '1:778227653817:web:537314a7f456ddac658f68'
 };
