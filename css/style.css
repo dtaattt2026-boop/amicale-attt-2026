@@ -1,0 +1,310 @@
+/* =========================================================
+   Amicale ATTT — Styles personnalisés
+   ========================================================= */
+
+:root {
+  --couleur-principale: #003DA6;    /* Bleu institution */
+  --couleur-secondaire: #E8A020;    /* Jaune/orange accent */
+  --couleur-fond: #F5F5F5;
+  --couleur-texte: #1A1A1A;
+  --couleur-blanc: #FFFFFF;
+  --couleur-gris: #6C757D;
+  --ombre: 0 2px 12px rgba(0, 0, 0, 0.09);
+  --gradient-principal: linear-gradient(135deg, #003DA6 60%, #0056cc 100%);
+}
+
+/* ---- Smooth scroll ---- */
+html {
+  scroll-behavior: smooth;
+}
+
+/* ---- Base ---- */
+body {
+  background-color: var(--couleur-fond);
+  color: var(--couleur-texte);
+  font-family: 'Segoe UI', system-ui, -apple-system, sans-serif;
+  line-height: 1.7;
+}
+
+a {
+  color: var(--couleur-principale);
+  text-decoration: none;
+}
+
+a:hover {
+  color: #002a73;
+}
+
+/* ---- Navbar ---- */
+.navbar {
+  background-color: var(--couleur-principale) !important;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.18);
+}
+
+.navbar-brand {
+  font-size: 1.25rem;
+  letter-spacing: 0.02em;
+}
+
+.navbar .nav-link {
+  font-weight: 500;
+  padding: 0.5rem 0.9rem;
+  border-radius: 4px;
+  transition: background 0.2s;
+}
+
+.navbar .nav-link:hover,
+.navbar .nav-link.active {
+  background-color: rgba(255, 255, 255, 0.15);
+}
+
+/* ---- Boutons ---- */
+.btn-attt {
+  background-color: var(--couleur-secondaire);
+  color: var(--couleur-texte);
+  font-weight: 600;
+  border: none;
+  border-radius: 6px;
+  transition: background 0.2s, transform 0.15s;
+}
+
+.btn-attt:hover {
+  background-color: #c8880f;
+  color: var(--couleur-blanc);
+  transform: translateY(-1px);
+}
+
+.btn-outline-attt {
+  border: 2px solid var(--couleur-principale);
+  color: var(--couleur-principale);
+  font-weight: 600;
+  border-radius: 6px;
+  transition: background 0.2s;
+}
+
+.btn-outline-attt:hover {
+  background-color: var(--couleur-principale);
+  color: var(--couleur-blanc);
+}
+
+/* ---- Titres de section ---- */
+.section-titre {
+  border-left: 4px solid var(--couleur-secondaire);
+  padding-left: 14px;
+  margin-bottom: 2rem;
+  font-weight: 700;
+  color: var(--couleur-principale);
+}
+
+/* ---- Cards ---- */
+.card {
+  border: none;
+  box-shadow: var(--ombre);
+  border-radius: 10px;
+  transition: transform 0.22s, box-shadow 0.22s;
+}
+
+.card:hover {
+  transform: translateY(-4px);
+  box-shadow: 0 6px 24px rgba(0, 0, 0, 0.13);
+}
+
+.card-icon {
+  width: 60px;
+  height: 60px;
+  border-radius: 50%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 1.6rem;
+  margin: 0 auto 1rem;
+}
+
+/* ---- Hero Banner ---- */
+.hero {
+  background: linear-gradient(135deg, var(--couleur-principale) 60%, #0056cc 100%);
+  color: var(--couleur-blanc);
+  padding: 90px 0 70px;
+  position: relative;
+  overflow: hidden;
+}
+
+.hero::before {
+  content: '';
+  position: absolute;
+  top: -40px;
+  right: -60px;
+  width: 380px;
+  height: 380px;
+  background: rgba(232, 160, 32, 0.12);
+  border-radius: 50%;
+}
+
+.hero h1 {
+  font-size: clamp(1.8rem, 4vw, 3rem);
+  font-weight: 800;
+  line-height: 1.2;
+}
+
+.hero .lead {
+  font-size: 1.15rem;
+  opacity: 0.9;
+}
+
+/* ---- Bandeau telechargement ---- */
+.bandeau-apps {
+  background: linear-gradient(90deg, var(--couleur-principale), #005ce6);
+  color: var(--couleur-blanc);
+}
+
+/* ---- Chiffres clés ---- */
+.stat-number {
+  font-size: 2.5rem;
+  font-weight: 800;
+  color: var(--couleur-principale);
+  line-height: 1;
+}
+
+.stat-label {
+  font-size: 0.9rem;
+  color: var(--couleur-gris);
+  text-transform: uppercase;
+  letter-spacing: 0.06em;
+}
+
+/* ---- Événement en vedette ---- */
+.event-badge {
+  background-color: var(--couleur-secondaire);
+  color: var(--couleur-texte);
+  font-weight: 700;
+  font-size: 0.8rem;
+  border-radius: 4px;
+  padding: 3px 8px;
+  display: inline-block;
+}
+
+/* ---- Galerie ---- */
+.galerie-item {
+  overflow: hidden;
+  border-radius: 8px;
+  cursor: pointer;
+}
+
+.galerie-item img {
+  width: 100%;
+  height: 200px;
+  object-fit: cover;
+  transition: transform 0.3s;
+}
+
+.galerie-item:hover img {
+  transform: scale(1.06);
+}
+
+/* ---- Page d'erreur / placeholder images ---- */
+.img-placeholder {
+  background-color: #dde3ed;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  color: #7a8ba0;
+  font-size: 0.9rem;
+  border-radius: 8px;
+}
+
+/* ---- Footer ---- */
+footer {
+  background-color: var(--couleur-principale) !important;
+}
+
+footer a {
+  color: rgba(255, 255, 255, 0.75);
+}
+
+footer a:hover {
+  color: var(--couleur-blanc);
+}
+
+/* ---- Breadcrumb ---- */
+.breadcrumb {
+  background: transparent;
+  padding: 0;
+  margin-bottom: 1.5rem;
+}
+
+.breadcrumb-item a {
+  color: var(--couleur-principale);
+}
+
+/* ---- Bouton retour en haut ---- */
+#back-to-top {
+  position: fixed;
+  bottom: 1.75rem;
+  right: 1.25rem;
+  width: 44px;
+  height: 44px;
+  background: var(--couleur-principale);
+  color: #fff;
+  border: none;
+  border-radius: 50%;
+  font-size: 1.15rem;
+  cursor: pointer;
+  opacity: 0;
+  visibility: hidden;
+  transition: opacity 0.3s, visibility 0.3s, transform 0.2s;
+  z-index: 1050;
+  box-shadow: 0 3px 14px rgba(0, 61, 166, 0.35);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+#back-to-top.show         { opacity: 1; visibility: visible; }
+#back-to-top:hover        { transform: translateY(-3px); background: #0056cc; }
+
+/* ---- Bannière installation PWA ---- */
+#pwa-install-banner {
+  position: fixed;
+  bottom: 0;
+  left: 0;
+  right: 0;
+  background: var(--couleur-principale);
+  color: #fff;
+  padding: 0.8rem 1.5rem;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 1rem;
+  z-index: 1100;
+  transform: translateY(100%);
+  transition: transform 0.35s ease;
+  box-shadow: 0 -2px 16px rgba(0, 0, 0, 0.18);
+  flex-wrap: wrap;
+}
+#pwa-install-banner.show  { transform: translateY(0); }
+
+/* ---- Styles d'impression ---- */
+@media print {
+  .navbar, .btn, #back-to-top, #pwa-install-banner, footer { display: none !important; }
+  body          { background: #fff; color: #000; font-size: 11pt; }
+  .card         { box-shadow: none !important; border: 1px solid #ccc; page-break-inside: avoid; }
+  a             { color: #000; }
+  a[href]::after { content: ' (' attr(href) ')'; font-size: 0.8em; color: #555; }
+  h1, h2, h3    { page-break-after: avoid; }
+}
+
+/* ---- Responsive ---- */
+@media (max-width: 576px) {
+  .hero {
+    padding: 60px 0 50px;
+    text-align: center;
+  }
+
+  .hero .d-flex {
+    flex-direction: column;
+    gap: 0.75rem;
+  }
+
+  .stat-number {
+    font-size: 2rem;
+  }
+}

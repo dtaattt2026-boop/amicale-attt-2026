@@ -1,0 +1,368 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Amicale ATTT — Mon espace</title>
+  <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css" rel="stylesheet" />
+  <link href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.3/font/bootstrap-icons.css" rel="stylesheet" />
+  <link href="css/style.css" rel="stylesheet" />
+  <link rel="manifest" href="manifest.json" />
+  <meta name="theme-color" content="#003DA6" />
+</head>
+<body>
+
+  <!-- NAVBAR -->
+  <nav class="navbar navbar-expand-lg navbar-dark">
+    <div class="container">
+      <a class="navbar-brand fw-bold d-flex align-items-center gap-2" href="index.html">
+        <i class="bi bi-people-fill fs-4"></i>Amicale ATTT
+      </a>
+      <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navMenu" aria-label="Menu">
+        <span class="navbar-toggler-icon"></span>
+      </button>
+      <div class="collapse navbar-collapse" id="navMenu">
+        <ul class="navbar-nav ms-auto gap-1">
+          <li class="nav-item"><a class="nav-link" href="index.html">Accueil</a></li>
+          <li class="nav-item"><a class="nav-link" href="activites.html">Activités</a></li>
+          <li class="nav-item"><a class="nav-link" href="evenements.html">Événements</a></li>
+          <li class="nav-item"><a class="nav-link" href="galerie.html">Galerie</a></li>
+          <li class="nav-item"><a class="nav-link" href="conventions.html">Conventions</a></li>
+          <li class="nav-item">
+            <a class="nav-link" href="messagerie.html">
+              <i class="bi bi-chat me-1"></i>Messages
+              <span class="badge bg-danger ms-1" id="nav-msg-badge" style="display:none"></span>
+            </a>
+          </li>
+          <li class="nav-item"><a class="nav-link fw-semibold" href="profil.html"><i class="bi bi-person-circle me-1"></i>Mon profil</a></li>
+        </ul>
+      </div>
+    </div>
+  </nav>
+
+  <!-- EN-TÊTE -->
+  <div class="py-4" style="background: linear-gradient(135deg,var(--couleur-principale),#0056cc);color:white;">
+    <div class="container d-flex align-items-center justify-content-between flex-wrap gap-3">
+      <div>
+        <h1 class="fw-bold mb-0 fs-4" id="welcome-title">Mon espace membre</h1>
+        <p class="mb-0 opacity-75 small" id="welcome-sub"></p>
+      </div>
+      <a href="#" class="btn btn-outline-light btn-sm" onclick="AUTH.logout();return false;">
+        <i class="bi bi-box-arrow-right me-1"></i>Déconnexion
+      </a>
+    </div>
+  </div>
+
+  <main class="py-5">
+    <div class="container">
+
+      <!-- RACCOURCIS RAPIDES -->
+      <div class="row g-3 mb-4">
+        <div class="col-6 col-sm-3">
+          <a href="profil.html" class="card text-decoration-none h-100 p-3 text-center hover-lift">
+            <i class="bi bi-person-circle fs-2 text-primary mb-1"></i>
+            <div class="small fw-semibold">Mon profil</div>
+          </a>
+        </div>
+        <div class="col-6 col-sm-3">
+          <a href="messagerie.html" class="card text-decoration-none h-100 p-3 text-center hover-lift position-relative">
+            <i class="bi bi-chat-text-fill fs-2 text-primary mb-1"></i>
+            <div class="small fw-semibold">Messagerie</div>
+            <span class="badge bg-danger position-absolute top-0 end-0 m-2" id="shortcut-msg-badge" style="display:none"></span>
+          </a>
+        </div>
+        <div class="col-6 col-sm-3">
+          <a href="conventions.html" class="card text-decoration-none h-100 p-3 text-center hover-lift">
+            <i class="bi bi-award-fill fs-2 text-primary mb-1"></i>
+            <div class="small fw-semibold">Conventions</div>
+          </a>
+        </div>
+        <div class="col-6 col-sm-3">
+          <a href="location.html" class="card text-decoration-none h-100 p-3 text-center hover-lift">
+            <i class="bi bi-house-fill fs-2 text-primary mb-1"></i>
+            <div class="small fw-semibold">Locations vacances</div>
+          </a>
+        </div>
+      </div>
+
+      <!-- ONGLETS -->
+      <ul class="nav nav-pills mb-5 gap-2" id="mainTabs" role="tablist">
+        <li class="nav-item">
+          <button class="nav-link active" data-bs-toggle="pill" data-bs-target="#tab-event" type="button">
+            <i class="bi bi-calendar-event me-1"></i>Événements
+          </button>
+        </li>
+        <li class="nav-item">
+          <button class="nav-link" data-bs-toggle="pill" data-bs-target="#tab-offers" type="button">
+            <i class="bi bi-tag-fill me-1"></i>Offres exclusives
+          </button>
+        </li>
+        <li class="nav-item">
+          <button class="nav-link" data-bs-toggle="pill" data-bs-target="#tab-profile" type="button">
+            <i class="bi bi-person-gear me-1"></i>Mon compte
+          </button>
+        </li>
+      </ul>
+
+      <div class="tab-content">
+
+        <!-- ═══ ÉVÉNEMENTS ═══ -->
+        <div class="tab-pane fade show active" id="tab-event">
+          <div class="d-flex align-items-center justify-content-between mb-3">
+            <h2 class="section-titre mb-0">Événements à venir</h2>
+            <a href="evenements.html" class="btn btn-outline-attt btn-sm">Voir tous <i class="bi bi-arrow-right ms-1"></i></a>
+          </div>
+          <div id="events-container" class="row g-4"></div>
+        </div>
+
+        <!-- ═══ OFFRES ═══ -->
+        <div class="tab-pane fade" id="tab-offers">
+          <h2 class="section-titre">Offres & avantages membres</h2>
+          <p class="text-muted mb-4">Ces offres sont réservées aux membres de l'Amicale ATTT. Présentez votre code lors de votre visite.</p>
+          <div id="offers-container" class="row g-4"></div>
+        </div>
+
+        <!-- ═══ COMPTE ═══ -->
+        <div class="tab-pane fade" id="tab-profile">
+          <div class="row g-4">
+            <div class="col-lg-5">
+              <div class="card p-4 mb-3">
+                <h2 class="section-titre">Mes informations</h2>
+                <table class="table table-borderless mb-3" id="profile-table">
+                  <tbody>
+                    <tr><th class="text-muted fw-normal" style="width:40%">Nom</th><td id="p-nom">—</td></tr>
+                    <tr><th class="text-muted fw-normal">Prénom</th><td id="p-prenom">—</td></tr>
+                    <tr><th class="text-muted fw-normal">Login</th><td id="p-login">—</td></tr>
+                    <tr><th class="text-muted fw-normal">E-mail</th><td id="p-email">—</td></tr>
+                    <tr><th class="text-muted fw-normal">Téléphone</th><td id="p-tel">—</td></tr>
+                    <tr><th class="text-muted fw-normal">Rôle</th><td id="p-role">—</td></tr>
+                    <tr><th class="text-muted fw-normal">Membre depuis</th><td id="p-date">—</td></tr>
+                  </tbody>
+                </table>
+                <a href="profil.html" class="btn btn-attt w-100">
+                  <i class="bi bi-person-gear me-1"></i>Modifier mon profil complet
+                </a>
+              </div>
+            </div>
+            <div class="col-lg-5">
+              <div class="card p-4">
+                <h3 class="h6 fw-bold mb-3">Changer mon mot de passe</h3>
+                <div id="pwd-alert" class="alert d-none"></div>
+                <div class="mb-3">
+                  <label class="form-label fw-semibold small">Mot de passe actuel</label>
+                  <input type="password" class="form-control" id="old-pwd" />
+                </div>
+                <div class="mb-3">
+                  <label class="form-label fw-semibold small">Nouveau mot de passe</label>
+                  <input type="password" class="form-control" id="new-pwd" minlength="6" />
+                </div>
+                <div class="mb-3">
+                  <label class="form-label fw-semibold small">Confirmer</label>
+                  <input type="password" class="form-control" id="new-pwd2" />
+                </div>
+                <button class="btn btn-attt" onclick="changePwd()">
+                  <i class="bi bi-shield-check me-1"></i>Enregistrer
+                </button>
+              </div>
+            </div>
+          </div>
+        </div>
+
+      </div>
+    </div>
+  </main>
+
+  <!-- FOOTER minimal -->
+  <footer class="py-3 text-white text-center small">
+    <div class="container">
+      <p class="mb-0 opacity-75">&copy; 2026 Amicale ATTT — Espace membres</p>
+    </div>
+  </footer>
+
+<script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js"></script>
+<!-- Firebase SDK (Base de données Cloud) -->
+<script src="https://www.gstatic.com/firebasejs/10.14.1/firebase-app-compat.js"></script>
+<script src="https://www.gstatic.com/firebasejs/10.14.1/firebase-firestore-compat.js"></script>
+<script src="js/firebase-config.js"></script>
+<script src="js/db.js"></script>
+<script src="js/auth.js"></script>
+<script src="js/data.js"></script>
+<script src="js/messages.js"></script>
+<script src="js/profile.js"></script>
+<script>
+'use strict';
+
+/* ─── Garde d'accès ─────────────────────────────────────── */
+const user = AUTH.requireAuth('membre');
+if (!user) throw new Error('Non autorisé');
+
+/* ─── En-tête ───────────────────────────────────────────── */
+const roleLabels = AUTH.ROLE_LABELS;  /* Délégué, Direction, Maître */
+document.getElementById('welcome-title').textContent = 'Bonjour, ' + user.prenom + ' !';
+document.getElementById('welcome-sub').textContent   = 'Rôle : ' + (roleLabels[user.role] || user.role) + ' — Membre depuis le ' + user.dateInscription;
+
+/* ─── Profil ────────────────────────────────────────────── */
+document.getElementById('p-nom').textContent    = user.nom;
+document.getElementById('p-prenom').textContent = user.prenom;
+document.getElementById('p-login').textContent  = user.login;
+document.getElementById('p-email').textContent  = user.email || '(non renseigné)';
+document.getElementById('p-tel').textContent    = user.telephone || '(non renseigné)';
+document.getElementById('p-role').innerHTML     = `<span class="badge bg-primary">${roleLabels[user.role] || user.role}</span>`;
+document.getElementById('p-date').textContent   = user.dateInscription;
+
+/* ─── Changement de mot de passe ─────────────────────────── */
+function changePwd() {
+  const alert  = document.getElementById('pwd-alert');
+  const show   = (type, msg) => { alert.className = 'alert alert-' + type; alert.textContent = msg; alert.classList.remove('d-none'); };
+  const oldPwd = document.getElementById('old-pwd').value;
+  const newPwd = document.getElementById('new-pwd').value;
+  const newPwd2= document.getElementById('new-pwd2').value;
+
+  if (!oldPwd || !newPwd) return show('warning', 'Tous les champs sont requis.');
+  if (newPwd.length < 6)  return show('warning', 'Le nouveau mot de passe doit faire au moins 6 caractères.');
+  if (newPwd !== newPwd2) return show('danger', 'Les nouveaux mots de passe ne correspondent pas.');
+
+  /* Vérification ancien mot de passe via re-login */
+  const check = AUTH.login(user.login, oldPwd);
+  if (!check.ok) return show('danger', 'Mot de passe actuel incorrect.');
+
+  /* Calcul du hash via login (on doit recréer l'entrée) */
+  const users = AUTH.getUsers();
+  const idx = users.findIndex(u => u.id === user.id);
+  if (idx === -1) return;
+  /* On passe par updateUser avec le hash recalculé manuellement — on utilise register trick */
+  /* Simple : on force la mise à jour en passant par une inscription temporaire virtuelle */
+  const tmpResult = (function() {
+    const salt = 'ATTT_AMICALE_DZ_2026';
+    const s = newPwd + salt;
+    let h = 2166136261;
+    for (let i = 0; i < s.length; i++) { h ^= s.charCodeAt(i); h = Math.imul(h, 16777619) >>> 0; }
+    return h.toString(16).padStart(8, '0');
+  })();
+  AUTH.updateUser(user.id, { passwordHash: tmpResult });
+  show('success', 'Mot de passe mis à jour avec succès.');
+  document.getElementById('old-pwd').value = '';
+  document.getElementById('new-pwd').value = '';
+  document.getElementById('new-pwd2').value = '';
+}
+
+/* ─── Rendu des événements ──────────────────────────────── */
+function renderEvents() {
+  const container = document.getElementById('events-container');
+  const now       = new Date().toISOString().split('T')[0];
+  const events    = DATA.getEvents()
+    .filter(e => e.date >= now)
+    .sort((a, b) => a.date.localeCompare(b.date));
+
+  if (!events.length) {
+    container.innerHTML = '<div class="col-12"><p class="text-muted">Aucun événement à venir.</p></div>';
+    return;
+  }
+
+  const catColors = { sport: 'primary', culture: 'warning', famille: 'success' };
+  const accesIcons = { membres: '<span class="badge bg-warning text-dark ms-1"><i class="bi bi-star-fill"></i> Membres</span>', tous: '' };
+
+  container.innerHTML = events.map(e => {
+    const d = new Date(e.date);
+    const day   = d.getDate().toString().padStart(2,'0');
+    const month = d.toLocaleDateString('fr-FR',{month:'short'}).toUpperCase();
+    const participants = PROFILE.getEventParticipants(e.id);
+    const count = participants.length;
+    const max   = Number(e.nbMaxParticipants) || 0;
+    const isInscrit = participants.some(p => p.userId === user.id);
+    const limitDep  = e.dateLimitParticipation && now > e.dateLimitParticipation;
+    const complet   = max > 0 && count >= max && !isInscrit;
+    const prixHtml  = e.prixParticipant > 0 ? ` &middot; ${Number(e.prixParticipant).toLocaleString('fr')} DA` : '';
+    let btnHtml;
+    if (isInscrit) {
+      btnHtml = `<button class="btn btn-sm btn-outline-success mt-2" onclick="annulerParticipEsp('${e.id}')">
+                   <i class="bi bi-check-circle me-1"></i>Inscrit &middot; Annuler
+                 </button>`;
+    } else if (limitDep) {
+      btnHtml = `<span class="badge bg-secondary mt-2"><i class="bi bi-calendar-x me-1"></i>Inscriptions ferm&eacute;es</span>`;
+    } else if (complet) {
+      btnHtml = `<span class="badge bg-danger mt-2">Complet</span>`;
+    } else {
+      btnHtml = `<button class="btn btn-attt btn-sm mt-2" onclick="participerEsp('${e.id}')">
+                   <i class="bi bi-calendar-check me-1"></i>Participer${prixHtml}
+                 </button>`;
+    }
+    const placesHtml = max > 0 ? `<small class="text-muted ms-2">${count}/${max}</small>` : (count > 0 ? `<small class="text-muted ms-2">${count} inscrit${count>1?'s':''}</small>` : '');
+    return `
+      <div class="col-md-6 col-lg-4">
+        <div class="card h-100 p-3">
+          <div class="d-flex gap-3">
+            <div class="text-center rounded-3 px-2 py-1 flex-shrink-0 text-white" style="background:var(--couleur-principale);min-width:54px;">
+              <div class="fw-bold fs-5 lh-1">${AUTH.esc(day)}</div>
+              <div class="small">${AUTH.esc(month)}</div>
+            </div>
+            <div>
+              <span class="badge bg-${catColors[e.categorie]||'secondary'} mb-1">${AUTH.esc(e.categorie)}</span>
+              ${accesIcons[e.acces]||''}
+              <h3 class="h6 fw-bold mb-1">${AUTH.esc(e.titre)}</h3>
+              <p class="text-muted small mb-1"><i class="bi bi-geo-alt me-1"></i>${AUTH.esc(e.lieu)}</p>
+              <p class="text-muted small mb-0"><i class="bi bi-clock me-1"></i>${AUTH.esc(e.heure||'')}</p>
+            </div>
+          </div>
+          <p class="small text-muted mt-3 mb-0">${AUTH.esc(e.description||'')}</p>
+          <div class="mt-2 d-flex align-items-center gap-2 flex-wrap">${btnHtml}${placesHtml}</div>
+        </div>
+      </div>`;
+  }).join('');
+}
+
+/* ─── Rendu des offres ──────────────────────────────────── */
+function renderOffers() {
+  const container = document.getElementById('offers-container');
+  const now       = new Date().toISOString().split('T')[0];
+  const offers    = DATA.getOffers()
+    .filter(o => !o.dateExpiration || o.dateExpiration >= now);
+
+  if (!offers.length) {
+    container.innerHTML = '<div class="col-12"><p class="text-muted">Aucune offre disponible actuellement.</p></div>';
+    return;
+  }
+
+  container.innerHTML = offers.map(o => `
+    <div class="col-md-6 col-lg-4">
+      <div class="card h-100 p-4">
+        <div class="d-flex justify-content-between align-items-start mb-2">
+          <span class="badge fs-5 px-3 py-2" style="background:var(--couleur-secondaire);color:#111;">${AUTH.esc(o.reduction)}</span>
+          <span class="badge bg-light text-dark border"><i class="bi bi-clock me-1"></i>Exp. ${AUTH.esc(o.dateExpiration||'—')}</span>
+        </div>
+        <h3 class="h5 fw-bold mb-1">${AUTH.esc(o.titre)}</h3>
+        <p class="text-muted small mb-2"><i class="bi bi-building me-1"></i>${AUTH.esc(o.partenaire)}</p>
+        <p class="text-muted small flex-grow-1">${AUTH.esc(o.description)}</p>
+        <div class="mt-3 p-2 rounded-2 text-center" style="background:#f0f4ff;border:1px dashed #003DA6;">
+          <small class="text-muted d-block">Code à présenter</small>
+          <strong style="color:var(--couleur-principale);font-size:1.1rem;letter-spacing:0.1em;">${AUTH.esc(o.code||'—')}</strong>
+        </div>
+      </div>
+    </div>`).join('');
+}
+
+DB_READY.then(() => {
+  renderEvents(); renderOffers();
+  /* Badge messages non lus */
+  const unread = MESSAGES.unreadCount(user.id);
+  if (unread > 0) {
+    const nb = document.getElementById('nav-msg-badge');
+    const sc = document.getElementById('shortcut-msg-badge');
+    if (nb) { nb.textContent = unread; nb.style.display = ''; }
+    if (sc) { sc.textContent = unread; sc.style.display = ''; }
+  }
+});
+
+/* ── Participer / Annuler depuis espace-membre ─────────── */
+function participerEsp(eventId) {
+  PROFILE.recordParticipation(user.id, eventId);
+  renderEvents();
+}
+function annulerParticipEsp(eventId) {
+  if (!confirm('Annuler votre participation à cet événement ?')) return;
+  PROFILE.cancelParticipation(user.id, eventId);
+  renderEvents();
+}
+</script>
+</body>
+</html>

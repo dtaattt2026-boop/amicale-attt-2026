@@ -1,0 +1,583 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Amicale ATTT — Événements</title>
+  <meta name="description" content="Agenda des événements à venir et passés de l'Amicale de l'ATTT." />
+  <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css" rel="stylesheet" />
+  <link href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.3/font/bootstrap-icons.css" rel="stylesheet" />
+  <link href="css/style.css" rel="stylesheet" />
+  <link rel="manifest" href="manifest.json" />
+  <meta name="theme-color" content="#003DA6" />
+  <style>
+    .cat-badge-sport    { background:#17a2b8; color:#fff; }
+    .cat-badge-culture  { background:#fd7e14; color:#fff; }
+    .cat-badge-famille  { background:#28a745; color:#fff; }
+    .cat-badge-autre    { background:#6c757d; color:#fff; }
+    .event-card         { transition: box-shadow .2s; cursor:default; }
+    .event-card:hover   { box-shadow: 0 6px 24px rgba(0,61,166,.13); }
+    .event-date-box     { min-width:68px; }
+    .btn-participate    { min-width:160px; }
+    .filter-bar .btn.active { box-shadow: 0 0 0 2px var(--couleur-principale); }
+    /* Bouton flottant admin */
+    #btn-create-event   {
+      position: fixed; bottom: 30px; right: 30px; z-index: 1050;
+      border-radius: 50px; padding: 12px 22px;
+      box-shadow: 0 4px 18px rgba(0,61,166,.35);
+      display: none;
+    }
+  </style>
+</head>
+<body>
+
+  <!-- NAVBAR -->
+  <nav class="navbar navbar-expand-lg navbar-dark">
+    <div class="container">
+      <a class="navbar-brand fw-bold d-flex align-items-center gap-2" href="index.html">
+        <i class="bi bi-people-fill fs-4"></i>Amicale ATTT
+      </a>
+      <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navMenu" aria-controls="navMenu" aria-expanded="false" aria-label="Menu de navigation">
+        <span class="navbar-toggler-icon"></span>
+      </button>
+      <div class="collapse navbar-collapse" id="navMenu">
+        <ul class="navbar-nav ms-auto gap-1">
+          <li class="nav-item"><a class="nav-link" href="index.html">Accueil</a></li>
+          <li class="nav-item"><a class="nav-link" href="a-propos.html">L'association</a></li>
+          <li class="nav-item"><a class="nav-link" href="activites.html">Activités</a></li>
+          <li class="nav-item"><a class="nav-link active" href="evenements.html">Événements</a></li>
+          <li class="nav-item"><a class="nav-link" href="actualites.html">Actualités</a></li>
+          <li class="nav-item"><a class="nav-link" href="galerie.html">Galerie</a></li>
+          <li class="nav-item"><a class="nav-link" href="telechargements.html">Téléchargements</a></li>
+          <li class="nav-item"><a class="nav-link" href="contact.html">Contact</a></li>
+        </ul>
+      </div>
+    </div>
+  </nav>
+
+  <!-- EN-TÊTE PAGE -->
+  <div class="py-4" style="background: linear-gradient(135deg, var(--couleur-principale), #0056cc); color:white;">
+    <div class="container">
+      <nav aria-label="breadcrumb">
+        <ol class="breadcrumb mb-1">
+          <li class="breadcrumb-item"><a href="index.html" class="text-white-50">Accueil</a></li>
+          <li class="breadcrumb-item active text-white">Événements</li>
+        </ol>
+      </nav>
+      <h1 class="fw-bold mb-0">Agenda des événements</h1>
+    </div>
+  </div>
+
+  <!-- CONTENU PRINCIPAL -->
+  <main class="py-5">
+    <div class="container">
+
+      <!-- BARRE DE FILTRES -->
+      <div class="filter-bar d-flex flex-wrap gap-2 align-items-center mb-4">
+        <span class="fw-semibold text-muted small me-1">Filtrer :</span>
+        <button class="btn btn-sm btn-outline-secondary active" data-cat="" onclick="setFilter(this,'')">Tous</button>
+        <button class="btn btn-sm btn-outline-info"    data-cat="sport"   onclick="setFilter(this,'sport')"><i class="bi bi-trophy me-1"></i>Sport</button>
+        <button class="btn btn-sm btn-outline-warning" data-cat="culture" onclick="setFilter(this,'culture')"><i class="bi bi-palette me-1"></i>Culture</button>
+        <button class="btn btn-sm btn-outline-success" data-cat="famille" onclick="setFilter(this,'famille')"><i class="bi bi-people me-1"></i>Famille</button>
+        <button class="btn btn-sm btn-outline-secondary" data-cat="autre" onclick="setFilter(this,'autre')"><i class="bi bi-grid me-1"></i>Autre</button>
+        <div class="ms-auto">
+          <input type="search" class="form-control form-control-sm" id="searchEvt" placeholder="Rechercher…" oninput="renderEvents()" style="min-width:180px;" />
+        </div>
+      </div>
+
+      <!-- ÉVÉNEMENTS À VENIR -->
+      <h2 class="section-titre">À venir</h2>
+      <div id="list-avenir" class="row g-4 mb-5"></div>
+      <div id="empty-avenir" class="text-center text-muted py-4 d-none">
+        <i class="bi bi-calendar-x fs-2 d-block mb-2"></i>Aucun événement à venir pour le moment.
+      </div>
+
+      <!-- ÉVÉNEMENTS PASSÉS -->
+      <h2 class="section-titre mt-3">Événements passés</h2>
+      <div id="list-passes" class="row g-3 mb-3"></div>
+      <div id="empty-passes" class="text-center text-muted py-3 d-none">
+        <i class="bi bi-clock-history fs-2 d-block mb-2"></i>Aucun événement passé.
+      </div>
+
+    </div>
+  </main>
+
+  <!-- BOUTON FLOTTANT CRÉER (admin+) -->
+  <button id="btn-create-event" class="btn btn-attt" onclick="openEvtModal()" title="Créer un événement">
+    <i class="bi bi-plus-lg me-1"></i>Créer un événement
+  </button>
+
+  <!-- ════ MODAL DÉTAIL + PARTICIPATION ════ -->
+  <div class="modal fade" id="detailModal" tabindex="-1" aria-labelledby="detailModalLabel">
+    <div class="modal-dialog modal-lg">
+      <div class="modal-content rounded-4">
+        <div class="modal-header text-white" style="background:var(--couleur-principale);">
+          <h2 class="modal-title h5" id="detailModalLabel">Détail de l'événement</h2>
+          <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal"></button>
+        </div>
+        <div class="modal-body p-4" id="detail-body"></div>
+        <div class="modal-footer" id="detail-footer"></div>
+      </div>
+    </div>
+  </div>
+
+  <!-- ════ MODAL CRÉER / MODIFIER ÉVÉNEMENT (admin+) ════ -->
+  <div class="modal fade" id="evtModal" tabindex="-1" aria-labelledby="evtModalLabel">
+    <div class="modal-dialog modal-lg">
+      <div class="modal-content rounded-4">
+        <div class="modal-header text-white" style="background:var(--couleur-principale);">
+          <h2 class="modal-title h5" id="evtModalLabel">Créer un événement</h2>
+          <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal"></button>
+        </div>
+        <div class="modal-body p-4">
+          <input type="hidden" id="evt-id" />
+          <div class="row g-3">
+            <div class="col-12">
+              <label class="form-label fw-semibold">Titre <span class="text-danger">*</span></label>
+              <input type="text" class="form-control" id="evt-titre" required maxlength="120" />
+            </div>
+            <div class="col-sm-6">
+              <label class="form-label fw-semibold">Date <span class="text-danger">*</span></label>
+              <input type="date" class="form-control" id="evt-date" required />
+            </div>
+            <div class="col-sm-6">
+              <label class="form-label fw-semibold">Heure</label>
+              <input type="time" class="form-control" id="evt-heure" />
+            </div>
+            <div class="col-12">
+              <label class="form-label fw-semibold">Lieu <span class="text-danger">*</span></label>
+              <input type="text" class="form-control" id="evt-lieu" required maxlength="120" />
+            </div>
+            <div class="col-sm-6">
+              <label class="form-label fw-semibold">Catégorie</label>
+              <select class="form-select" id="evt-categorie">
+                <option value="sport">Sport</option>
+                <option value="culture">Culture</option>
+                <option value="famille">Famille</option>
+                <option value="autre">Autre</option>
+              </select>
+            </div>
+            <div class="col-sm-6">
+              <label class="form-label fw-semibold">Accès</label>
+              <select class="form-select" id="evt-acces">
+                <option value="tous">Ouvert à tous</option>
+                <option value="membres">Membres uniquement</option>
+              </select>
+            </div>
+            <div class="col-12">
+              <label class="form-label fw-semibold">Description</label>
+              <textarea class="form-control" id="evt-description" rows="3" maxlength="500"></textarea>
+            </div>
+            <div class="col-12"><hr class="my-1" /><p class="fw-semibold small text-muted mb-0">Participation &amp; paiement (optionnel)</p></div>
+            <div class="col-sm-4">
+              <label class="form-label fw-semibold small">Date limite d'inscription</label>
+              <input type="date" class="form-control" id="evt-limitParticipation" />
+            </div>
+            <div class="col-sm-4">
+              <label class="form-label fw-semibold small">Participants min</label>
+              <input type="number" class="form-control" id="evt-nbMin" min="0" value="0" />
+            </div>
+            <div class="col-sm-4">
+              <label class="form-label fw-semibold small">Participants max (0 = illimité)</label>
+              <input type="number" class="form-control" id="evt-nbMax" min="0" value="0" />
+            </div>
+            <div class="col-sm-4">
+              <label class="form-label fw-semibold small">Quota min / candidat</label>
+              <input type="number" class="form-control" id="evt-quotaMin" min="1" value="1" />
+            </div>
+            <div class="col-sm-4">
+              <label class="form-label fw-semibold small">Quota max / candidat</label>
+              <input type="number" class="form-control" id="evt-quotaMax" min="1" value="1" />
+            </div>
+            <div class="col-sm-4">
+              <label class="form-label fw-semibold small">Prix / participant (DA)</label>
+              <input type="number" class="form-control" id="evt-prix" min="0" value="0" />
+            </div>
+          </div>
+        </div>
+        <div class="modal-footer">
+          <button class="btn btn-secondary" data-bs-dismiss="modal">Annuler</button>
+          <button class="btn btn-attt" onclick="saveEvt()"><i class="bi bi-check-lg me-1"></i>Enregistrer</button>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- FOOTER -->
+  <footer class="py-4 text-white">
+    <div class="container">
+      <div class="row align-items-center">
+        <div class="col-md-6 text-center text-md-start mb-3 mb-md-0">
+          <p class="mb-1 fw-semibold">Amicale de l'ATTT</p>
+          <p class="mb-0 small opacity-75">Association du personnel — Agence Technique des Transports Terrestres</p>
+        </div>
+        <div class="col-md-6 text-center text-md-end">
+          <div class="d-flex justify-content-center justify-content-md-end gap-3 mb-2 flex-wrap">
+            <a href="a-propos.html">L'association</a>
+            <a href="actualites.html">Actualités</a>
+            <a href="activites.html">Activités</a>
+            <a href="contact.html">Contact</a>
+          </div>
+          <p class="mb-0 small opacity-50">&copy; 2026 Amicale ATTT — Tous droits réservés</p>
+          <p class="mb-0 mt-1"><a href="hebergement.html" class="small opacity-40">Guide webmaster</a></p>
+        </div>
+      </div>
+    </div>
+  </footer>
+
+  <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js"></script>
+  <script src="https://www.gstatic.com/firebasejs/10.14.1/firebase-app-compat.js"></script>
+  <script src="https://www.gstatic.com/firebasejs/10.14.1/firebase-firestore-compat.js"></script>
+  <script src="js/firebase-config.js"></script>
+  <script src="js/db.js"></script>
+  <script src="js/auth.js"></script>
+  <script src="js/data.js"></script>
+  <script src="js/profile.js"></script>
+  <script src="js/log.js"></script>
+  <script src="js/version-check.js"></script>
+  <script src="js/main.js"></script>
+  <script>
+  'use strict';
+
+  /* ── Config catégories ─────────────────────────────────── */
+  const CAT = {
+    sport:   { label:'Sport',   cls:'cat-badge-sport',   icon:'bi-trophy' },
+    culture: { label:'Culture', cls:'cat-badge-culture', icon:'bi-palette' },
+    famille: { label:'Famille', cls:'cat-badge-famille', icon:'bi-people' },
+    autre:   { label:'Autre',   cls:'cat-badge-autre',   icon:'bi-grid' }
+  };
+  const MOIS = ['Jan','Fév','Mar','Avr','Mai','Juin','Juil','Août','Sep','Oct','Nov','Déc'];
+
+  let _filterCat = '';
+
+  function setFilter(btn, cat) {
+    document.querySelectorAll('.filter-bar .btn').forEach(b => b.classList.remove('active'));
+    btn.classList.add('active');
+    _filterCat = cat;
+    renderEvents();
+  }
+
+  /* ── Format date ─────────────────────────────────────── */
+  function fmtDateBox(dateStr, past) {
+    const d = new Date(dateStr + 'T00:00:00');
+    const bg = past ? '#6c757d' : 'var(--couleur-principale)';
+    return `<div class="text-center rounded-3 px-3 py-2 event-date-box flex-shrink-0"
+              style="background:${bg};color:white;">
+              <div class="fw-bold fs-3 lh-1">${String(d.getDate()).padStart(2,'0')}</div>
+              <div class="small text-uppercase">${MOIS[d.getMonth()]} ${d.getFullYear()}</div>
+            </div>`;
+  }
+
+  function fmtDate(dateStr) {
+    const d = new Date(dateStr + 'T00:00:00');
+    return d.toLocaleDateString('fr-DZ', { weekday:'long', day:'numeric', month:'long', year:'numeric' });
+  }
+
+  /* ── État de participation pour un événement ─────────── */
+  function getParticipationState(evt) {
+    const user = AUTH.getUser();
+    const today = new Date().toISOString().split('T')[0];
+    const participants = (typeof PROFILE !== 'undefined') ? PROFILE.getEventParticipants(evt.id) : [];
+    const count = participants.length;
+    const max   = Number(evt.nbMaxParticipants) || 0;
+    const isInscrit = user ? participants.some(p => p.userId === user.id) : false;
+    const limitDep  = evt.dateLimitParticipation && today > evt.dateLimitParticipation;
+    const complet   = max > 0 && count >= max && !isInscrit;
+
+    /* Accès réservé aux membres */
+    const needsMembre = evt.acces === 'membres';
+    const hasAcces = !needsMembre || (user && AUTH.hasRole(user, 'membre'));
+
+    return { user, count, max, isInscrit, limitDep, complet, hasAcces };
+  }
+
+  /* ── Bouton participation ──────────────────────────────── */
+  function buildParticipateBtn(evt, full) {
+    const { user, count, max, isInscrit, limitDep, complet, hasAcces } = getParticipationState(evt);
+    const pastEvent = evt.date < new Date().toISOString().split('T')[0];
+
+    let countHtml = '';
+    if (max > 0) {
+      countHtml = `<span class="text-muted small ms-2">${count}/${max} inscrits</span>`;
+    } else if (count > 0) {
+      countHtml = `<span class="text-muted small ms-2"><i class="bi bi-people me-1"></i>${count} inscrit${count>1?'s':''}</span>`;
+    }
+
+    if (pastEvent) {
+      return `<span class="badge bg-secondary">Événement passé</span>${countHtml}`;
+    }
+    if (!user) {
+      return `<a href="login.html?redirect=evenements.html" class="btn btn-sm btn-attt btn-participate">
+                <i class="bi bi-box-arrow-in-right me-1"></i>Se connecter pour participer
+              </a>${countHtml}`;
+    }
+    if (!hasAcces) {
+      return `<span class="badge bg-warning text-dark"><i class="bi bi-lock me-1"></i>Réservé aux membres</span>${countHtml}`;
+    }
+    if (isInscrit) {
+      return `<button class="btn btn-sm btn-outline-success btn-participate"
+                onclick="annulerParticipation('${evt.id}',event)">
+                <i class="bi bi-check-circle me-1"></i>Inscrit · Annuler
+              </button>${countHtml}`;
+    }
+    if (limitDep) {
+      return `<span class="badge bg-secondary"><i class="bi bi-calendar-x me-1"></i>Inscriptions fermées</span>${countHtml}`;
+    }
+    if (complet) {
+      return `<span class="badge bg-danger"><i class="bi bi-x-circle me-1"></i>Complet</span>${countHtml}`;
+    }
+    const prixHtml = evt.prixParticipant > 0 ? ` · ${Number(evt.prixParticipant).toLocaleString('fr')} DA` : '';
+    return `<button class="btn btn-sm btn-attt btn-participate"
+              onclick="participerEvent('${evt.id}',event)">
+              <i class="bi bi-calendar-check me-1"></i>Participer${prixHtml}
+            </button>${countHtml}`;
+  }
+
+  /* ── Rendu liste ───────────────────────────────────────── */
+  function renderEvents() {
+    const search  = (document.getElementById('searchEvt')?.value || '').toLowerCase().trim();
+    const today   = new Date().toISOString().split('T')[0];
+    const events  = DATA.getEvents();
+    const user    = AUTH.getUser();
+
+    let avenir = [], passes = [];
+    events.forEach(evt => {
+      if (_filterCat && evt.categorie !== _filterCat) return;
+      if (search && !evt.titre.toLowerCase().includes(search) &&
+          !evt.lieu.toLowerCase().includes(search) &&
+          !(evt.description||'').toLowerCase().includes(search)) return;
+      if (evt.date >= today) avenir.push(evt);
+      else passes.push(evt);
+    });
+    avenir.sort((a,b) => a.date.localeCompare(b.date));
+    passes.sort((a,b) => b.date.localeCompare(a.date));
+
+    /* Affiche admin (role >= admin) */
+    const isAdmin = user && AUTH.hasRole(user, 'admin');
+    document.getElementById('btn-create-event').style.display = isAdmin ? 'block' : 'none';
+
+    _renderList('list-avenir',  'empty-avenir',  avenir, false);
+    _renderList('list-passes',  'empty-passes',  passes, true);
+  }
+
+  function _renderList(listId, emptyId, events, past) {
+    const container = document.getElementById(listId);
+    const emptyEl   = document.getElementById(emptyId);
+    if (!events.length) {
+      container.innerHTML = '';
+      emptyEl.classList.remove('d-none');
+      return;
+    }
+    emptyEl.classList.add('d-none');
+    const cat = CAT;
+    container.innerHTML = events.map(evt => {
+      const c = cat[evt.categorie] || cat.autre;
+      const accesBadge = evt.acces === 'membres'
+        ? `<span class="badge bg-light text-dark border"><i class="bi bi-shield-check me-1"></i>Membres</span>`
+        : `<span class="badge bg-light text-dark border">Ouvert à tous</span>`;
+      const heure = evt.heure ? ` &nbsp;|&nbsp; <i class="bi bi-clock me-1"></i>${evt.heure}` : '';
+      const opacity = past ? ' opacity-75' : '';
+      return `
+        <div class="col-12">
+          <div class="card p-4 event-card${opacity}">
+            <div class="row align-items-center g-3">
+              <div class="col-auto">
+                ${fmtDateBox(evt.date, past)}
+              </div>
+              <div class="col">
+                <div class="d-flex flex-wrap gap-2 mb-1">
+                  <span class="badge ${c.cls}"><i class="bi ${c.icon} me-1"></i>${c.label}</span>
+                  ${accesBadge}
+                </div>
+                <h3 class="h5 fw-bold mb-1">${_esc(evt.titre)}</h3>
+                <p class="text-muted small mb-2">
+                  <i class="bi bi-geo-alt me-1"></i>${_esc(evt.lieu)}${heure}
+                </p>
+                <p class="mb-3 text-muted small">${_esc(evt.description || '')}</p>
+                <div class="d-flex align-items-center gap-2 flex-wrap">
+                  ${buildParticipateBtn(evt)}
+                  <button class="btn btn-sm btn-outline-secondary" onclick="openDetail('${evt.id}')">
+                    <i class="bi bi-info-circle me-1"></i>Détails
+                  </button>
+                  ${AUTH.getUser() && AUTH.hasRole(AUTH.getUser(),'admin')
+                    ? `<button class="btn btn-sm btn-outline-primary" onclick="openEvtModal('${evt.id}')"><i class="bi bi-pencil"></i></button>
+                       <button class="btn btn-sm btn-outline-danger" onclick="deleteEvt('${evt.id}')"><i class="bi bi-trash"></i></button>`
+                    : ''}
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>`;
+    }).join('');
+  }
+
+  function _esc(s) {
+    return String(s || '').replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;');
+  }
+
+  /* ── Participer / Annuler ─────────────────────────────── */
+  function participerEvent(eventId, e) {
+    if (e) e.stopPropagation();
+    const user = AUTH.getUser();
+    if (!user) { window.location.href = 'login.html?redirect=evenements.html'; return; }
+    PROFILE.recordParticipation(user.id, eventId);
+    if (typeof LOG !== 'undefined') LOG.add(user.id, `Participation enregistrée : ${eventId}`);
+    renderEvents();
+    /* Mettre à jour le modal détail s'il est ouvert */
+    const openEvt = DATA.getEvents().find(ev => ev.id === eventId);
+    if (openEvt) _refreshDetailFooter(openEvt);
+  }
+
+  function annulerParticipation(eventId, e) {
+    if (e) e.stopPropagation();
+    const user = AUTH.getUser();
+    if (!user) return;
+    if (!confirm('Annuler votre participation à cet événement ?')) return;
+    PROFILE.cancelParticipation(user.id, eventId);
+    if (typeof LOG !== 'undefined') LOG.add(user.id, `Participation annulée : ${eventId}`);
+    renderEvents();
+    const openEvt = DATA.getEvents().find(ev => ev.id === eventId);
+    if (openEvt) _refreshDetailFooter(openEvt);
+  }
+
+  /* ── Modal détail ─────────────────────────────────────── */
+  function openDetail(eventId) {
+    const evt = DATA.getEvents().find(e => e.id === eventId);
+    if (!evt) return;
+    const c = CAT[evt.categorie] || CAT.autre;
+    const { count, max } = getParticipationState(evt);
+    const placesHtml = max > 0
+      ? `<div class="progress mt-1" style="height:6px;">
+           <div class="progress-bar bg-primary" style="width:${Math.min(100,Math.round(count/max*100))}%"></div>
+         </div>
+         <small class="text-muted">${count} / ${max} places</small>`
+      : count > 0 ? `<small class="text-muted">${count} inscrit${count>1?'s':''}</small>` : '';
+
+    document.getElementById('detailModalLabel').textContent = evt.titre;
+    document.getElementById('detail-body').innerHTML = `
+      <div class="d-flex flex-wrap gap-2 mb-3">
+        <span class="badge ${c.cls}"><i class="bi ${c.icon} me-1"></i>${c.label}</span>
+        <span class="badge bg-light text-dark border">${evt.acces === 'membres' ? 'Membres uniquement' : 'Ouvert à tous'}</span>
+      </div>
+      <div class="row g-3">
+        <div class="col-sm-6">
+          <p class="mb-1"><i class="bi bi-calendar-event text-primary me-2"></i><strong>Date :</strong> ${fmtDate(evt.date)}</p>
+          ${evt.heure ? `<p class="mb-1"><i class="bi bi-clock text-primary me-2"></i><strong>Heure :</strong> ${evt.heure}</p>` : ''}
+          <p class="mb-1"><i class="bi bi-geo-alt text-primary me-2"></i><strong>Lieu :</strong> ${_esc(evt.lieu)}</p>
+        </div>
+        <div class="col-sm-6">
+          ${evt.dateLimitParticipation ? `<p class="mb-1"><i class="bi bi-calendar-check text-warning me-2"></i><strong>Limite inscription :</strong> ${fmtDate(evt.dateLimitParticipation)}</p>` : ''}
+          ${evt.prixParticipant > 0 ? `<p class="mb-1"><i class="bi bi-cash text-success me-2"></i><strong>Prix :</strong> ${Number(evt.prixParticipant).toLocaleString('fr')} DA / participant</p>` : ''}
+          <div class="mt-2">${placesHtml}</div>
+        </div>
+      </div>
+      ${evt.description ? `<hr/><p class="text-muted">${_esc(evt.description)}</p>` : ''}
+    `;
+    _refreshDetailFooter(evt);
+    new bootstrap.Modal(document.getElementById('detailModal')).show();
+  }
+
+  function _refreshDetailFooter(evt) {
+    const footer = document.getElementById('detail-footer');
+    if (!footer) return;
+    footer.innerHTML = `<div class="d-flex align-items-center gap-2 flex-wrap">
+      ${buildParticipateBtn(evt, true)}
+      <button class="btn btn-outline-secondary" data-bs-dismiss="modal">Fermer</button>
+    </div>`;
+  }
+
+  /* ── Créer / Modifier événement (admin+) ──────────────── */
+  function openEvtModal(eventId) {
+    const modal = document.getElementById('evtModal');
+    document.getElementById('evt-id').value           = '';
+    document.getElementById('evt-titre').value        = '';
+    document.getElementById('evt-date').value         = '';
+    document.getElementById('evt-heure').value        = '';
+    document.getElementById('evt-lieu').value         = '';
+    document.getElementById('evt-categorie').value    = 'sport';
+    document.getElementById('evt-acces').value        = 'tous';
+    document.getElementById('evt-description').value  = '';
+    document.getElementById('evt-limitParticipation').value = '';
+    document.getElementById('evt-nbMin').value = 0;
+    document.getElementById('evt-nbMax').value = 0;
+    document.getElementById('evt-quotaMin').value = 1;
+    document.getElementById('evt-quotaMax').value = 1;
+    document.getElementById('evt-prix').value = 0;
+    document.getElementById('evtModalLabel').textContent = 'Créer un événement';
+
+    if (eventId) {
+      const evt = DATA.getEvents().find(e => e.id === eventId);
+      if (evt) {
+        document.getElementById('evt-id').value          = evt.id;
+        document.getElementById('evt-titre').value       = evt.titre;
+        document.getElementById('evt-date').value        = evt.date;
+        document.getElementById('evt-heure').value       = evt.heure || '';
+        document.getElementById('evt-lieu').value        = evt.lieu;
+        document.getElementById('evt-categorie').value   = evt.categorie || 'sport';
+        document.getElementById('evt-acces').value       = evt.acces || 'tous';
+        document.getElementById('evt-description').value = evt.description || '';
+        document.getElementById('evt-limitParticipation').value = evt.dateLimitParticipation || '';
+        document.getElementById('evt-nbMin').value  = evt.nbMinParticipants || 0;
+        document.getElementById('evt-nbMax').value  = evt.nbMaxParticipants || 0;
+        document.getElementById('evt-quotaMin').value = evt.quotaMin || 1;
+        document.getElementById('evt-quotaMax').value = evt.quotaMax || 1;
+        document.getElementById('evt-prix').value   = evt.prixParticipant || 0;
+        document.getElementById('evtModalLabel').textContent = 'Modifier l\'événement';
+      }
+    }
+    new bootstrap.Modal(modal).show();
+  }
+
+  function saveEvt() {
+    const titre = document.getElementById('evt-titre').value.trim();
+    const date  = document.getElementById('evt-date').value;
+    const lieu  = document.getElementById('evt-lieu').value.trim();
+    if (!titre || !date || !lieu) { alert('Titre, date et lieu sont obligatoires.'); return; }
+
+    const user = AUTH.getUser();
+    const evtData = {
+      titre, date, lieu,
+      heure       : document.getElementById('evt-heure').value,
+      categorie   : document.getElementById('evt-categorie').value,
+      acces       : document.getElementById('evt-acces').value,
+      description : document.getElementById('evt-description').value.trim(),
+      dateLimitParticipation: document.getElementById('evt-limitParticipation').value,
+      nbMinParticipants: Number(document.getElementById('evt-nbMin').value) || 0,
+      nbMaxParticipants: Number(document.getElementById('evt-nbMax').value) || 0,
+      quotaMin    : Number(document.getElementById('evt-quotaMin').value) || 1,
+      quotaMax    : Number(document.getElementById('evt-quotaMax').value) || 1,
+      prixParticipant: Number(document.getElementById('evt-prix').value) || 0,
+      modalitesPaiement: [], dateLimitPaiement: '', locationConfig: null
+    };
+
+    const id = document.getElementById('evt-id').value;
+    if (id) {
+      DATA.updateEvent(id, evtData);
+      if (typeof LOG !== 'undefined') LOG.add(user?.id, `Événement modifié : ${titre}`);
+    } else {
+      DATA.addEvent(evtData);
+      if (typeof LOG !== 'undefined') LOG.add(user?.id, `Événement créé : ${titre}`);
+    }
+
+    bootstrap.Modal.getInstance(document.getElementById('evtModal'))?.hide();
+    renderEvents();
+  }
+
+  function deleteEvt(eventId) {
+    const evt = DATA.getEvents().find(e => e.id === eventId);
+    if (!evt) return;
+    if (!confirm(`Supprimer l'événement "${evt.titre}" ?`)) return;
+    DATA.deleteEvent(eventId);
+    const user = AUTH.getUser();
+    if (typeof LOG !== 'undefined') LOG.add(user?.id, `Événement supprimé : ${evt.titre}`);
+    renderEvents();
+  }
+
+  /* ── Init ─────────────────────────────────────────────── */
+  document.addEventListener('DB_READY', renderEvents);
+  document.addEventListener('DOMContentLoaded', () => {
+    if (typeof DATA !== 'undefined') renderEvents();
+  });
+  </script>
+</body>
+</html>

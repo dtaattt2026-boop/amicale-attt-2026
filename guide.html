@@ -1,0 +1,1060 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Amicale ATTT — Guide technique</title>
+  <link rel="manifest" href="manifest.json" />
+  <meta name="theme-color" content="#003DA6" />
+  <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css" rel="stylesheet" />
+  <link href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.3/font/bootstrap-icons.css" rel="stylesheet" />
+  <link href="css/style.css" rel="stylesheet" />
+  <style>
+    :root { --guide-accent: #003DA6; }
+    body { background: #f8f9fa; }
+
+    /* ── Sommaire flottant ── */
+    .toc-sidebar { position: sticky; top: 1.5rem; max-height: calc(100vh - 3rem); overflow-y: auto; }
+    .toc-sidebar .list-group-item { border: none; padding: .3rem .75rem; font-size: .82rem; color: #555; border-radius: 0 !important; border-left: 2px solid transparent; }
+    .toc-sidebar .list-group-item:hover  { color: var(--guide-accent); border-left-color: var(--guide-accent); background: #eef3ff; }
+    .toc-sidebar .list-group-item.active { color: var(--guide-accent); border-left-color: var(--guide-accent); background: #eef3ff; font-weight: 600; }
+    .toc-heading { font-size: .7rem; letter-spacing: .08em; text-transform: uppercase; color: #aaa; padding: .5rem .75rem .1rem; }
+
+    /* ── Sections ── */
+    .guide-section { scroll-margin-top: 1.5rem; }
+    .section-head  { background: var(--guide-accent); color: white; border-radius: 10px; padding: .6rem 1.2rem; margin-bottom: 1.2rem; display: flex; align-items: center; gap: .6rem; }
+
+    /* ── Code blocks ── */
+    pre  { background: #1e1e1e; color: #d4d4d4; border-radius: 8px; padding: 1rem 1.2rem; font-size: .82rem; overflow-x: auto; white-space: pre; }
+    code { font-family: 'Cascadia Code', 'Consolas', monospace; }
+    .inline-code { background: #e8ecf8; color: #003DA6; padding: .1em .4em; border-radius: 4px; font-size: .87em; font-family: monospace; }
+
+    /* ── Badges étape  ── */
+    .step-badge { display: inline-flex; align-items: center; justify-content: center; width: 28px; height: 28px; border-radius: 50%; background: var(--guide-accent); color: white; font-size: .8rem; font-weight: 700; flex-shrink: 0; }
+
+    /* ── Alertes ── */
+    .tip   { border-left: 4px solid #0d6efd; background: #eef3ff; }
+    .warn  { border-left: 4px solid #ffc107; background: #fffbea; }
+    .danger{ border-left: 4px solid #dc3545; background: #fff0f0; }
+    .success-box { border-left: 4px solid #198754; background: #f0faf4; }
+
+    /* ── Table de données ── */
+    .data-table th { background: var(--guide-accent); color: white; font-size: .78rem; font-weight: 600; }
+    .data-table td { font-size: .83rem; vertical-align: middle; }
+
+    /* ── Impression ── */
+    @media print {
+      .toc-sidebar, .navbar, .no-print { display: none !important; }
+      .guide-section { break-inside: avoid; }
+      pre { white-space: pre-wrap; }
+    }
+  </style>
+</head>
+<body>
+
+  <!-- TOPBAR -->
+  <nav class="navbar navbar-dark py-2" style="background:var(--couleur-principale);">
+    <div class="container-fluid px-3 d-flex justify-content-between">
+      <a class="navbar-brand fw-bold d-flex align-items-center gap-2 fs-6" href="index.html">
+        <i class="bi bi-people-fill"></i>Amicale ATTT
+        <span class="badge bg-warning text-dark ms-2">Guide Maître</span>
+      </a>
+      <div class="d-flex align-items-center gap-2">
+        <button class="btn btn-outline-light btn-sm no-print" onclick="window.print()">
+          <i class="bi bi-printer me-1"></i>Imprimer
+        </button>
+        <a href="master.html" class="btn btn-outline-light btn-sm">
+          <i class="bi bi-speedometer2 me-1"></i>Tableau de bord
+        </a>
+        <a href="#" class="btn btn-danger btn-sm" onclick="AUTH.logout();return false;">
+          <i class="bi bi-box-arrow-right"></i>
+        </a>
+      </div>
+    </div>
+  </nav>
+
+  <!-- HERO -->
+  <div class="py-5" style="background:linear-gradient(135deg,#001a4f,var(--couleur-principale));">
+    <div class="container text-white">
+      <div class="row align-items-center">
+        <div class="col">
+          <h1 class="fw-bold mb-2 fs-2">
+            <i class="bi bi-book-fill me-2 opacity-75"></i>Guide technique complet
+          </h1>
+          <p class="lead opacity-75 mb-1">Site web Amicale ATTT — Manuel de l'administrateur système</p>
+          <p class="small opacity-50 mb-0">Accès exclusif : compte Maître · Version 2026</p>
+        </div>
+        <div class="col-auto d-none d-md-block">
+          <i class="bi bi-gear-wide-connected" style="font-size:5rem;opacity:.12;"></i>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <div class="container py-5">
+    <div class="row g-4">
+
+      <!-- ══════════════ SOMMAIRE ══════════════ -->
+      <div class="col-lg-3 no-print">
+        <div class="toc-sidebar">
+          <div class="card border-0 shadow-sm">
+            <div class="card-body p-2">
+              <div class="toc-heading">Sommaire</div>
+              <div class="list-group list-group-flush" id="toc">
+                <a href="#s1"  class="list-group-item list-group-item-action">1 — Architecture du site</a>
+                <a href="#s2"  class="list-group-item list-group-item-action">2 — Rôles &amp; comptes</a>
+                <a href="#s3"  class="list-group-item list-group-item-action">3 — Tester en local</a>
+                <a href="#s4"  class="list-group-item list-group-item-action">4 — Héberger gratuitement</a>
+                <a href="#s5"  class="list-group-item list-group-item-action">5 — Firebase (base Cloud)</a>
+                <a href="#s6"  class="list-group-item list-group-item-action">6 — Publier une mise à jour</a>
+                <a href="#s7"  class="list-group-item list-group-item-action">7 — Sauvegarder les données</a>
+                <a href="#s8"  class="list-group-item list-group-item-action">8 — Gérer les membres</a>
+                <a href="#s8b" class="list-group-item list-group-item-action">8b — Gérer la galerie</a>
+                <a href="#s9"  class="list-group-item list-group-item-action">9 — Clés localStorage</a>
+                <a href="#s10" class="list-group-item list-group-item-action">10 — Dépannage</a>
+                <a href="#s11" class="list-group-item list-group-item-action">11 — Checklist déploiement</a>
+              </div>
+            </div>
+          </div>
+          <div class="card border-0 shadow-sm mt-3 no-print">
+            <div class="card-body p-3">
+              <p class="small fw-semibold mb-2"><i class="bi bi-shield-lock me-1 text-danger"></i>Accès confidentiel</p>
+              <p class="small text-muted mb-0">Cette page n'est visible que par le compte Maître (347). Elle n'apparaît dans aucun menu public.</p>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- ══════════════ CONTENU ══════════════ -->
+      <div class="col-lg-9">
+
+        <!-- ── Section 1 : Architecture ── -->
+        <section class="guide-section mb-5" id="s1">
+          <div class="section-head">
+            <i class="bi bi-diagram-3-fill fs-5"></i>
+            <h2 class="h5 fw-bold mb-0">1 — Architecture du site</h2>
+          </div>
+
+          <div class="card p-4 mb-3">
+            <h3 class="h6 fw-bold mb-3">Stack technique</h3>
+            <div class="row g-3">
+              <div class="col-sm-4">
+                <div class="p-3 border rounded-3 text-center">
+                  <i class="bi bi-filetype-html fs-2 text-warning d-block mb-1"></i>
+                  <strong>HTML5 + CSS3</strong>
+                  <div class="small text-muted">Fichiers statiques purs — aucun serveur obligatoire</div>
+                </div>
+              </div>
+              <div class="col-sm-4">
+                <div class="p-3 border rounded-3 text-center">
+                  <i class="bi bi-bootstrap fs-2 text-primary d-block mb-1"></i>
+                  <strong>Bootstrap 5.3</strong>
+                  <div class="small text-muted">CDN — responsive mobile first</div>
+                </div>
+              </div>
+              <div class="col-sm-4">
+                <div class="p-3 border rounded-3 text-center">
+                  <i class="bi bi-filetype-js fs-2 text-warning d-block mb-1"></i>
+                  <strong>Vanilla JS</strong>
+                  <div class="small text-muted">Aucun framework — localStorage + Firebase</div>
+                </div>
+              </div>
+            </div>
+          </div>
+
+          <div class="card p-4 mb-3">
+            <h3 class="h6 fw-bold mb-3">Structure des fichiers</h3>
+            <pre>site-amicale-attt/
+├── index.html                ← Accueil public
+├── a-propos.html             ← Présentation de l'Amicale
+├── activites.html            ← Activités & loisirs
+├── evenements.html           ← Agenda public
+├── galerie.html              ← Galerie photos
+├── telechargements.html      ← Apps PC & Android
+├── contact.html              ← Formulaire de contact
+├── actualites.html           ← Articles & actualités
+│
+├── login.html                ← Connexion membres
+├── inscription.html          ← Demande d'adhésion
+├── espace-membre.html        ← Tableau de bord membre
+├── profil.html               ← Mon profil complet
+├── messagerie.html           ← Messagerie interne
+├── conventions.html          ← Conventions & avantages
+├── location.html             ← Locations de vacances
+│
+├── admin.html                ← Panel Délégué  (role ≥ admin)
+├── superviseur.html          ← Panel Direction (role ≥ superviseur)
+├── master.html               ← Panel Maître    (role = master)
+├── contenu-admin.html        ← Éditeur actualités
+├── journal.html              ← Journal d'audit
+├── guide.html                ← CE FICHIER (master only)
+│
+├── css/
+│   └── style.css             ← Styles + variables CSS ATTT
+├── js/
+│   ├── auth.js               ← Authentification & rôles
+│   ├── data.js               ← Événements & offres
+│   ├── log.js                ← Journal d'audit
+│   ├── profile.js            ← Profils, famille, avatars
+│   ├── conventions.js        ← Conventions partenaires
+│   ├── messages.js           ← Messagerie interne
+│   ├── payments.js           ← Échéanciers de paiement
+│   ├── rentals.js            ← Locations de vacances
+│   ├── backup.js             ← Export/import JSON
+│   ├── firebase-config.js    ← Config + activation Firebase
+│   ├── db.js                 ← Sync Firestore
+│   ├── main.js               ← Scripts communs
+│   ├── version-check.js      ← Détection mises à jour
+│   └── contenu.js            ← Gestion articles
+├── img/                      ← Images du site
+├── assets/
+│   ├── version.json          ← Versions actuelles des apps
+│   └── app-android/          ← APK hors ligne
+└── manifest.json             ← PWA manifest</pre>
+          </div>
+
+          <div class="card p-4">
+            <h3 class="h6 fw-bold mb-3">Pages publiques vs protégées</h3>
+            <table class="table data-table table-bordered table-sm">
+              <thead><tr><th>Page</th><th>Accès</th><th>Description</th></tr></thead>
+              <tbody>
+                <tr><td><span class="inline-code">index.html</span></td><td><span class="badge bg-success">Public</span></td><td>Accueil — événements &amp; actualités <strong>dynamiques</strong></td></tr>
+                <tr><td><span class="inline-code">evenements.html</span></td><td><span class="badge bg-success">Public</span></td><td>Agenda filtre + <strong>Participer</strong> / Annuler en ligne</td></tr>
+                <tr><td><span class="inline-code">activites.html</span></td><td><span class="badge bg-success">Public</span></td><td>Activités + prochains événements par catégorie</td></tr>
+                <tr><td><span class="inline-code">galerie.html</span></td><td><span class="badge bg-success">Public</span></td><td>Galerie <strong>dynamique</strong> — photos uploadées par admins (base64)</td></tr>
+                <tr><td><span class="inline-code">conventions.html</span></td><td><span class="badge bg-success">Public</span></td><td>Conventions partenaires (accès selon réglage)</td></tr>
+                <tr><td><span class="inline-code">contact.html / a-propos.html</span></td><td><span class="badge bg-success">Public</span></td><td>—</td></tr>
+                <tr><td><span class="inline-code">espace-membre.html</span></td><td><span class="badge bg-info text-dark">Famille+</span></td><td>Tableau de bord — boutons Participer intégrés</td></tr>
+                <tr><td><span class="inline-code">profil / messagerie / location</span></td><td><span class="badge bg-info text-dark">Famille+</span></td><td>Rôle ≥ 0 (famille = accès limité)</td></tr>
+                <tr><td><span class="inline-code">admin.html</span></td><td><span class="badge bg-warning text-dark">Délégué</span></td><td>Gestion membres, événements, offres, conventions</td></tr>
+                <tr><td><span class="inline-code">superviseur.html</span></td><td><span class="badge bg-orange text-white" style="background:#fd7e14">Direction</span></td><td>Vue globale, rapports, colonne inscrits/événement</td></tr>
+                <tr><td><span class="inline-code">master.html</span></td><td><span class="badge bg-danger">Maître</span></td><td>Contrôle total + compteur inscrits par événement</td></tr>
+                <tr><td><span class="inline-code">guide.html</span></td><td><span class="badge bg-dark">347 seulement</span></td><td>Ce guide — vérification login strict</td></tr>
+              </tbody>
+            </table>
+          </div>
+        </section>
+
+        <!-- ── Section 2 : Rôles ── -->
+        <section class="guide-section mb-5" id="s2">
+          <div class="section-head">
+            <i class="bi bi-person-badge-fill fs-5"></i>
+            <h2 class="h5 fw-bold mb-0">2 — Rôles &amp; comptes utilisateurs</h2>
+          </div>
+
+          <div class="card p-4 mb-3">
+            <h3 class="h6 fw-bold mb-3">Hiérarchie des rôles (valeur numérique)</h3>
+            <table class="table data-table table-bordered table-sm mb-0">
+              <thead><tr><th>Valeur</th><th>Rôle</th><th>Libellé affiché</th><th>Accès</th><th>Créé par</th></tr></thead>
+              <tbody>
+                <tr><td>0</td><td><span class="inline-code">famille</span></td><td>Famille</td><td>Espace membre, profil, location, messages</td><td>Code de partage</td></tr>
+                <tr><td>1</td><td><span class="inline-code">membre</span></td><td>Membre</td><td>Tout ce qui précède + offres exclusives</td><td>Inscription + validation Délégué</td></tr>
+                <tr><td>2</td><td><span class="inline-code">admin</span></td><td>Délégué</td><td>Panel admin.html</td><td>Promu par Direction/Maître</td></tr>
+                <tr><td>3</td><td><span class="inline-code">superviseur</span></td><td>Direction</td><td>Panel superviseur.html</td><td>Promu par Maître</td></tr>
+                <tr><td>4</td><td><span class="inline-code">master</span></td><td>Maître</td><td>Tout + master.html + guide.html</td><td>Compte créé automatiquement</td></tr>
+              </tbody>
+            </table>
+          </div>
+
+          <div class="card p-4 mb-3">
+            <h3 class="h6 fw-bold mb-3">Compte de secours (indestructible)</h3>
+            <div class="alert tip p-3 mb-0">
+              <div class="row g-3">
+                <div class="col-sm-6">
+                  <strong>Login :</strong> <span class="inline-code">347</span><br/>
+                  <strong>Mot de passe :</strong> <span class="inline-code" id="show-pwd-area">••••••••</span>
+                  <button class="btn btn-xs btn-outline-secondary ms-2" style="font-size:.7rem;padding:.1rem .4rem;" onclick="togglePwd()">Afficher</button>
+                </div>
+                <div class="col-sm-6 text-muted small">
+                  <i class="bi bi-shield-fill-check text-success me-1"></i>Ce compte est <strong>invisible</strong> dans les listes membres.<br/>
+                  <i class="bi bi-lock-fill text-danger me-1"></i>Son rôle et statut ne peuvent pas être modifiés.<br/>
+                  <i class="bi bi-trash3-fill text-danger me-1"></i>Il ne peut pas être supprimé.<br/>
+                  <i class="bi bi-eye-slash text-muted me-1"></i>Il ne figure dans aucun rapport.
+                </div>
+              </div>
+            </div>
+          </div>
+
+          <div class="card p-4">
+            <h3 class="h6 fw-bold mb-3">Cycle de vie d'un membre</h3>
+            <div class="d-flex align-items-center gap-2 flex-wrap text-center small">
+              <div class="p-2 border rounded bg-light flex-fill"><i class="bi bi-person-plus d-block fs-4 text-muted mb-1"></i>Inscription<br/><span class="text-muted">statut: <em>en_attente</em></span></div>
+              <i class="bi bi-arrow-right text-muted"></i>
+              <div class="p-2 border rounded bg-warning bg-opacity-25 flex-fill"><i class="bi bi-clock d-block fs-4 text-warning mb-1"></i>En attente<br/><span class="text-muted">Délégué valide</span></div>
+              <i class="bi bi-arrow-right text-muted"></i>
+              <div class="p-2 border rounded bg-success bg-opacity-10 flex-fill"><i class="bi bi-patch-check d-block fs-4 text-success mb-1"></i>Actif<br/><span class="text-muted">statut: <em>actif</em></span></div>
+              <i class="bi bi-arrow-right text-muted"></i>
+              <div class="p-2 border rounded bg-danger bg-opacity-10 flex-fill"><i class="bi bi-pause-circle d-block fs-4 text-danger mb-1"></i>Suspendu<br/><span class="text-muted">Délégué suspend</span></div>
+            </div>
+          </div>
+        </section>
+
+        <!-- ── Section 3 : Tests en local ── -->
+        <section class="guide-section mb-5" id="s3">
+          <div class="section-head">
+            <i class="bi bi-play-circle-fill fs-5"></i>
+            <h2 class="h5 fw-bold mb-0">3 — Tester le site en local</h2>
+          </div>
+
+          <div class="alert warn p-3 mb-3">
+            <i class="bi bi-exclamation-triangle-fill me-2"></i>
+            <strong>Important :</strong> ouvrir les fichiers HTML directement (<code>file://</code>) ne fonctionne pas — le navigateur bloque les modules JS. Il faut un mini-serveur HTTP.
+          </div>
+
+          <div class="card p-4 mb-3">
+            <h3 class="h6 fw-bold mb-3">Méthode 1 — Python (recommandé, pré-installé sur Windows 11)</h3>
+            <div class="d-flex flex-column gap-2">
+              <div class="d-flex gap-2 align-items-start">
+                <span class="step-badge">1</span>
+                <div>Ouvrir un terminal dans le dossier du site (clic droit → <em>Ouvrir dans le terminal</em>)</div>
+              </div>
+              <div class="d-flex gap-2 align-items-start">
+                <span class="step-badge">2</span>
+                <div>Lancer le serveur :
+                  <pre>python -m http.server 8080</pre>
+                </div>
+              </div>
+              <div class="d-flex gap-2 align-items-start">
+                <span class="step-badge">3</span>
+                <div>Ouvrir dans le navigateur : <a href="http://localhost:8080" target="_blank" class="inline-code">http://localhost:8080</a></div>
+              </div>
+              <div class="d-flex gap-2 align-items-start">
+                <span class="step-badge">4</span>
+                <div>Pour arrêter : appuyer sur <kbd>Ctrl+C</kbd> dans le terminal</div>
+              </div>
+            </div>
+          </div>
+
+          <div class="card p-4 mb-3">
+            <h3 class="h6 fw-bold mb-3">Méthode 2 — Extension VS Code (Live Server)</h3>
+            <div class="d-flex flex-column gap-2">
+              <div class="d-flex gap-2 align-items-start">
+                <span class="step-badge">1</span>
+                <div>Dans VS Code → Extensions → chercher <strong>Live Server</strong> (Ritwick Dey) → Installer</div>
+              </div>
+              <div class="d-flex gap-2 align-items-start">
+                <span class="step-badge">2</span>
+                <div>Cliquer sur <strong>Go Live</strong> en bas à droite — le site s'ouvre automatiquement</div>
+              </div>
+              <div class="d-flex gap-2 align-items-start">
+                <span class="step-badge">3</span>
+                <div>Avantage : rechargement automatique à chaque sauvegarde de fichier</div>
+              </div>
+            </div>
+          </div>
+
+          <div class="card p-4">
+            <h3 class="h6 fw-bold mb-3">Méthode 3 — Node.js (si installé)</h3>
+            <pre>npx serve .
+# ou
+npx http-server . -p 8080</pre>
+            <p class="text-muted small mb-0">Ces commandes installent temporairement un serveur HTTP sans rien installer de permanent.</p>
+          </div>
+        </section>
+
+        <!-- ── Section 4 : Hébergement gratuit ── -->
+        <section class="guide-section mb-5" id="s4">
+          <div class="section-head">
+            <i class="bi bi-cloud-arrow-up-fill fs-5"></i>
+            <h2 class="h5 fw-bold mb-0">4 — Héberger gratuitement</h2>
+          </div>
+
+          <div class="row g-3 mb-3">
+            <div class="col-md-6">
+              <div class="card h-100 p-4 border-success">
+                <div class="d-flex align-items-center gap-2 mb-3">
+                  <i class="bi bi-github fs-3"></i>
+                  <div>
+                    <strong>GitHub Pages</strong>
+                    <span class="badge bg-success ms-2">Recommandé</span>
+                  </div>
+                </div>
+                <ul class="small text-muted ps-3 mb-0">
+                  <li>Gratuit à vie</li>
+                  <li>HTTPS automatique</li>
+                  <li>Domaine : <em>votre-user.github.io/amicale</em></li>
+                  <li>Mise à jour = <code>git push</code></li>
+                  <li>Limite : 1 Go stockage, 100 Go/mois bande passante</li>
+                </ul>
+              </div>
+            </div>
+            <div class="col-md-6">
+              <div class="card h-100 p-4">
+                <div class="d-flex align-items-center gap-2 mb-3">
+                  <i class="bi bi-lightning-charge fs-3 text-teal"></i>
+                  <strong>Netlify</strong>
+                </div>
+                <ul class="small text-muted ps-3 mb-0">
+                  <li>Gratuit (100 Go/mois)</li>
+                  <li>Déploiement par glisser-déposer ou Git</li>
+                  <li>HTTPS + CDN mondial</li>
+                  <li>Domaine : <em>votre-nom.netlify.app</em></li>
+                  <li>Formulaires intégrés (100/mois gratuit)</li>
+                </ul>
+              </div>
+            </div>
+          </div>
+
+          <!-- GitHub Pages détaillé -->
+          <div class="card p-4 mb-3">
+            <h3 class="h6 fw-bold mb-3"><i class="bi bi-github me-2"></i>Guide pas-à-pas — GitHub Pages</h3>
+            <div class="d-flex flex-column gap-3">
+              <div class="d-flex gap-3 align-items-start">
+                <span class="step-badge">1</span>
+                <div>
+                  <strong>Créer un compte GitHub</strong> sur <a href="https://github.com" target="_blank">github.com</a> (gratuit)
+                </div>
+              </div>
+              <div class="d-flex gap-3 align-items-start">
+                <span class="step-badge">2</span>
+                <div>
+                  <strong>Créer un dépôt</strong> → <em>New repository</em> → Nom : <code>amicale-attt</code> → Public → Create
+                </div>
+              </div>
+              <div class="d-flex gap-3 align-items-start">
+                <span class="step-badge">3</span>
+                <div>
+                  <strong>Uploader les fichiers</strong> — Option simple (sans Git) :
+                  <ul class="mt-1 text-muted small">
+                    <li>Dans le dépôt → <em>Add file</em> → <em>Upload files</em></li>
+                    <li>Glisser-déposer tout le dossier du site</li>
+                    <li>Cliquer <em>Commit changes</em></li>
+                  </ul>
+                </div>
+              </div>
+              <div class="d-flex gap-3 align-items-start">
+                <span class="step-badge">4</span>
+                <div>
+                  <strong>Activer GitHub Pages</strong> :
+                  <ul class="mt-1 text-muted small">
+                    <li>Settings → Pages → Source : <em>Deploy from a branch</em></li>
+                    <li>Branch : <em>main</em> → Folder : <em>/ (root)</em> → Save</li>
+                    <li>Attendre 2-3 minutes → l'URL s'affiche</li>
+                  </ul>
+                </div>
+              </div>
+              <div class="d-flex gap-3 align-items-start">
+                <span class="step-badge">5</span>
+                <div>
+                  <strong>Tester</strong> sur <code>https://votre-user.github.io/amicale-attt/</code>
+                </div>
+              </div>
+            </div>
+          </div>
+
+          <!-- Netlify glisser-déposer -->
+          <div class="card p-4">
+            <h3 class="h6 fw-bold mb-3"><i class="bi bi-lightning-charge me-2"></i>Guide — Netlify (ultra-rapide, sans compte Git)</h3>
+            <div class="d-flex flex-column gap-3">
+              <div class="d-flex gap-3 align-items-start">
+                <span class="step-badge">1</span>
+                <div>Aller sur <a href="https://netlify.com" target="_blank">netlify.com</a> → Sign up gratuit</div>
+              </div>
+              <div class="d-flex gap-3 align-items-start">
+                <span class="step-badge">2</span>
+                <div>Sur le tableau de bord → <strong>glisser-déposer tout le dossier</strong> du site dans la zone prévue</div>
+              </div>
+              <div class="d-flex gap-3 align-items-start">
+                <span class="step-badge">3</span>
+                <div>Le site est en ligne en 30 secondes avec une URL aléatoire type <code>https://random-name.netlify.app</code></div>
+              </div>
+              <div class="d-flex gap-3 align-items-start">
+                <span class="step-badge">4</span>
+                <div>Pour personnaliser l'URL : Site settings → Domain management → Custom domain</div>
+              </div>
+            </div>
+          </div>
+        </section>
+
+        <!-- ── Section 5 : Firebase ── -->
+        <section class="guide-section mb-5" id="s5">
+          <div class="section-head">
+            <i class="bi bi-database-fill fs-5"></i>
+            <h2 class="h5 fw-bold mb-0">5 — Base de données Cloud (Firebase)</h2>
+          </div>
+
+          <div class="card p-4 mb-3">
+            <h3 class="h6 fw-bold mb-3">Pourquoi Firebase ?</h3>
+            <p class="text-muted small mb-2">
+              Par défaut, toutes les données (membres, événements, messages…) sont stockées dans le <strong>localStorage du navigateur</strong>. Cela signifie que si vous vous connectez depuis un autre PC ou navigateur, les données ne sont pas synchronisées.
+            </p>
+            <p class="text-muted small mb-0">
+              Firebase Firestore permet de synchroniser toutes les données en temps réel entre <strong>tous les appareils et tous les administrateurs</strong>. Le forfait gratuit Spark couvre largement l'usage de l'Amicale.
+            </p>
+          </div>
+
+          <div class="card p-4 mb-3">
+            <h3 class="h6 fw-bold mb-3">Activation pas-à-pas</h3>
+            <div class="d-flex flex-column gap-3">
+              <div class="d-flex gap-3 align-items-start">
+                <span class="step-badge">1</span>
+                <div>Aller sur <a href="https://console.firebase.google.com" target="_blank">console.firebase.google.com</a> → <em>Créer un projet</em> → Nom : <strong>amicale-attt</strong> → Désactiver Analytics → Créer</div>
+              </div>
+              <div class="d-flex gap-3 align-items-start">
+                <span class="step-badge">2</span>
+                <div><em>Build</em> → <em>Firestore Database</em> → Create database → <strong>europe-west1</strong> (serveur le plus proche) → Mode Production → Enable</div>
+              </div>
+              <div class="d-flex gap-3 align-items-start">
+                <span class="step-badge">3</span>
+                <div>
+                  Onglet <strong>Rules</strong> → remplacer par ces règles → Publish :
+                  <pre>rules_version = '2';
+service cloud.firestore {
+  match /databases/{database}/documents {
+    match /site_data/{document} {
+      allow read, write: if true;
+    }
+  }
+}</pre>
+                </div>
+              </div>
+              <div class="d-flex gap-3 align-items-start">
+                <span class="step-badge">4</span>
+                <div>Paramètres (⚙) → Général → "<em>Vos applications</em>" → Ajouter une appli Web <strong>&lt;/&gt;</strong> → Copier la configuration affichée</div>
+              </div>
+              <div class="d-flex gap-3 align-items-start">
+                <span class="step-badge">5</span>
+                <div>
+                  Ouvrir <span class="inline-code">js/firebase-config.js</span> et :
+                  <ul class="mt-1 text-muted small">
+                    <li>Remplacer les valeurs de <code>FIREBASE_CONFIG</code> par celles copiées</li>
+                    <li>Changer <code>FIREBASE_ENABLED = false</code> en <code>FIREBASE_ENABLED = true</code></li>
+                  </ul>
+                  <pre>const FIREBASE_ENABLED = true;  // ← activer
+
+const FIREBASE_CONFIG = {
+  apiKey:            'AIzaSy...',
+  authDomain:        'amicale-attt.firebaseapp.com',
+  projectId:         'amicale-attt',
+  storageBucket:     'amicale-attt.appspot.com',
+  messagingSenderId: '1234567890',
+  appId:             '1:1234567890:web:abcdef'
+};</pre>
+                </div>
+              </div>
+              <div class="d-flex gap-3 align-items-start">
+                <span class="step-badge">6</span>
+                <div>Sauvegarder et déployer → au premier chargement, les données localStorage sont automatiquement envoyées vers Firestore</div>
+              </div>
+            </div>
+          </div>
+
+          <div class="card p-4">
+            <h3 class="h6 fw-bold mb-3">Limites du forfait gratuit Firebase (Spark)</h3>
+            <div class="row g-3">
+              <div class="col-sm-4 text-center">
+                <div class="p-3 bg-light rounded-3">
+                  <div class="fs-3 fw-bold text-success">1 Go</div>
+                  <div class="small text-muted">Stockage données</div>
+                </div>
+              </div>
+              <div class="col-sm-4 text-center">
+                <div class="p-3 bg-light rounded-3">
+                  <div class="fs-3 fw-bold text-success">50K</div>
+                  <div class="small text-muted">Lectures / jour</div>
+                </div>
+              </div>
+              <div class="col-sm-4 text-center">
+                <div class="p-3 bg-light rounded-3">
+                  <div class="fs-3 fw-bold text-success">20K</div>
+                  <div class="small text-muted">Écritures / jour</div>
+                </div>
+              </div>
+            </div>
+            <p class="small text-muted mt-3 mb-0"><i class="bi bi-info-circle me-1"></i>Pour une Amicale de quelques centaines de personnes, ces limites ne seront jamais atteintes.</p>
+          </div>
+        </section>
+
+        <!-- ── Section 6 : Mises à jour ── -->
+        <section class="guide-section mb-5" id="s6">
+          <div class="section-head">
+            <i class="bi bi-arrow-repeat fs-5"></i>
+            <h2 class="h5 fw-bold mb-0">6 — Publier une mise à jour du site</h2>
+          </div>
+
+          <div class="card p-4 mb-3">
+            <h3 class="h6 fw-bold mb-3">Méthode simple — Modifier directement sur GitHub</h3>
+            <div class="d-flex flex-column gap-2">
+              <div class="d-flex gap-2 align-items-start">
+                <span class="step-badge">1</span>
+                <div>Aller sur votre dépôt GitHub → naviguer jusqu'au fichier à modifier</div>
+              </div>
+              <div class="d-flex gap-2 align-items-start">
+                <span class="step-badge">2</span>
+                <div>Cliquer sur l'icône <i class="bi bi-pencil"></i> (Edit this file)</div>
+              </div>
+              <div class="d-flex gap-2 align-items-start">
+                <span class="step-badge">3</span>
+                <div>Faire la modification → <em>Commit changes</em> → Le site est mis à jour automatiquement en 1-2 minutes</div>
+              </div>
+            </div>
+          </div>
+
+          <div class="card p-4 mb-3">
+            <h3 class="h6 fw-bold mb-3">Méthode recommandée — Via VS Code + Git</h3>
+            <pre># Dans le dossier du site
+git add .
+git commit -m "Description de la modification"
+git push origin main
+# → Site mis à jour en 1-2 minutes sur GitHub Pages
+# → Immédiatement sur Netlify</pre>
+          </div>
+
+          <div class="card p-4 mb-3">
+            <h3 class="h6 fw-bold mb-3">Mettre à jour les applications (PC / Android)</h3>
+            <div class="d-flex flex-column gap-2 mb-3">
+              <div class="d-flex gap-2 align-items-start">
+                <span class="step-badge">1</span>
+                <div>Préparer le nouveau fichier <code>.exe</code> ou <code>.apk</code> et le déposer dans <code>assets/app-android/</code> ou <code>assets/app-desktop/</code></div>
+              </div>
+              <div class="d-flex gap-2 align-items-start">
+                <span class="step-badge">2</span>
+                <div>
+                  Aller dans <strong>master.html → section "Versions app"</strong> → remplir le formulaire → télécharger le nouveau <code>version.json</code>
+                </div>
+              </div>
+              <div class="d-flex gap-2 align-items-start">
+                <span class="step-badge">3</span>
+                <div>Déposer ce <code>version.json</code> dans <code>assets/</code> sur le serveur</div>
+              </div>
+              <div class="d-flex gap-2 align-items-start">
+                <span class="step-badge">4</span>
+                <div>Tous les utilisateurs verront une <strong>bannière de notification</strong> au prochain chargement du site</div>
+              </div>
+            </div>
+          </div>
+
+          <div class="card p-4">
+            <h3 class="h6 fw-bold mb-3">Checklist avant toute mise à jour</h3>
+            <div class="d-flex flex-column gap-1" id="update-checklist">
+              <label class="d-flex align-items-center gap-2 cursor-pointer">
+                <input type="checkbox" class="form-check-input mt-0" /></label>
+            </div>
+            <ul class="list-unstyled small text-muted mt-2 mb-0">
+              <li><i class="bi bi-check2 me-1 text-success"></i>Tester en local avant de déployer</li>
+              <li><i class="bi bi-check2 me-1 text-success"></i>Faire une sauvegarde des données (<strong>master.html → Sauvegarde → Exporter</strong>)</li>
+              <li><i class="bi bi-check2 me-1 text-success"></i>Vérifier sur mobile (DevTools ou vrai téléphone)</li>
+              <li><i class="bi bi-check2 me-1 text-success"></i>Vérifier que <code>FIREBASE_ENABLED</code> est à <code>true</code> si Firebase est activé</li>
+              <li><i class="bi bi-check2 me-1 text-success"></i>Tester la connexion avec le compte 347</li>
+            </ul>
+          </div>
+        </section>
+
+        <!-- ── Section 7 : Sauvegardes ── -->
+        <section class="guide-section mb-5" id="s7">
+          <div class="section-head">
+            <i class="bi bi-safe-fill fs-5"></i>
+            <h2 class="h5 fw-bold mb-0">7 — Sauvegarder les données</h2>
+          </div>
+
+          <div class="card p-4 mb-3">
+            <h3 class="h6 fw-bold mb-3">Exporter une sauvegarde complète</h3>
+            <ol class="text-muted small ps-3 mb-0">
+              <li class="mb-1">Connectez-vous en tant que Maître</li>
+              <li class="mb-1">Aller dans <a href="master.html">master.html</a> → section <strong>Sauvegarde</strong></li>
+              <li class="mb-1">Cliquer <strong>Télécharger la sauvegarde (.json)</strong></li>
+              <li class="mb-1">Conserver ce fichier en lieu sûr (clé USB, email, cloud personnel)</li>
+            </ol>
+          </div>
+
+          <div class="card p-4 mb-3">
+            <h3 class="h6 fw-bold mb-3">Contenu de la sauvegarde</h3>
+            <table class="table data-table table-sm table-bordered mb-0">
+              <thead><tr><th>Clé</th><th>Contenu</th></tr></thead>
+              <tbody>
+                <tr><td><span class="inline-code">attt_users</span></td><td>Tous les comptes membres (hash mot de passe inclus, jamais en clair)</td></tr>
+                <tr><td><span class="inline-code">attt_events</span></td><td>Événements</td></tr>
+                <tr><td><span class="inline-code">attt_offers</span></td><td>Offres exclusives</td></tr>
+                <tr><td><span class="inline-code">attt_articles</span></td><td>Actualités et articles</td></tr>
+                <tr><td><span class="inline-code">attt_log</span></td><td>Journal d'audit (actions des admins)</td></tr>
+                <tr><td><span class="inline-code">attt_conventions</span></td><td>Conventions partenaires</td></tr>
+                <tr><td><span class="inline-code">attt_messages</span></td><td>Messagerie interne</td></tr>
+                <tr><td><span class="inline-code">attt_payments</span></td><td>Échéanciers de paiement</td></tr>
+                <tr><td><span class="inline-code">attt_rentals</span></td><td>Logements de vacances</td></tr>
+                <tr><td><span class="inline-code">attt_bookings</span></td><td>Réservations de vacances</td></tr>
+                <tr><td><span class="inline-code">attt_participation_history</span></td><td>Historique de participations aux événements</td></tr>
+              </tbody>
+            </table>
+          </div>
+
+          <div class="card p-4">
+            <h3 class="h6 fw-bold mb-3">Synchroniser plusieurs appareils</h3>
+            <div class="alert success-box p-3 mb-3">
+              <i class="bi bi-lightbulb-fill me-2 text-success"></i>
+              La méthode la plus simple est d'activer Firebase (section 5) — la synchronisation se fait alors automatiquement.
+            </div>
+            <p class="text-muted small mb-2">Sans Firebase :</p>
+            <ol class="text-muted small ps-3 mb-0">
+              <li class="mb-1">Exporter sur l'appareil principal</li>
+              <li class="mb-1">Envoyer le fichier .json par email ou clé USB</li>
+              <li class="mb-1">Sur le 2ème appareil → master.html → Sauvegarde → Importer → Remplacer</li>
+            </ol>
+          </div>
+        </section>
+
+        <!-- ── Section 8 : Gestion membres ── -->
+        <section class="guide-section mb-5" id="s8">
+          <div class="section-head">
+            <i class="bi bi-people-fill fs-5"></i>
+            <h2 class="h5 fw-bold mb-0">8 — Gérer les membres</h2>
+          </div>
+
+          <div class="row g-3 mb-3">
+            <div class="col-md-6">
+              <div class="card h-100 p-4">
+                <h3 class="h6 fw-bold mb-3"><i class="bi bi-person-plus me-1"></i>Valider une inscription</h3>
+                <ol class="text-muted small ps-3 mb-0">
+                  <li>admin.html → section <strong>Demandes</strong></li>
+                  <li>Cliquer <strong>Valider</strong> → le membre devient actif</li>
+                  <li>Optionnel : lui envoyer un message de bienvenue via la messagerie</li>
+                </ol>
+              </div>
+            </div>
+            <div class="col-md-6">
+              <div class="card h-100 p-4">
+                <h3 class="h6 fw-bold mb-3"><i class="bi bi-person-up me-1"></i>Promouvoir un membre</h3>
+                <ol class="text-muted small ps-3 mb-0">
+                  <li>master.html → section <strong>Utilisateurs</strong></li>
+                  <li>Cliquer <i class="bi bi-person-gear"></i> sur le membre</li>
+                  <li>Changer le Rôle → Enregistrer</li>
+                </ol>
+              </div>
+            </div>
+            <div class="col-md-6">
+              <div class="card h-100 p-4">
+                <h3 class="h6 fw-bold mb-3"><i class="bi bi-person-x me-1"></i>Suspendre / Supprimer</h3>
+                <ul class="text-muted small ps-3 mb-0">
+                  <li><strong>Suspendre</strong> : bloque la connexion sans supprimer les données</li>
+                  <li><strong>Supprimer</strong> : uniquement depuis master.html — irréversible</li>
+                  <li>Le compte 347 est indestructible (protection logicielle)</li>
+                </ul>
+              </div>
+            </div>
+            <div class="col-md-6">
+              <div class="card h-100 p-4">
+                <h3 class="h6 fw-bold mb-3"><i class="bi bi-share me-1"></i>Comptes Famille</h3>
+                <ul class="text-muted small ps-3 mb-0">
+                  <li>Un membre génère un code <code>FAM-XXXX-XXXX</code> dans son profil</li>
+                  <li>Sa famille s'inscrit via <code>inscription.html?mode=famille</code></li>
+                  <li>Rôle 0 = accès limité (pas les offres exclusives des membres)</li>
+                  <li>Peut consulter événements, conventions, locations</li>
+                </ul>
+              </div>
+            </div>
+          </div>
+        </section>
+
+        <!-- ── Section 8b : Galerie ── -->
+        <section class="guide-section mb-5" id="s8b">
+          <div class="section-head">
+            <i class="bi bi-images fs-5"></i>
+            <h2 class="h5 fw-bold mb-0">8b — Gérer la galerie photos</h2>
+          </div>
+
+          <div class="card p-4 mb-3">
+            <h3 class="h6 fw-bold mb-3">Comment ajouter des photos</h3>
+            <div class="d-flex flex-column gap-2">
+              <div class="d-flex gap-2 align-items-start">
+                <span class="step-badge">1</span>
+                <div>Se connecter avec un compte <strong>Délégué</strong> (rôle admin) ou supérieur</div>
+              </div>
+              <div class="d-flex gap-2 align-items-start">
+                <span class="step-badge">2</span>
+                <div>Aller sur <a href="galerie.html" target="_blank">galerie.html</a> — le bouton <strong>+ Ajouter des photos</strong> apparaît en haut à droite</div>
+              </div>
+              <div class="d-flex gap-2 align-items-start">
+                <span class="step-badge">3</span>
+                <div>Choisir un nom d'album (ou en créer un nouveau), ajouter une légende optionnelle, sélectionner les fichiers images</div>
+              </div>
+              <div class="d-flex gap-2 align-items-start">
+                <span class="step-badge">4</span>
+                <div>Cliquer <strong>Enregistrer</strong> — les photos sont converties en base64 et stockées dans <span class="inline-code">attt_galerie</span></div>
+              </div>
+            </div>
+          </div>
+
+          <div class="card p-4 mb-3">
+            <h3 class="h6 fw-bold mb-3">Contraintes et conseils</h3>
+            <ul class="mb-0">
+              <li>Taille max par photo : <strong>2 Mo</strong> (affichée sous la sélection)</li>
+              <li>Formats acceptés : JPG, PNG, WebP</li>
+              <li>Les photos sont stockées en base64 dans le navigateur — plus il y en a, plus le localStorage est lourd</li>
+              <li>Conseil : ne pas dépasser <strong>5 Mo total</strong> de photos pour éviter les lenteurs — utiliser des photos compressées (ex: <a href="https://squoosh.app" target="_blank">squoosh.app</a>)</li>
+              <li>Pour supprimer : bouton "Suppr." sous chaque photo (admin uniquement) ou "Supprimer l'album" entier</li>
+              <li>Les photos sont sauvegardées dans la sauvegarde JSON globale (section Sauvegardes)</li>
+            </ul>
+          </div>
+
+          <div class="card p-4">
+            <h3 class="h6 fw-bold mb-3">Filtrer et naviguer</h3>
+            <ul class="mb-0">
+              <li>Les boutons d'albums apparaissent automatiquement selon les albums existants</li>
+              <li>Un clic sur une photo l'ouvre en plein écran (Lightbox) avec navigation gauche/droite</li>
+              <li>La recherche texte filtre par nom d'album ou légende</li>
+            </ul>
+          </div>
+        </section>
+
+        <!-- ── Section 9 : Clés localStorage ── -->
+        <section class="guide-section mb-5" id="s9">
+          <div class="section-head">
+            <i class="bi bi-hdd-fill fs-5"></i>
+            <h2 class="h5 fw-bold mb-0">9 — Clés localStorage (stockage navigateur)</h2>
+          </div>
+
+          <div class="card p-4 mb-3">
+            <p class="text-muted small mb-3">Pour inspecter les données manuellement : DevTools (F12) → Application → Local Storage → <code>http://localhost:8080</code></p>
+            <table class="table data-table table-sm table-bordered mb-0">
+              <thead><tr><th>Clé</th><th>Module</th><th>Format</th><th>Taille typique</th></tr></thead>
+              <tbody>
+                <tr><td><span class="inline-code">attt_users</span></td><td>auth.js</td><td>Array de User</td><td>~8 Ko / 50 membres</td></tr>
+                <tr><td><span class="inline-code">attt_events</span></td><td>data.js</td><td>Array d'Event</td><td>~2 Ko / 20 events</td></tr>
+                <tr><td><span class="inline-code">attt_offers</span></td><td>data.js</td><td>Array d'Offer</td><td>&lt; 1 Ko</td></tr>
+                <tr><td><span class="inline-code">attt_articles</span></td><td>contenu.js</td><td>Array d'Article</td><td>&lt; 5 Ko</td></tr>
+                <tr><td><span class="inline-code">attt_log</span></td><td>log.js</td><td>Array d'entrées (limité 500)</td><td>~10 Ko</td></tr>
+                <tr><td><span class="inline-code">attt_conventions</span></td><td>conventions.js</td><td>Array de Convention</td><td>&lt; 3 Ko</td></tr>
+                <tr><td><span class="inline-code">attt_messages</span></td><td>messages.js</td><td>Array (limité 2000)</td><td>variable</td></tr>
+                <tr><td><span class="inline-code">attt_payments</span></td><td>payments.js</td><td>Array d'Echeance</td><td>variable</td></tr>
+                <tr><td><span class="inline-code">attt_rentals</span></td><td>rentals.js</td><td>Array de Rental</td><td>&lt; 2 Ko</td></tr>
+                <tr><td><span class="inline-code">attt_bookings</span></td><td>rentals.js</td><td>Array de Booking</td><td>variable</td></tr>
+                <tr><td><span class="inline-code">attt_participation_history</span></td><td>profile.js</td><td>Array</td><td>variable</td></tr>
+                <tr><td><span class="inline-code">attt_galerie</span></td><td>galerie.html</td><td>Array de Photo (base64)</td><td>variable — &lt; 5 Mo conseillé</td></tr>
+                <tr><td><span class="inline-code">attt_current_user</span></td><td>auth.js</td><td>Object User (session)</td><td>~1 Ko</td></tr>
+                <tr><td><span class="inline-code">attt_version_dismissed</span></td><td>version-check.js</td><td>String (version)</td><td>tiny</td></tr>
+              </tbody>
+            </table>
+          </div>
+
+          <div class="card p-4">
+            <h3 class="h6 fw-bold mb-3">Réinitialiser toutes les données (ATTENTION — irréversible)</h3>
+            <div class="alert danger p-3 mb-3">
+              <i class="bi bi-exclamation-octagon-fill me-2"></i>
+              <strong>Cette action efface tous les membres, événements et données.</strong> Faire une sauvegarde avant !
+            </div>
+            <pre>// Dans la console DevTools (F12 → Console)
+Object.keys(localStorage)
+  .filter(k => k.startsWith('attt_'))
+  .forEach(k => localStorage.removeItem(k));
+location.reload();</pre>
+          </div>
+        </section>
+
+        <!-- ── Section 10 : Dépannage ── -->
+        <section class="guide-section mb-5" id="s10">
+          <div class="section-head">
+            <i class="bi bi-tools fs-5"></i>
+            <h2 class="h5 fw-bold mb-0">10 — Dépannage</h2>
+          </div>
+
+          <div class="accordion" id="faq">
+
+            <div class="accordion-item">
+              <h3 class="accordion-header">
+                <button class="accordion-button collapsed" type="button" data-bs-toggle="collapse" data-bs-target="#faq1">
+                  Le site ne s'ouvre pas (erreur CORS ou page blanche)
+                </button>
+              </h3>
+              <div id="faq1" class="accordion-collapse collapse" data-bs-parent="#faq">
+                <div class="accordion-body small text-muted">
+                  Vous avez ouvert le fichier HTML directement (double-clic). Il faut utiliser un serveur HTTP local.<br/>
+                  → Lancer <code>python -m http.server 8080</code> puis aller sur <code>http://localhost:8080</code>
+                </div>
+              </div>
+            </div>
+
+            <div class="accordion-item">
+              <h3 class="accordion-header">
+                <button class="accordion-button collapsed" type="button" data-bs-toggle="collapse" data-bs-target="#faq2">
+                  J'ai oublié mon mot de passe (compte 347)
+                </button>
+              </h3>
+              <div id="faq2" class="accordion-collapse collapse" data-bs-parent="#faq">
+                <div class="accordion-body small text-muted">
+                  Le mot de passe est stocké sous forme de hash dans localStorage. Pour le réinitialiser :
+                  <pre class="mt-2 mb-0">// Console DevTools → copier-coller
+const salt='ATTT_AMICALE_DZ_2026';
+const s='NOUVEAU_MDP'+salt;
+let h=2166136261;
+for(let i=0;i<s.length;i++){h^=s.charCodeAt(i);h=Math.imul(h,16777619)>>>0;}
+const hash=h.toString(16).padStart(8,'0');
+const u=JSON.parse(localStorage.getItem('attt_users'));
+const idx=u.findIndex(x=>x.login==='347');
+u[idx].passwordHash=hash;
+localStorage.setItem('attt_users',JSON.stringify(u));
+alert('Mot de passe mis à jour');</pre>
+                </div>
+              </div>
+            </div>
+
+            <div class="accordion-item">
+              <h3 class="accordion-header">
+                <button class="accordion-button collapsed" type="button" data-bs-toggle="collapse" data-bs-target="#faq3">
+                  Firebase ne se connecte pas
+                </button>
+              </h3>
+              <div id="faq3" class="accordion-collapse collapse" data-bs-parent="#faq">
+                <div class="accordion-body small text-muted">
+                  <ul class="ps-3 mb-0">
+                    <li>Vérifier que <code>FIREBASE_ENABLED = true</code> dans <code>js/firebase-config.js</code></li>
+                    <li>Vérifier les valeurs de <code>FIREBASE_CONFIG</code> (apiKey, projectId…)</li>
+                    <li>Vérifier les règles Firestore (elles doivent autoriser read+write)</li>
+                    <li>Ouvrir F12 → Console → chercher les messages <code>[DB]</code></li>
+                    <li>Vérifier que le projet Firebase n'est pas suspendu sur console.firebase.google.com</li>
+                  </ul>
+                </div>
+              </div>
+            </div>
+
+            <div class="accordion-item">
+              <h3 class="accordion-header">
+                <button class="accordion-button collapsed" type="button" data-bs-toggle="collapse" data-bs-target="#faq4">
+                  Les données ont disparu après avoir vidé le cache
+                </button>
+              </h3>
+              <div id="faq4" class="accordion-collapse collapse" data-bs-parent="#faq">
+                <div class="accordion-body small text-muted">
+                  Le localStorage est lié au navigateur et peut être effacé lors d'un nettoyage. Deux solutions :<br/>
+                  1. <strong>Firebase activé</strong> : les données sont rechargées automatiquement depuis le cloud<br/>
+                  2. <strong>Sans Firebase</strong> : importer la dernière sauvegarde JSON dans master.html → Sauvegarde
+                </div>
+              </div>
+            </div>
+
+            <div class="accordion-item">
+              <h3 class="accordion-header">
+                <button class="accordion-button collapsed" type="button" data-bs-toggle="collapse" data-bs-target="#faq5">
+                  Un membre ne peut pas se connecter (statut suspendu)
+                </button>
+              </h3>
+              <div id="faq5" class="accordion-collapse collapse" data-bs-parent="#faq">
+                <div class="accordion-body small text-muted">
+                  master.html → Utilisateurs → trouver le membre → <i class="bi bi-person-gear"></i> → Changer Statut en "Actif" → Enregistrer
+                </div>
+              </div>
+            </div>
+
+            <div class="accordion-item">
+              <h3 class="accordion-header">
+                <button class="accordion-button collapsed" type="button" data-bs-toggle="collapse" data-bs-target="#faq6">
+                  Ajouter un nom de domaine personnalisé (ex: amicale-attt.dz)
+                </button>
+              </h3>
+              <div id="faq6" class="accordion-collapse collapse" data-bs-parent="#faq">
+                <div class="accordion-body small text-muted">
+                  <strong>GitHub Pages :</strong> Settings → Pages → Custom domain → saisir le domaine → vérifier le DNS (ajouter un CNAME chez votre registrar pointant vers <code>votre-user.github.io</code>)<br/><br/>
+                  <strong>Netlify :</strong> Site settings → Domain management → Add custom domain → suivre les instructions pour le CNAME
+                </div>
+              </div>
+            </div>
+
+          </div>
+        </section>
+
+        <!-- ── Section 11 : Checklist déploiement ── -->
+        <section class="guide-section mb-5" id="s11">
+          <div class="section-head">
+            <i class="bi bi-clipboard2-check-fill fs-5"></i>
+            <h2 class="h5 fw-bold mb-0">11 — Checklist de déploiement initial</h2>
+          </div>
+
+          <div class="card p-4">
+            <p class="text-muted small mb-3">Cocher chaque étape pour valider la mise en production :</p>
+            <div class="d-flex flex-column gap-2" id="checklist-deploy">
+            </div>
+            <div class="mt-3 p-3 bg-light rounded-3 text-center d-none" id="checklist-complete">
+              <i class="bi bi-check-circle-fill text-success fs-1 d-block mb-2"></i>
+              <strong class="text-success">Déploiement validé !</strong>
+              <p class="text-muted small mb-0">Le site est prêt à être mis en ligne.</p>
+            </div>
+          </div>
+        </section>
+
+      </div>
+    </div>
+  </div>
+
+  <!-- FOOTER -->
+  <footer class="py-3 text-white text-center small">
+    <div class="container"><p class="mb-0 opacity-75">&copy; 2026 Amicale ATTT — Guide technique · Accès exclusif Maître</p></div>
+  </footer>
+
+<script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js"></script>
+<script src="https://www.gstatic.com/firebasejs/10.14.1/firebase-app-compat.js"></script>
+<script src="https://www.gstatic.com/firebasejs/10.14.1/firebase-firestore-compat.js"></script>
+<script src="js/firebase-config.js"></script>
+<script src="js/db.js"></script>
+<script src="js/auth.js"></script>
+<script>
+'use strict';
+
+/* ── Accès STRICT : login 347 uniquement ─────────────────── */
+const user = AUTH.requireAuth('master');
+if (!user || user.login !== '347') {
+  /* Rediriger discrètement sans révéler l'existence de cette page */
+  window.location.replace('index.html');
+  throw new Error();
+}
+
+/* ── Afficher le mot de passe masqué ─────────────────────── */
+let pwdVisible = false;
+function togglePwd() {
+  pwdVisible = !pwdVisible;
+  const el  = document.getElementById('show-pwd-area');
+  const btn = el.nextElementSibling;
+  if (pwdVisible) {
+    /* Le mot de passe est le hash fnv1a de "90134111" + sel
+       Afficher le mot de passe en clair directement */
+    el.textContent = '90134111';
+    btn.textContent = 'Masquer';
+  } else {
+    el.textContent = '••••••••';
+    btn.textContent = 'Afficher';
+  }
+}
+
+/* ── Checklist déploiement ───────────────────────────────── */
+const CHECKLIST = [
+  'Tester toutes les pages en local (serveur Python ou Live Server)',
+  'Se connecter avec le compte 347 → vérifier accès master.html',
+  'S\'inscrire avec un compte test → valider par admin → tester connexion',
+  'Ajouter un événement test → vérifier affichage public',
+  'Configurer Firebase (firebase-config.js) si synchronisation cloud souhaitée',
+  'Faire une sauvegarde initiale (master.html → Sauvegarde → Exporter)',
+  'Créer le dépôt GitHub et uploader les fichiers',
+  'Activer GitHub Pages (Settings → Pages → main branch)',
+  'Tester le site sur l\'URL GitHub Pages officiellement',
+  'Tester sur mobile (vrai téléphone ou DevTools responsive)',
+  'Mettre à jour assets/version.json avec la version initiale',
+  'Informer les membres de l\'URL du site',
+];
+
+const chkContainer = document.getElementById('checklist-deploy');
+CHECKLIST.forEach((item, i) => {
+  const div = document.createElement('div');
+  div.className = 'd-flex align-items-start gap-2';
+  div.innerHTML = `
+    <input type="checkbox" class="form-check-input mt-1 flex-shrink-0" id="chk${i}" onchange="checkComplete()" />
+    <label for="chk${i}" class="small" style="cursor:pointer;">${item}</label>`;
+  chkContainer.appendChild(div);
+});
+
+function checkComplete() {
+  const boxes = chkContainer.querySelectorAll('input[type=checkbox]');
+  const allDone = Array.from(boxes).every(b => b.checked);
+  document.getElementById('checklist-complete').classList.toggle('d-none', !allDone);
+}
+
+/* ── Surlignage TOC au scroll ────────────────────────────── */
+const tocLinks  = document.querySelectorAll('#toc a');
+const sections  = document.querySelectorAll('.guide-section');
+const observer  = new IntersectionObserver(entries => {
+  entries.forEach(e => {
+    if (e.isIntersecting) {
+      tocLinks.forEach(l => l.classList.toggle('active', l.getAttribute('href') === '#' + e.target.id));
+    }
+  });
+}, { threshold: 0.15 });
+sections.forEach(s => observer.observe(s));
+</script>
+</body>
+</html>

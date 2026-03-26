@@ -1,0 +1,524 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Amicale ATTT — Gestion des droits</title>
+  <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css" rel="stylesheet" />
+  <link href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.3/font/bootstrap-icons.css" rel="stylesheet" />
+  <link href="css/style.css" rel="stylesheet" />
+  <style>
+    .sidebar { min-height: calc(100vh - 58px); background: var(--couleur-principale); }
+    .sidebar .nav-link { color: rgba(255,255,255,.75); border-radius: 8px; transition: background .2s; }
+    .sidebar .nav-link:hover, .sidebar .nav-link.active { background: rgba(255,255,255,.15); color: #fff; }
+    @media(max-width:767px) { .sidebar { min-height: auto; } }
+    .table th { font-size:.80rem; text-transform:uppercase; letter-spacing:.04em; color:#6c757d; }
+
+    /* Matrice des droits */
+    .matrix-table th, .matrix-table td { text-align:center; vertical-align:middle; font-size:.83rem; }
+    .matrix-table td:first-child { text-align:left; font-weight:600; }
+    .matrix-table .check-yes  { color:#198754; font-size:1.1rem; }
+    .matrix-table .check-no   { color:#dee2e6; font-size:1.1rem; }
+    .matrix-table .check-cond { color:#fd7e14; font-size:1.1rem; }
+
+    /* Cartes de niveau */
+    .level-card { border-left: 4px solid var(--couleur-principale); }
+    .level-card.niveau-2 { border-left-color: #0dcaf0; }
+    .level-card.niveau-3 { border-left-color: #ffc107; }
+    .level-card.niveau-4 { border-left-color: #198754; }
+
+    /* Arbre hiérarchie */
+    .hier-tree li { padding:.3rem 0; }
+    .hier-node { display:flex; align-items:center; gap:.5rem; padding:.5rem .75rem;
+                 border-radius:8px; background:#f8f9fa; border:1px solid #dee2e6; }
+    .hier-node i { font-size:1.2rem; opacity:.7; }
+    .children { border-left: 2px solid #dee2e6; padding-left:1.5rem; margin-left:1rem; margin-top:.25rem; }
+
+    /* Assignation rapide */
+    .user-row { display:flex; align-items:center; gap:.75rem; padding:.6rem .75rem;
+                border-radius:8px; margin-bottom:.35rem; background:#f8f9fa; }
+    .user-row .role-pill { min-width:90px; }
+    .user-avatar { width:36px;height:36px;border-radius:50%;display:flex;align-items:center;justify-content:center;
+                   background:var(--couleur-principale);color:#fff;font-weight:700;font-size:.85rem;flex-shrink:0; }
+  </style>
+</head>
+<body>
+
+  <!-- TOPBAR -->
+  <nav class="navbar navbar-dark py-2" style="background:var(--couleur-principale);">
+    <div class="container-fluid px-3 d-flex justify-content-between">
+      <a class="navbar-brand fw-bold d-flex align-items-center gap-2 fs-6" href="index.html">
+        <i class="bi bi-people-fill"></i>Amicale ATTT
+        <span class="badge bg-warning text-dark ms-2">Droits</span>
+      </a>
+      <div class="d-flex align-items-center gap-2">
+        <span class="text-white-50 small d-none d-md-block" id="topbar-user"></span>
+        <a href="#" id="back-btn" class="btn btn-outline-light btn-sm">
+          <i class="bi bi-arrow-left me-1"></i>Retour
+        </a>
+        <a href="#" class="btn btn-danger btn-sm" onclick="AUTH.logout();return false;">
+          <i class="bi bi-box-arrow-right"></i>
+        </a>
+      </div>
+    </div>
+  </nav>
+
+  <div class="container-fluid">
+    <div class="row">
+
+      <!-- SIDEBAR -->
+      <div class="col-md-2 sidebar pt-4 pb-3">
+        <ul class="nav flex-column gap-1 px-2">
+          <li class="nav-item">
+            <button class="nav-link w-100 text-start active" id="btn-hierarchy" onclick="showSection('hierarchy')">
+              <i class="bi bi-diagram-3 me-2"></i>Hiérarchie
+            </button>
+          </li>
+          <li class="nav-item">
+            <button class="nav-link w-100 text-start" id="btn-matrix" onclick="showSection('matrix')">
+              <i class="bi bi-grid-3x3 me-2"></i>Matrice des droits
+            </button>
+          </li>
+          <li class="nav-item">
+            <button class="nav-link w-100 text-start" id="btn-assign" onclick="showSection('assign')">
+              <i class="bi bi-person-gear me-2"></i>Assigner les rôles
+            </button>
+          </li>
+        </ul>
+      </div>
+
+      <!-- CONTENU PRINCIPAL -->
+      <div class="col-md-10 py-4 px-4">
+
+        <!-- ════ HIÉRARCHIE VISUELLE ════ -->
+        <div id="section-hierarchy">
+          <h1 class="h4 section-titre">Structure hiérarchique des rôles</h1>
+          <p class="text-muted mb-4">Chaque niveau peut gérer les niveaux inférieurs uniquement.</p>
+
+          <!-- Niveaux -->
+          <div class="row g-3 mb-5">
+            <div class="col-md-3">
+              <div class="card level-card niveau-4 p-3 h-100">
+                <div class="d-flex align-items-center gap-2 mb-2">
+                  <span class="badge bg-success">Niveau 4</span>
+                  <strong>Maître</strong>
+                </div>
+                <p class="small text-muted mb-2">Accès total. Gère toutes les entités. Peut valider les inscriptions directement.</p>
+                <hr class="my-2" />
+                <div class="small"><strong>Peut assigner :</strong><br>
+                  <span class="badge bg-success me-1">Maître</span>
+                  <span class="badge bg-warning text-dark me-1">Direction</span>
+                  <span class="badge bg-primary me-1">Délégué</span>
+                  <span class="badge bg-secondary">Membre</span>
+                </div>
+              </div>
+            </div>
+            <div class="col-md-3">
+              <div class="card level-card niveau-3 p-3 h-100">
+                <div class="d-flex align-items-center gap-2 mb-2">
+                  <span class="badge bg-warning text-dark">Niveau 3</span>
+                  <strong>Direction</strong>
+                </div>
+                <p class="small text-muted mb-2">Gère les Délégués et les Directions. Vue en lecture des demandes en attente.</p>
+                <hr class="my-2" />
+                <div class="small"><strong>Peut assigner :</strong><br>
+                  <span class="badge bg-warning text-dark me-1">Direction</span>
+                  <span class="badge bg-primary me-1">Délégué</span>
+                  <span class="badge bg-secondary">Membre</span>
+                </div>
+              </div>
+            </div>
+            <div class="col-md-3">
+              <div class="card level-card niveau-2 p-3 h-100">
+                <div class="d-flex align-items-center gap-2 mb-2">
+                  <span class="badge bg-info text-dark">Niveau 2</span>
+                  <strong>Délégué</strong>
+                </div>
+                <p class="small text-muted mb-2">Valide les inscriptions en attente. Gère ses propres membres. Gère événements &amp; offres.</p>
+                <hr class="my-2" />
+                <div class="small"><strong>Peut assigner :</strong><br>
+                  <span class="badge bg-secondary">Membre uniquement (validation)</span>
+                </div>
+              </div>
+            </div>
+            <div class="col-md-3">
+              <div class="card level-card p-3 h-100">
+                <div class="d-flex align-items-center gap-2 mb-2">
+                  <span class="badge bg-secondary">Niveau 1</span>
+                  <strong>Membre</strong>
+                </div>
+                <p class="small text-muted mb-2">Consulte les événements et offres réservés aux membres. Aucun droit de modification.</p>
+                <hr class="my-2" />
+                <div class="small"><strong>Peut assigner :</strong><br>
+                  <span class="text-muted">Aucun</span>
+                </div>
+              </div>
+            </div>
+          </div>
+
+          <!-- Arbre hiérarchique dynamique -->
+          <h2 class="h5 mb-3">Arbre de l'organisation actuelle</h2>
+          <div id="org-tree" class="row g-3"></div>
+        </div>
+
+        <!-- ════ MATRICE DES DROITS ════ -->
+        <div id="section-matrix" class="d-none">
+          <h1 class="h4 section-titre">Matrice des droits</h1>
+          <p class="text-muted mb-4">
+            <i class="bi bi-check-circle-fill text-success me-1"></i>Autorisé
+            <i class="bi bi-dash-circle-fill text-secondary mx-1 ms-3"></i>Non disponible
+            <i class="bi bi-slash-circle-fill text-warning mx-1 ms-3"></i>Conditionnel
+          </p>
+          <div class="card p-0 overflow-hidden">
+            <div class="table-responsive">
+              <table class="table table-bordered matrix-table align-middle mb-0">
+                <thead class="table-light">
+                  <tr>
+                    <th style="min-width:220px">Action</th>
+                    <th>Maître<br><small class="fw-normal text-muted">Niv. 4</small></th>
+                    <th>Direction<br><small class="fw-normal text-muted">Niv. 3</small></th>
+                    <th>Délégué<br><small class="fw-normal text-muted">Niv. 2</small></th>
+                    <th>Membre<br><small class="fw-normal text-muted">Niv. 1</small></th>
+                  </tr>
+                </thead>
+                <tbody id="matrix-tbody"></tbody>
+              </table>
+            </div>
+          </div>
+        </div>
+
+        <!-- ════ ASSIGNER LES RÔLES ════ -->
+        <div id="section-assign" class="d-none">
+          <h1 class="h4 section-titre">Assigner les rôles</h1>
+          <p class="text-muted mb-4" id="assign-note"></p>
+
+          <div class="mb-3 d-flex gap-2 flex-wrap">
+            <input type="text" class="form-control" style="max-width:280px;"
+                   id="assign-search" placeholder="Rechercher un utilisateur…" oninput="renderAssign()" />
+            <select class="form-select" style="max-width:180px;" id="assign-filter" onchange="renderAssign()">
+              <option value="">Tous les rôles assignables</option>
+            </select>
+          </div>
+
+          <div id="assign-list"></div>
+        </div>
+
+      </div>
+    </div>
+  </div>
+
+  <!-- MODAL CONFIRMER CHANGEMENT DE RÔLE -->
+  <div class="modal fade" id="confirmModal" tabindex="-1">
+    <div class="modal-dialog modal-sm">
+      <div class="modal-content rounded-4">
+        <div class="modal-header" style="background:var(--couleur-principale);color:white;">
+          <h2 class="modal-title h6"><i class="bi bi-shield-check me-2"></i>Confirmer</h2>
+          <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal"></button>
+        </div>
+        <div class="modal-body p-4">
+          <p class="mb-0" id="confirm-text"></p>
+        </div>
+        <div class="modal-footer">
+          <button class="btn btn-secondary btn-sm" data-bs-dismiss="modal">Annuler</button>
+          <button class="btn btn-attt btn-sm" id="confirm-ok">Confirmer</button>
+        </div>
+      </div>
+    </div>
+  </div>
+
+<script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js"></script>
+<script src="js/auth.js"></script>
+<script src="js/log.js"></script>
+<script>
+'use strict';
+/* ─── Accès : Direction ou plus ──────────────────────────── */
+const user = AUTH.requireAuth('superviseur');
+if (!user) throw new Error();
+document.getElementById('topbar-user').textContent = user.prenom + ' ' + user.nom;
+document.getElementById('back-btn').href = AUTH.dashUrl(user.role);
+
+const isMaster = (user.role === 'master');
+const RL = AUTH.ROLE_LABELS;  /* { membre, admin, superviseur, master } */
+
+/* Rôles que l'utilisateur courant peut attribuer */
+const ASSIGNABLE = isMaster
+  ? ['membre','admin','superviseur','master']
+  : ['membre','admin','superviseur'];  /* Direction */
+
+/* ─── Navigation ──────────────────────────────────────────── */
+function showSection(name) {
+  ['hierarchy','matrix','assign'].forEach(s => {
+    document.getElementById('section-' + s).classList.toggle('d-none', s !== name);
+    document.getElementById('btn-' + s).classList.toggle('active', s === name);
+  });
+  if (name === 'hierarchy') renderHierarchy();
+  if (name === 'matrix')    renderMatrix();
+  if (name === 'assign')    renderAssign();
+}
+
+/* ════════════════════════════════════════════════════════════
+   SECTION : HIÉRARCHIE
+   ═══════════════════════════════════════════════════════════ */
+function renderHierarchy() {
+  const all     = AUTH.getUsers().filter(u => u.login !== '347');  /* exclure compte secours */
+  const masters = all.filter(u => u.role === 'master' && u.statut === 'actif');
+  const dirs    = all.filter(u => u.role === 'superviseur' && u.statut === 'actif');
+  const deleg   = all.filter(u => u.role === 'admin' && u.statut === 'actif');
+  const pending = AUTH.getPendingMembers();
+
+  const container = document.getElementById('org-tree');
+
+  /* Colonne Maîtres */
+  let masterHTML = masters.map(m => userRow(m, 'success')).join('');
+  if (!masterHTML) masterHTML = '<div class="text-muted small ps-2">Aucun</div>';
+
+  /* Colonne Directions */
+  let dirHTML = dirs.map(d => userRow(d, 'warning')).join('');
+  if (!dirHTML) dirHTML = '<div class="text-muted small ps-2">Aucun</div>';
+
+  /* Colonne Délégués avec membres */
+  let delegHTML = deleg.map(d => {
+    const members = AUTH.getMembersByValidateur(d.id);
+    return `
+      <div class="mb-3">
+        ${userRow(d, 'primary')}
+        <div class="children">
+          ${members.length
+            ? members.map(m => userRow(m, 'secondary')).join('')
+            : '<div class="text-muted small ps-2">Aucun membre validé</div>'}
+        </div>
+      </div>`;
+  }).join('');
+  if (!delegHTML) delegHTML = '<div class="text-muted small ps-2">Aucun</div>';
+
+  /* Membres sans délégué */
+  const orphans = all.filter(u => u.role === 'membre' && u.statut === 'actif' && !u.validateurId);
+  const orphanHTML = orphans.length
+    ? orphans.map(m => userRow(m, 'secondary')).join('')
+    : '<div class="text-muted small ps-2">Aucun</div>';
+
+  container.innerHTML = `
+    <div class="col-md-3">
+      <div class="card p-3">
+        <h6 class="fw-bold mb-2"><span class="badge bg-success me-2">Maîtres</span></h6>
+        ${masterHTML}
+      </div>
+    </div>
+    <div class="col-md-3">
+      <div class="card p-3">
+        <h6 class="fw-bold mb-2"><span class="badge bg-warning text-dark me-2">Directions</span></h6>
+        ${dirHTML}
+      </div>
+    </div>
+    <div class="col-md-3">
+      <div class="card p-3">
+        <h6 class="fw-bold mb-2"><span class="badge bg-primary me-2">Délégués + membres</span></h6>
+        ${delegHTML}
+      </div>
+    </div>
+    <div class="col-md-3">
+      <div class="card p-3">
+        <h6 class="fw-bold mb-2"><span class="badge bg-secondary me-2">Membres sans délégué</span></h6>
+        ${orphanHTML}
+        ${pending.length
+          ? `<div class="mt-2"><span class="badge bg-warning text-dark">${pending.length} en attente</span></div>`
+          : ''}
+      </div>
+    </div>`;
+}
+
+function userRow(u, color) {
+  const init = (u.prenom[0]||'?') + (u.nom[0]||'');
+  return `
+    <div class="user-row">
+      <div class="user-avatar">${AUTH.esc(init.toUpperCase())}</div>
+      <div class="flex-grow-1 min-w-0">
+        <div class="fw-semibold text-truncate small">${AUTH.esc(u.prenom)} ${AUTH.esc(u.nom)}</div>
+        <code class="text-muted" style="font-size:.73rem">@${AUTH.esc(u.login)}</code>
+      </div>
+    </div>`;
+}
+
+/* ════════════════════════════════════════════════════════════
+   SECTION : MATRICE DES DROITS
+   ═══════════════════════════════════════════════════════════ */
+const MATRIX_ROWS = [
+  /* [label, master, superviseur, admin(délégué), membre]  */
+  /* ✓=check-yes  —=check-no  ⚠=check-cond */
+  ['Se connecter',                      '✓','✓','✓','✓'],
+  ['Consulter événements (publics)',     '✓','✓','✓','✓'],
+  ['Consulter événements (membres)',     '✓','✓','✓','✓'],
+  ['Consulter offres',                   '✓','✓','✓','✓'],
+  ['Consulter articles / actualités',    '✓','✓','✓','⚠'],
+  ['Ajouter / modifier événement',       '✓','✓','✓','—'],
+  ['Supprimer événement',                '✓','✓','✓','—'],
+  ['Ajouter / modifier offre',           '✓','✓','✓','—'],
+  ['Supprimer offre',                    '✓','✓','✓','—'],
+  ['Publier article avec photo',         '✓','✓','✓','—'],
+  ['Modifier / supprimer article',       '✓','✓','✓','—'],
+  ['Valider inscription (en attente)',   '✓','✓','✓','—'],
+  ['Rejeter inscription',                '✓','✓','✓','—'],
+  ['Suspendre / réactiver membre',       '✓','—','✓','—'],
+  ['Promouvoir → Délégué',               '✓','✓','—','—'],
+  ['Promouvoir → Direction',             '✓','✓','—','—'],
+  ['Promouvoir → Maître',                '✓','—','—','—'],
+  ['Rétrograder un utilisateur',         '✓','⚠','—','—'],
+  ['Supprimer compte utilisateur',       '✓','—','—','—'],
+  ['Voir journal des opérations',        '✓','—','—','—'],
+  ['Effacer journal',                    '✓','—','—','—'],
+];
+
+const SYM_MAP = {
+  '✓': '<i class="bi bi-check-circle-fill check-yes"></i>',
+  '—': '<i class="bi bi-dash-circle-fill check-no"></i>',
+  '⚠': '<i class="bi bi-slash-circle-fill check-cond" title="Limité à son niveau"></i>',
+};
+
+function renderMatrix() {
+  document.getElementById('matrix-tbody').innerHTML = MATRIX_ROWS.map(([label,...cols]) => `
+    <tr>
+      <td>${label}</td>
+      ${cols.map(c => `<td>${SYM_MAP[c]||c}</td>`).join('')}
+    </tr>`).join('');
+}
+
+/* ════════════════════════════════════════════════════════════
+   SECTION : ASSIGNER LES RÔLES
+   ═══════════════════════════════════════════════════════════ */
+function renderAssign() {
+  /* Note d'info selon rôle du connecté */
+  document.getElementById('assign-note').innerHTML = isMaster
+    ? 'En tant que <strong>Maître</strong>, vous pouvez attribuer tous les rôles.'
+    : 'En tant que <strong>Direction</strong>, vous pouvez attribuer les rôles Membre, Délégué et Direction.';
+
+  /* Filtre sidebar */
+  const filterSel = document.getElementById('assign-filter');
+  if (!filterSel.options.length || filterSel.options[0].value !== '') {
+    filterSel.innerHTML = '<option value="">Tous les rôles</option>' +
+      ASSIGNABLE.filter(r => r !== 'membre').map(r =>
+        `<option value="${r}">${RL[r]||r}</option>`
+      ).join('');
+  }
+  const filterRole = filterSel.value;
+  const q          = document.getElementById('assign-search').value.toLowerCase();
+
+  /* Utilisateurs assignables : tous sauf le compte secours et soi-même */
+  let users = AUTH.getUsers().filter(u =>
+    u.login !== '347' &&
+    u.id    !== user.id &&
+    u.statut !== 'en_attente'
+  );
+
+  /* Direction ne peut pas voir/modifier les Maîtres ni les autres Directions au-delà de son propre niveau */
+  if (!isMaster) users = users.filter(u => u.role !== 'master');
+
+  if (filterRole) users = users.filter(u => u.role === filterRole);
+  if (q) users = users.filter(u =>
+    (u.nom+u.prenom+u.login).toLowerCase().includes(q)
+  );
+  users.sort((a,b) => a.nom.localeCompare(b.nom));
+
+  const container = document.getElementById('assign-list');
+  if (!users.length) {
+    container.innerHTML = '<p class="text-muted mt-3">Aucun utilisateur trouvé.</p>';
+    return;
+  }
+
+  const RC = {
+    membre:      'bg-secondary',
+    admin:       'bg-primary',
+    superviseur: 'bg-warning text-dark',
+    master:      'bg-success',
+  };
+
+  container.innerHTML = `
+    <div class="card p-0 overflow-hidden">
+      <div class="table-responsive">
+        <table class="table table-hover align-middle mb-0">
+          <thead class="table-light">
+            <tr>
+              <th>Utilisateur</th>
+              <th>Login</th>
+              <th>Statut</th>
+              <th>Rôle actuel</th>
+              <th>Nouveau rôle</th>
+              <th class="text-end">Action</th>
+            </tr>
+          </thead>
+          <tbody>
+            ${users.map(u => `
+              <tr id="row-${AUTH.esc(u.id)}">
+                <td>
+                  <div class="d-flex align-items-center gap-2">
+                    <div class="user-avatar" style="width:32px;height:32px;font-size:.75rem;">
+                      ${AUTH.esc((u.prenom[0]||'?')+(u.nom[0]||''))}
+                    </div>
+                    <div>
+                      <div class="fw-semibold small">${AUTH.esc(u.nom)} ${AUTH.esc(u.prenom)}</div>
+                      <div class="text-muted" style="font-size:.73rem">${AUTH.esc(u.email||'')}</div>
+                    </div>
+                  </div>
+                </td>
+                <td><code class="small">${AUTH.esc(u.login)}</code></td>
+                <td>${u.statut === 'actif'
+                  ? '<span class="badge bg-success">Actif</span>'
+                  : '<span class="badge bg-danger">Suspendu</span>'}</td>
+                <td>
+                  <span class="badge ${RC[u.role]||'bg-secondary'} role-pill">
+                    ${RL[u.role]||u.role}
+                  </span>
+                </td>
+                <td>
+                  <select class="form-select form-select-sm" style="max-width:140px;"
+                          id="sel-${AUTH.esc(u.id)}">
+                    ${ASSIGNABLE.map(r => `
+                      <option value="${r}" ${r === u.role ? 'selected' : ''}>
+                        ${RL[r]||r}
+                      </option>`).join('')}
+                  </select>
+                </td>
+                <td class="text-end">
+                  <button class="btn btn-attt btn-sm" onclick="applyRole('${AUTH.esc(u.id)}','${AUTH.esc(u.login)}','${AUTH.esc(u.role)}')">
+                    <i class="bi bi-check-lg me-1"></i>Appliquer
+                  </button>
+                </td>
+              </tr>`).join('')}
+          </tbody>
+        </table>
+      </div>
+    </div>`;
+}
+
+/* ─── Appliquer le changement de rôle ──────────────────────── */
+const confirmModal = new bootstrap.Modal(document.getElementById('confirmModal'));
+let _pendingChange = null;
+
+function applyRole(userId, userLogin, oldRole) {
+  const select  = document.getElementById('sel-' + userId);
+  const newRole = select.value;
+  if (newRole === oldRole) { alert('Aucun changement de rôle sélectionné.'); return; }
+  if (!ASSIGNABLE.includes(newRole)) { alert('Vous ne pouvez pas attribuer ce rôle.'); return; }
+
+  _pendingChange = { userId, newRole };
+  document.getElementById('confirm-text').innerHTML =
+    'Changer le rôle de <strong>@' + AUTH.esc(userLogin) + '</strong> de ' +
+    '<strong>' + (RL[oldRole]||oldRole) + '</strong> vers ' +
+    '<strong>' + (RL[newRole]||newRole) + '</strong> ?';
+  confirmModal.show();
+}
+
+document.getElementById('confirm-ok').addEventListener('click', () => {
+  if (!_pendingChange) return;
+  AUTH.updateUser(_pendingChange.userId, { role: _pendingChange.newRole });
+  confirmModal.hide();
+  _pendingChange = null;
+  renderAssign();
+  /* Rafraîchir arbre si visible */
+  if (!document.getElementById('section-hierarchy').classList.contains('d-none')) renderHierarchy();
+});
+
+/* ─── Init ─────────────────────────────────────────────────── */
+renderHierarchy();
+</script>
+</body>
+</html>

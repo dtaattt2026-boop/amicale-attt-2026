@@ -1,0 +1,251 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Amicale ATTT — Actualités</title>
+  <meta name="description" content="Les dernières actualités, annonces et informations de l'Amicale de l'ATTT." />
+  <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css" rel="stylesheet" />
+  <link href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.3/font/bootstrap-icons.css" rel="stylesheet" />
+  <link href="css/style.css" rel="stylesheet" />
+  <link rel="manifest" href="manifest.json" />
+  <meta name="theme-color" content="#003DA6" />
+  <style>
+    .article-card img { width:100%; height:180px; object-fit:cover; border-radius:8px 8px 0 0; }
+    .article-card .card-body { padding:1.1rem; }
+    .article-card .card-title { font-size:1rem; font-weight:700; margin-bottom:.35rem; }
+    .article-card .card-text  { font-size:.87rem; color:#6c757d; }
+    .badge-lock { font-size:.75rem; }
+    .blur-content { filter:blur(5px); user-select:none; pointer-events:none; }
+    .page-header {
+      background: var(--gradient-principal);
+      color: #fff;
+      padding: 3rem 0 2.5rem;
+    }
+  </style>
+</head>
+<body>
+
+  <!-- NAVBAR -->
+  <nav class="navbar navbar-expand-lg navbar-dark">
+    <div class="container">
+      <a class="navbar-brand fw-bold d-flex align-items-center gap-2" href="index.html">
+        <i class="bi bi-people-fill fs-4"></i>
+        Amicale ATTT
+      </a>
+      <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navMenu"
+              aria-controls="navMenu" aria-expanded="false" aria-label="Menu de navigation">
+        <span class="navbar-toggler-icon"></span>
+      </button>
+      <div class="collapse navbar-collapse" id="navMenu">
+        <ul class="navbar-nav ms-auto gap-1">
+          <li class="nav-item"><a class="nav-link" href="index.html">Accueil</a></li>
+          <li class="nav-item"><a class="nav-link" href="a-propos.html">L'association</a></li>
+          <li class="nav-item"><a class="nav-link" href="activites.html">Activités</a></li>
+          <li class="nav-item"><a class="nav-link" href="evenements.html">Événements</a></li>
+          <li class="nav-item"><a class="nav-link active" href="actualites.html">Actualités</a></li>
+          <li class="nav-item"><a class="nav-link" href="galerie.html">Galerie</a></li>
+          <li class="nav-item"><a class="nav-link" href="telechargements.html">Téléchargements</a></li>
+          <li class="nav-item"><a class="nav-link" href="contact.html">Contact</a></li>
+        </ul>
+      </div>
+    </div>
+  </nav>
+
+  <!-- EN-TÊTE DE PAGE -->
+  <section class="page-header">
+    <div class="container">
+      <p class="text-warning fw-semibold mb-1 small text-uppercase">
+        <i class="bi bi-newspaper me-1"></i>Informations
+      </p>
+      <h1 class="mb-2">Actualités</h1>
+      <p class="opacity-75 mb-0">Retrouvez les dernières nouvelles, annonces et informations de l'Amicale.</p>
+    </div>
+  </section>
+
+  <!-- FILTRES -->
+  <section class="py-3 bg-white border-bottom shadow-sm">
+    <div class="container">
+      <div class="d-flex flex-wrap gap-2 align-items-center">
+        <span class="text-muted small me-1">Filtrer :</span>
+        <button class="btn btn-sm btn-primary filter-btn active" data-cat="tous">Toutes</button>
+        <button class="btn btn-sm btn-outline-secondary filter-btn" data-cat="annonce">Annonces</button>
+        <button class="btn btn-sm btn-outline-secondary filter-btn" data-cat="actualite">Actualités</button>
+        <button class="btn btn-sm btn-outline-secondary filter-btn" data-cat="sport">Sport</button>
+        <button class="btn btn-sm btn-outline-secondary filter-btn" data-cat="culture">Culture</button>
+        <button class="btn btn-sm btn-outline-secondary filter-btn" data-cat="autre">Autre</button>
+      </div>
+    </div>
+  </section>
+
+  <!-- GRILLE D'ARTICLES -->
+  <section class="py-5">
+    <div class="container">
+      <div class="row g-4" id="articles-grid">
+        <div class="col-12 text-center text-muted py-5">
+          <i class="bi bi-newspaper fs-3 d-block mb-2 opacity-50"></i>
+          Chargement des articles…
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- Modal article complet -->
+  <div class="modal fade" id="artDetailModal" tabindex="-1">
+    <div class="modal-dialog modal-lg">
+      <div class="modal-content">
+        <div class="modal-header">
+          <h5 class="modal-title" id="detail-titre"></h5>
+          <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+        </div>
+        <div class="modal-body">
+          <img id="detail-photo" src="" alt="" class="img-fluid rounded mb-3 d-none"
+               style="max-height:320px;object-fit:cover;width:100%;" />
+          <div id="detail-meta" class="mb-3"></div>
+          <div id="detail-corps"></div>
+        </div>
+        <div class="modal-footer">
+          <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Fermer</button>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- FOOTER -->
+  <footer class="py-4 text-white">
+    <div class="container">
+      <div class="row align-items-center">
+        <div class="col-md-6 text-center text-md-start mb-3 mb-md-0">
+          <p class="mb-1 fw-semibold">Amicale de l'ATTT</p>
+          <p class="mb-0 small opacity-75">Association du personnel — Agence Technique des Transports Terrestres</p>
+        </div>
+        <div class="col-md-6 text-center text-md-end">
+          <div class="d-flex justify-content-center justify-content-md-end gap-3 mb-2 flex-wrap">
+            <a href="a-propos.html">L'association</a>
+            <a href="actualites.html">Actualités</a>
+            <a href="activites.html">Activités</a>
+            <a href="contact.html">Contact</a>
+          </div>
+          <p class="mb-0 small opacity-50">&copy; 2026 Amicale ATTT — Tous droits réservés</p>
+          <p class="mb-0 mt-1"><a href="hebergement.html" class="small opacity-40">Guide webmaster</a></p>
+        </div>
+      </div>
+    </div>
+  </footer>
+
+  <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js"></script>
+  <!-- Firebase SDK (Base de données Cloud) -->
+  <script src="https://www.gstatic.com/firebasejs/10.14.1/firebase-app-compat.js"></script>
+  <script src="https://www.gstatic.com/firebasejs/10.14.1/firebase-firestore-compat.js"></script>
+  <script src="js/firebase-config.js"></script>
+  <script src="js/db.js"></script>
+  <script src="js/auth.js"></script>
+  <script src="js/contenu.js"></script>
+  <script>
+    /* ─── État ─────────────────────────────────────── */
+    const connectedUser = AUTH.getUser ? AUTH.getUser() : null;
+    let currentCat = 'tous';
+
+    /* ─── Badges catégories ─────────────────────────── */
+    const CAT_BADGE = {
+      annonce: 'primary', actualite: 'info', sport: 'success',
+      culture: 'warning', autre: 'secondary'
+    };
+    const CAT_LABEL = {
+      annonce: 'Annonce', actualite: 'Actualité', sport: 'Sport',
+      culture: 'Culture', autre: 'Autre'
+    };
+
+    /* ─── Rendu grille ──────────────────────────────── */
+    function renderGrid() {
+      const filters = currentCat !== 'tous' ? { categorie: currentCat } : {};
+      const all     = CONTENU.getArticles(filters);
+      const grid    = document.getElementById('articles-grid');
+
+      if (!all.length) {
+        grid.innerHTML = `
+          <div class="col-12 text-center text-muted py-5">
+            <i class="bi bi-inbox fs-3 d-block mb-2 opacity-50"></i>
+            Aucun article dans cette catégorie.
+          </div>`;
+        return;
+      }
+
+      grid.innerHTML = all.map(a => {
+        const isMembersOnly = a.acces === 'membres';
+        const isLocked      = isMembersOnly && !connectedUser;
+        const badge         = `<span class="badge bg-${CAT_BADGE[a.categorie]||'secondary'} me-1">${CAT_LABEL[a.categorie]||a.categorie}</span>`;
+        const lockBadge     = isMembersOnly
+          ? `<span class="badge bg-warning text-dark badge-lock"><i class="bi bi-lock-fill me-1"></i>Membres</span>`
+          : '';
+        const thumb  = a.photo
+          ? `<img src="${a.photo}" alt="${AUTH.esc(a.titre)}">`
+          : `<div class="d-flex align-items-center justify-content-center bg-light" style="height:180px;border-radius:8px 8px 0 0;">
+               <i class="bi bi-newspaper fs-1 text-muted opacity-25"></i>
+             </div>`;
+        const resume = isLocked
+          ? `<p class="card-text blur-content">${AUTH.esc(a.resume || 'Contenu réservé aux membres.')}</p>`
+          : `<p class="card-text">${AUTH.esc(a.resume || '')}</p>`;
+        const btn = isLocked
+          ? `<a href="login.html" class="btn btn-sm btn-warning">
+               <i class="bi bi-lock-fill me-1"></i>Se connecter pour lire
+             </a>`
+          : `<button class="btn btn-sm btn-outline-attt" onclick='openDetail(${JSON.stringify(a)})'>
+               Lire la suite <i class="bi bi-arrow-right ms-1"></i>
+             </button>`;
+
+        return `
+          <div class="col-md-6 col-lg-4">
+            <div class="card h-100 article-card shadow-sm">
+              ${thumb}
+              <div class="card-body d-flex flex-column">
+                <div class="mb-2">${badge}${lockBadge}</div>
+                <div class="card-title">${AUTH.esc(a.titre)}</div>
+                ${resume}
+                <div class="mt-auto pt-2 d-flex justify-content-between align-items-center">
+                  <small class="text-muted">${AUTH.esc(a.datePublication||'')}</small>
+                  ${btn}
+                </div>
+              </div>
+            </div>
+          </div>`;
+      }).join('');
+    }
+
+    /* ─── Modal détail ──────────────────────────────── */
+    const detailModal = new bootstrap.Modal(document.getElementById('artDetailModal'));
+    function openDetail(a) {
+      document.getElementById('detail-titre').textContent = a.titre;
+      const photo = document.getElementById('detail-photo');
+      if (a.photo) { photo.src = a.photo; photo.classList.remove('d-none'); }
+      else           photo.classList.add('d-none');
+      document.getElementById('detail-meta').innerHTML =
+        `<span class="badge bg-${CAT_BADGE[a.categorie]||'secondary'} me-1">${CAT_LABEL[a.categorie]||a.categorie}</span>
+         ${a.acces === 'membres' ? '<span class="badge bg-warning text-dark me-2"><i class="bi bi-lock-fill me-1"></i>Membres</span>' : ''}
+         <span class="text-muted small">Publié le ${AUTH.esc(a.datePublication||'')} par ${AUTH.esc(a.auteurLogin||'—')}</span>`;
+      const corps = document.getElementById('detail-corps');
+      /* Rendu du corps : on autorise du HTML basique mais on sanitise les scripts */
+      const safe = (a.corps || '').replace(/<script[\s\S]*?<\/script>/gi, '');
+      corps.innerHTML = safe || `<p class="text-muted">(Pas de contenu)</p>`;
+      detailModal.show();
+    }
+
+    /* ─── Filtres ────────────────────────────────────── */
+    document.querySelectorAll('.filter-btn').forEach(btn => {
+      btn.addEventListener('click', function() {
+        document.querySelectorAll('.filter-btn').forEach(b => {
+          b.classList.remove('active', 'btn-primary');
+          b.classList.add('btn-outline-secondary');
+        });
+        this.classList.remove('btn-outline-secondary');
+        this.classList.add('active', 'btn-primary');
+        currentCat = this.dataset.cat;
+        renderGrid();
+      });
+    });
+
+    /* ─── Init ──────────────────────────────────────── */
+    DB_READY.then(() => renderGrid());
+  </script>
+</body>
+</html>

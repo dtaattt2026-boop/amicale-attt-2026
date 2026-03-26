@@ -1,0 +1,360 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Amicale ATTT — Messagerie</title>
+  <link rel="manifest" href="manifest.json" />
+  <meta name="theme-color" content="#003DA6" />
+  <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css" rel="stylesheet" />
+  <link href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.3/font/bootstrap-icons.css" rel="stylesheet" />
+  <link href="css/style.css" rel="stylesheet" />
+  <style>
+    .msg-row       { cursor:pointer; transition:background .15s; }
+    .msg-row:hover { background:#f0f4ff; }
+    .msg-unread    { font-weight:700; background:#eef3ff; }
+    .msg-row td    { vertical-align:middle; }
+    .msg-preview   { max-width:300px; overflow:hidden; white-space:nowrap; text-overflow:ellipsis; }
+    .msg-subject   { font-weight:600; }
+    .compose-btn   { position:fixed; bottom:2rem; right:2rem; z-index:1060; border-radius:50%; width:56px; height:56px;
+                     display:flex; align-items:center; justify-content:center; font-size:1.4rem;
+                     box-shadow:0 4px 20px rgba(0,0,0,.25); }
+    @media (max-width:576px) { .msg-preview { display:none; } }
+  </style>
+</head>
+<body>
+
+  <!-- NAVBAR -->
+  <nav class="navbar navbar-expand-lg navbar-dark">
+    <div class="container">
+      <a class="navbar-brand fw-bold d-flex align-items-center gap-2" href="index.html">
+        <i class="bi bi-people-fill fs-4"></i>Amicale ATTT
+      </a>
+      <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navMenu" aria-label="Menu">
+        <span class="navbar-toggler-icon"></span>
+      </button>
+      <div class="collapse navbar-collapse" id="navMenu">
+        <ul class="navbar-nav ms-auto gap-1">
+          <li class="nav-item"><a class="nav-link" href="espace-membre.html">Mon espace</a></li>
+          <li class="nav-item"><a class="nav-link" href="profil.html">Mon profil</a></li>
+          <li class="nav-item"><a class="nav-link active" href="messagerie.html">Messagerie</a></li>
+        </ul>
+      </div>
+    </div>
+  </nav>
+
+  <!-- EN-TÊTE -->
+  <div class="py-4" style="background:linear-gradient(135deg,var(--couleur-principale),#0056cc);color:white;">
+    <div class="container">
+      <h1 class="fw-bold mb-0 fs-3"><i class="bi bi-chat-text me-2"></i>Messagerie interne
+        <span class="badge bg-danger ms-2 fs-6" id="header-unread" style="display:none"></span>
+      </h1>
+    </div>
+  </div>
+
+  <main class="py-4">
+    <div class="container">
+
+      <!-- ONGLETS -->
+      <ul class="nav nav-pills mb-4 gap-2" id="msgTabs" role="tablist">
+        <li class="nav-item">
+          <button class="nav-link active" data-bs-toggle="pill" data-bs-target="#tab-recus">
+            <i class="bi bi-inbox me-1"></i>Reçus
+            <span class="badge bg-danger ms-1" id="tab-unread-badge" style="display:none"></span>
+          </button>
+        </li>
+        <li class="nav-item">
+          <button class="nav-link" data-bs-toggle="pill" data-bs-target="#tab-envoyes">
+            <i class="bi bi-send me-1"></i>Envoyés
+          </button>
+        </li>
+      </ul>
+
+      <div class="tab-content">
+
+        <!-- ═══ REÇUS ═══ -->
+        <div class="tab-pane fade show active" id="tab-recus">
+          <div class="card p-0 overflow-hidden">
+            <div class="table-responsive">
+              <table class="table table-hover mb-0">
+                <thead class="table-light">
+                  <tr><th style="width:160px">De</th><th>Sujet</th><th class="msg-preview">Aperçu</th><th style="width:120px">Date</th><th style="width:48px"></th></tr>
+                </thead>
+                <tbody id="recus-body"></tbody>
+              </table>
+            </div>
+            <div id="recus-empty" class="text-center py-5 d-none">
+              <i class="bi bi-inbox fs-1 text-muted d-block mb-2"></i>
+              <p class="text-muted">Aucun message reçu.</p>
+            </div>
+          </div>
+        </div>
+
+        <!-- ═══ ENVOYÉS ═══ -->
+        <div class="tab-pane fade" id="tab-envoyes">
+          <div class="card p-0 overflow-hidden">
+            <div class="table-responsive">
+              <table class="table table-hover mb-0">
+                <thead class="table-light">
+                  <tr><th style="width:160px">À</th><th>Sujet</th><th class="msg-preview">Aperçu</th><th style="width:120px">Date</th><th style="width:48px"></th></tr>
+                </thead>
+                <tbody id="envoyes-body"></tbody>
+              </table>
+            </div>
+            <div id="envoyes-empty" class="text-center py-5 d-none">
+              <i class="bi bi-send fs-1 text-muted d-block mb-2"></i>
+              <p class="text-muted">Aucun message envoyé.</p>
+            </div>
+          </div>
+        </div>
+
+      </div>
+    </div>
+  </main>
+
+  <!-- BOUTON COMPOSER FLOTTANT -->
+  <button class="btn btn-attt compose-btn" onclick="openCompose()" title="Nouveau message">
+    <i class="bi bi-pencil-fill"></i>
+  </button>
+
+  <!-- MODAL LIRE UN MESSAGE -->
+  <div class="modal fade" id="modalRead" tabindex="-1">
+    <div class="modal-dialog modal-lg">
+      <div class="modal-content">
+        <div class="modal-header">
+          <h5 class="modal-title fw-bold" id="mr-sujet">—</h5>
+          <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+        </div>
+        <div class="modal-body">
+          <div class="d-flex gap-3 mb-3 text-muted small flex-wrap">
+            <span id="mr-de"></span>
+            <span id="mr-a"></span>
+            <span id="mr-date"></span>
+          </div>
+          <hr />
+          <div id="mr-corps" class="lh-lg" style="white-space:pre-wrap;"></div>
+        </div>
+        <div class="modal-footer">
+          <button class="btn btn-outline-danger btn-sm me-auto" id="mr-del-btn"><i class="bi bi-trash me-1"></i>Supprimer</button>
+          <button class="btn btn-secondary" data-bs-dismiss="modal">Fermer</button>
+          <button class="btn btn-attt" id="mr-reply-btn"><i class="bi bi-reply me-1"></i>Répondre</button>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- MODAL COMPOSER -->
+  <div class="modal fade" id="modalCompose" tabindex="-1">
+    <div class="modal-dialog">
+      <div class="modal-content">
+        <div class="modal-header">
+          <h5 class="modal-title fw-bold"><i class="bi bi-envelope-plus me-2"></i>Nouveau message</h5>
+          <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+        </div>
+        <div class="modal-body">
+          <div id="compose-alert" class="alert d-none mb-3"></div>
+          <div class="mb-3">
+            <label class="form-label fw-semibold small">Destinataires</label>
+            <select class="form-select" id="c-dest" multiple size="5">
+              <option value="all" selected>📢 Tous les membres</option>
+            </select>
+            <div class="form-text">Ctrl+clic pour sélection multiple. "Tous les membres" = diffusion générale.</div>
+          </div>
+          <div class="mb-3">
+            <label class="form-label fw-semibold small">Sujet</label>
+            <input type="text" class="form-control" id="c-sujet" placeholder="Objet du message" maxlength="120" />
+          </div>
+          <div class="mb-3">
+            <label class="form-label fw-semibold small">Message</label>
+            <textarea class="form-control" id="c-corps" rows="6" placeholder="Votre message…" maxlength="2000"></textarea>
+            <div class="form-text text-end"><span id="c-len">0</span>/2000</div>
+          </div>
+        </div>
+        <div class="modal-footer">
+          <button class="btn btn-secondary" data-bs-dismiss="modal">Annuler</button>
+          <button class="btn btn-attt" onclick="sendMessage()"><i class="bi bi-send me-1"></i>Envoyer</button>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- FOOTER -->
+  <footer class="py-3 text-white text-center small">
+    <div class="container"><p class="mb-0 opacity-75">&copy; 2026 Amicale ATTT — Messagerie</p></div>
+  </footer>
+
+<script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js"></script>
+<script src="https://www.gstatic.com/firebasejs/10.14.1/firebase-app-compat.js"></script>
+<script src="https://www.gstatic.com/firebasejs/10.14.1/firebase-firestore-compat.js"></script>
+<script src="js/firebase-config.js"></script>
+<script src="js/db.js"></script>
+<script src="js/auth.js"></script>
+<script src="js/messages.js"></script>
+<script src="js/log.js"></script>
+<script>
+'use strict';
+
+const user = AUTH.requireAuth('famille');
+if (!user) throw new Error();
+
+DB_READY.then(() => {
+  loadDestinataires();
+  renderRecus();
+  renderEnvoyes();
+  updateUnreadBadge();
+});
+
+/* ── Badge non-lus ───────────────────────────────────────── */
+function updateUnreadBadge() {
+  const cnt = MESSAGES.unreadCount(user.id);
+  const badge = document.getElementById('tab-unread-badge');
+  const hbadge= document.getElementById('header-unread');
+  if (cnt > 0) {
+    badge.textContent  = cnt; badge.style.display  = '';
+    hbadge.textContent = cnt; hbadge.style.display = '';
+  } else {
+    badge.style.display  = 'none';
+    hbadge.style.display = 'none';
+  }
+}
+
+/* ── Charger destinataires ───────────────────────────────── */
+function loadDestinataires() {
+  const users = AUTH.getUsers ? AUTH.getUsers() : [];
+  const sel   = document.getElementById('c-dest');
+  users.filter(u => u.id !== user.id && u.role >= 0).forEach(u2 => {
+    const o = document.createElement('option');
+    o.value = u2.id;
+    o.textContent = (u2.prenom||'') + ' ' + (u2.nom||'') + ' (' + (AUTH.ROLE_LABELS[u2.role]||u2.role) + ')';
+    sel.appendChild(o);
+  });
+}
+
+/* ── Reçus ───────────────────────────────────────────────── */
+function renderRecus() {
+  const msgs   = MESSAGES.getReceived(user.id);
+  const tbody  = document.getElementById('recus-body');
+  const empty  = document.getElementById('recus-empty');
+  if (!msgs.length) { tbody.innerHTML=''; empty.classList.remove('d-none'); return; }
+  empty.classList.add('d-none');
+  tbody.innerHTML = msgs.map(m => {
+    const unread = !m.lu?.[user.id];
+    return `<tr class="msg-row${unread?' msg-unread':''}" onclick="readMessage('${m.id}')">
+      <td><small>${AUTH.esc(m.deNom||m.de)}</small></td>
+      <td class="msg-subject">${AUTH.esc(m.sujet)}</td>
+      <td class="msg-preview text-muted small">${AUTH.esc((m.corps||'').slice(0,80))}</td>
+      <td><small class="text-muted">${AUTH.esc(m.dateEnvoi.slice(0,16).replace('T',' '))}</small></td>
+      <td><button class="btn btn-sm btn-outline-danger p-1 lh-1" onclick="delMsg(event,'${m.id}')"><i class="bi bi-trash" style="font-size:.75rem;"></i></button></td>
+    </tr>`;
+  }).join('');
+}
+
+/* ── Envoyés ─────────────────────────────────────────────── */
+function renderEnvoyes() {
+  const msgs   = MESSAGES.getSent(user.id);
+  const tbody  = document.getElementById('envoyes-body');
+  const empty  = document.getElementById('envoyes-empty');
+  if (!msgs.length) { tbody.innerHTML=''; empty.classList.remove('d-none'); return; }
+  empty.classList.add('d-none');
+  tbody.innerHTML = msgs.map(m => {
+    const destLabel = m.a === 'all' ? '📢 Tous' : (Array.isArray(m.a) ? m.a.length+' destinataires' : m.a);
+    return `<tr class="msg-row" onclick="readMessage('${m.id}')">
+      <td><small>${AUTH.esc(String(destLabel))}</small></td>
+      <td class="msg-subject">${AUTH.esc(m.sujet)}</td>
+      <td class="msg-preview text-muted small">${AUTH.esc((m.corps||'').slice(0,80))}</td>
+      <td><small class="text-muted">${AUTH.esc(m.dateEnvoi.slice(0,16).replace('T',' '))}</small></td>
+      <td><button class="btn btn-sm btn-outline-danger p-1 lh-1" onclick="delMsg(event,'${m.id}')"><i class="bi bi-trash" style="font-size:.75rem;"></i></button></td>
+    </tr>`;
+  }).join('');
+}
+
+/* ── Lire un message ─────────────────────────────────────── */
+function readMessage(id) {
+  const msgs  = JSON.parse(localStorage.getItem('attt_messages')||'[]');
+  const m     = msgs.find(x => x.id === id);
+  if (!m) return;
+  MESSAGES.markRead(id, user.id);
+  updateUnreadBadge();
+  renderRecus();
+
+  const isSender = m.de === user.id;
+  const destLabel = m.a === 'all' ? '📢 Tous les membres'
+    : Array.isArray(m.a) ? m.a.length + ' destinataire(s)' : String(m.a);
+
+  document.getElementById('mr-sujet').textContent = m.sujet;
+  document.getElementById('mr-de').innerHTML  = `<i class="bi bi-person me-1"></i><strong>De :</strong> ${AUTH.esc(m.deNom||m.de)}`;
+  document.getElementById('mr-a').innerHTML   = `<i class="bi bi-people me-1"></i><strong>À :</strong> ${AUTH.esc(destLabel)}`;
+  document.getElementById('mr-date').innerHTML= `<i class="bi bi-clock me-1"></i>${AUTH.esc(m.dateEnvoi.slice(0,16).replace('T',' '))}`;
+  document.getElementById('mr-corps').textContent = m.corps;
+
+  /* Bouton Répondre : pré-remplir destinataire */
+  const replyBtn = document.getElementById('mr-reply-btn');
+  if (isSender) { replyBtn.style.display='none'; }
+  else {
+    replyBtn.style.display='';
+    replyBtn.onclick = () => {
+      bootstrap.Modal.getInstance(document.getElementById('modalRead')).hide();
+      openCompose({ replyTo: m.de, sujet: 'Re: ' + m.sujet });
+    };
+  }
+
+  /* Bouton Supprimer */
+  document.getElementById('mr-del-btn').onclick = () => {
+    if (!confirm('Supprimer ce message ?')) return;
+    MESSAGES.deleteMessage(id, user.id);
+    bootstrap.Modal.getInstance(document.getElementById('modalRead')).hide();
+    renderRecus(); renderEnvoyes(); updateUnreadBadge();
+  };
+
+  new bootstrap.Modal(document.getElementById('modalRead')).show();
+}
+
+function delMsg(e, id) {
+  e.stopPropagation();
+  if (!confirm('Supprimer ?')) return;
+  MESSAGES.deleteMessage(id, user.id);
+  renderRecus(); renderEnvoyes(); updateUnreadBadge();
+}
+
+/* ── Composer ────────────────────────────────────────────── */
+function openCompose(opts={}) {
+  const sujetEl = document.getElementById('c-sujet');
+  const sel     = document.getElementById('c-dest');
+  sujetEl.value = opts.sujet || '';
+  document.getElementById('c-corps').value = '';
+  document.getElementById('c-len').textContent = '0';
+  /* Pré-sélectionner destinataire si réponse */
+  if (opts.replyTo) {
+    for (const opt of sel.options) opt.selected = (opt.value === opts.replyTo);
+  } else {
+    sel.options[0].selected = true; /* Tous */
+    for (let i=1; i<sel.options.length; i++) sel.options[i].selected = false;
+  }
+  document.getElementById('compose-alert').classList.add('d-none');
+  new bootstrap.Modal(document.getElementById('modalCompose')).show();
+}
+
+document.getElementById('c-corps').addEventListener('input', function() {
+  document.getElementById('c-len').textContent = this.value.length;
+});
+
+function sendMessage() {
+  const alert  = document.getElementById('compose-alert');
+  const show   = (t,m) => { alert.className='alert alert-'+t; alert.textContent=m; alert.classList.remove('d-none'); };
+  const sel    = document.getElementById('c-dest');
+  const sujet  = document.getElementById('c-sujet').value.trim();
+  const corps  = document.getElementById('c-corps').value.trim();
+  if (!sujet) return show('warning','Veuillez indiquer un sujet.');
+  if (!corps) return show('warning','Le message est vide.');
+
+  const selected = Array.from(sel.selectedOptions).map(o => o.value);
+  const dest = selected.includes('all') ? 'all' : selected;
+
+  MESSAGES.send({ deId: user.id, deNom: user.prenom + ' ' + user.nom, a: dest, sujet, corps });
+  bootstrap.Modal.getInstance(document.getElementById('modalCompose')).hide();
+  renderRecus(); renderEnvoyes();
+  LOG.add('MESSAGE_SENT', { acteurId:user.id, acteurLogin:user.login, acteurRole:user.role, sujet });
+}
+</script>
+</body>
+</html>

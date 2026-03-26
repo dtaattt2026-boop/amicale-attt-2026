@@ -1,0 +1,626 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Amicale ATTT — Téléchargements &amp; Applications</title>
+  <meta name="description" content="Téléchargez l'application Amicale ATTT sur PC Windows, Android (smartphone &amp; tablette) ou installez l'application web sur iPhone et iPad." />
+  <link rel="manifest" href="manifest.json" />
+  <meta name="theme-color" content="#003DA6" />
+  <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css" rel="stylesheet" />
+  <link href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.3/font/bootstrap-icons.css" rel="stylesheet" />
+  <link href="css/style.css" rel="stylesheet" />
+  <style>
+    .hero-dl {
+      background: var(--gradient-principal);
+      color: #fff; padding: 3.5rem 0 2.5rem;
+      position: relative; overflow: hidden;
+    }
+    .hero-dl::after {
+      content: ''; position: absolute; top: -60px; right: -80px;
+      width: 420px; height: 420px; background: rgba(232,160,32,.1);
+      border-radius: 50%; pointer-events: none;
+    }
+    .platform-card { border: none; border-radius: 14px; box-shadow: 0 4px 18px rgba(0,0,0,.10); transition: transform .25s, box-shadow .25s; overflow: hidden; }
+    .platform-card:hover { transform: translateY(-6px); box-shadow: 0 10px 32px rgba(0,0,0,.15); }
+    .platform-card .card-header { border-bottom: none; padding: 1.6rem 1.6rem 0; background: transparent; }
+    .platform-icon { font-size: 3.8rem; display: block; margin-bottom: .5rem; }
+    .platform-card .card-body { padding: 1rem 1.6rem 1.6rem; }
+    .req-list li { font-size: .87rem; margin-bottom: .35rem; }
+    .features-table th, .features-table td { text-align: center; vertical-align: middle; font-size: .9rem; }
+    .features-table td:first-child { text-align: left; font-weight: 500; }
+    .check-yes { color: #198754; font-size: 1.1rem; font-weight: 700; }
+    .check-no  { color: #aaa; font-size: .9rem; }
+    .install-tab-content { background: #fff; border-radius: 0 0 12px 12px; padding: 1.75rem; }
+    .nav-tabs .nav-link.active { font-weight: 600; }
+    .accordion-item  { border: none; margin-bottom: .5rem; border-radius: 10px !important; overflow: hidden; }
+    .accordion-button { font-weight: 600; background: #fff; }
+    .accordion-button:not(.collapsed) { background: #eef2fb; color: var(--couleur-principale); }
+    .bandeau-pwa { background: var(--gradient-principal); color: #fff; border-radius: 14px; padding: 2rem 2.5rem; }
+  </style>
+</head>
+<body>
+
+  <!-- NAVBAR -->
+  <nav class="navbar navbar-expand-lg navbar-dark">
+    <div class="container">
+      <a class="navbar-brand fw-bold d-flex align-items-center gap-2" href="index.html">
+        <i class="bi bi-people-fill fs-4"></i>Amicale ATTT
+      </a>
+      <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navMenu"
+              aria-controls="navMenu" aria-expanded="false" aria-label="Menu de navigation">
+        <span class="navbar-toggler-icon"></span>
+      </button>
+      <div class="collapse navbar-collapse" id="navMenu">
+        <ul class="navbar-nav ms-auto gap-1">
+          <li class="nav-item"><a class="nav-link" href="index.html">Accueil</a></li>
+          <li class="nav-item"><a class="nav-link" href="a-propos.html">L'association</a></li>
+          <li class="nav-item"><a class="nav-link" href="activites.html">Activités</a></li>
+          <li class="nav-item"><a class="nav-link" href="evenements.html">Événements</a></li>
+          <li class="nav-item"><a class="nav-link" href="actualites.html">Actualités</a></li>
+          <li class="nav-item"><a class="nav-link" href="galerie.html">Galerie</a></li>
+          <li class="nav-item"><a class="nav-link active" href="telechargements.html">Téléchargements</a></li>
+          <li class="nav-item"><a class="nav-link" href="contact.html">Contact</a></li>
+        </ul>
+      </div>
+    </div>
+  </nav>
+
+  <!-- HÉRO -->
+  <section class="hero-dl">
+    <div class="container position-relative" style="z-index:1">
+      <nav aria-label="breadcrumb" class="mb-2">
+        <ol class="breadcrumb mb-0" style="--bs-breadcrumb-divider-color:rgba(255,255,255,.5);">
+          <li class="breadcrumb-item"><a href="index.html" class="text-white-50">Accueil</a></li>
+          <li class="breadcrumb-item active text-white">Téléchargements</li>
+        </ol>
+      </nav>
+      <h1 class="fw-bold mb-2">Nos applications</h1>
+      <p class="opacity-75 mb-4 fs-5">
+        Disponibles sur <strong>tous vos appareils</strong> — mêmes fonctionnalités partout.
+      </p>
+      <div class="d-flex flex-wrap gap-2">
+        <span class="badge bg-warning text-dark px-3 py-2"><i class="bi bi-newspaper me-1"></i>Actualités</span>
+        <span class="badge bg-white text-primary px-3 py-2"><i class="bi bi-calendar-event me-1"></i>Événements</span>
+        <span class="badge bg-warning text-dark px-3 py-2"><i class="bi bi-tag me-1"></i>Offres membres</span>
+        <span class="badge bg-white text-primary px-3 py-2"><i class="bi bi-person-circle me-1"></i>Espace personnel</span>
+        <span class="badge bg-warning text-dark px-3 py-2"><i class="bi bi-images me-1"></i>Galerie photos</span>
+        <span class="badge bg-white text-primary px-3 py-2"><i class="bi bi-envelope me-1"></i>Contact</span>
+        <span class="badge bg-success bg-opacity-75 px-3 py-2"><i class="bi bi-wifi-off me-1"></i>Mode hors-ligne</span>
+      </div>
+    </div>
+  </section>
+
+  <!-- CARTES PLATEFORMES -->
+  <section class="py-5">
+    <div class="container">
+      <h2 class="section-titre text-center mb-1">Choisissez votre plateforme</h2>
+      <p class="text-center text-muted mb-5">Toutes les versions offrent exactement les mêmes fonctionnalités.</p>
+      <div class="row g-4">
+
+        <!-- PC WINDOWS -->
+        <div class="col-md-6 col-lg-3">
+          <div class="platform-card card h-100">
+            <div class="card-header text-center">
+              <i class="bi bi-windows platform-icon" style="color:#0078D4;"></i>
+              <h3 class="h5 fw-bold mb-1">PC Windows</h3>
+              <p class="text-muted small mb-0">Application bureau</p>
+            </div>
+            <div class="card-body d-flex flex-column">
+              <ul class="req-list list-unstyled mb-4">
+                <li><i class="bi bi-check-circle-fill text-success me-2"></i>Windows 10 / 11 (64 bits)</li>
+                <li><i class="bi bi-check-circle-fill text-success me-2"></i>4 Go de RAM minimum</li>
+                <li><i class="bi bi-check-circle-fill text-success me-2"></i>200 Mo d'espace disque</li>
+                <li><i class="bi bi-info-circle text-secondary me-2"></i><span id="ver-windows">Version 1.0.0 — mars 2026</span></li>
+              </ul>
+              <a id="dl-windows" href="assets/app-desktop/amicale-attt-setup.exe" class="btn btn-attt w-100 mt-auto mb-2" download onclick="VERSION_CHECK.recordInstall('windows', VERSION_CHECK.getLatestVersion('windows') || '1.0.0')">
+                <i class="bi bi-download me-2"></i>Télécharger (.exe)
+              </a>
+              <button class="btn btn-outline-secondary btn-sm w-100" onclick="switchTab('windows')">
+                <i class="bi bi-book me-1"></i>Guide d'installation
+              </button>
+            </div>
+          </div>
+        </div>
+
+        <!-- ANDROID SMARTPHONE -->
+        <div class="col-md-6 col-lg-3">
+          <div class="platform-card card h-100">
+            <div class="card-header text-center">
+              <i class="bi bi-phone platform-icon" style="color:#3DDC84;"></i>
+              <h3 class="h5 fw-bold mb-1">Android Smartphone</h3>
+              <p class="text-muted small mb-0">Application native</p>
+            </div>
+            <div class="card-body d-flex flex-column">
+              <ul class="req-list list-unstyled mb-4">
+                <li><i class="bi bi-check-circle-fill text-success me-2"></i>Android 8.0 (Oreo) ou +</li>
+                <li><i class="bi bi-check-circle-fill text-success me-2"></i>50 Mo d'espace libre</li>
+                <li><i class="bi bi-wifi text-secondary me-2"></i>Connexion requise (1re fois)</li>
+                <li><i class="bi bi-info-circle text-secondary me-2"></i><span id="ver-android">Version 1.0.0 — mars 2026</span></li>
+              </ul>
+              <a id="dl-android" href="assets/app-android/amicale-attt.apk" class="btn btn-success w-100 mt-auto mb-2" download onclick="VERSION_CHECK.recordInstall('android', VERSION_CHECK.getLatestVersion('android') || '1.0.0')">
+                <i class="bi bi-download me-2"></i>Télécharger (.apk)
+              </a>
+              <button class="btn btn-outline-secondary btn-sm w-100" onclick="switchTab('android')">
+                <i class="bi bi-book me-1"></i>Guide d'installation
+              </button>
+            </div>
+          </div>
+        </div>
+
+        <!-- TABLETTE ANDROID -->
+        <div class="col-md-6 col-lg-3">
+          <div class="platform-card card h-100">
+            <div class="card-header text-center">
+              <i class="bi bi-tablet platform-icon" style="color:#3DDC84;"></i>
+              <h3 class="h5 fw-bold mb-1">Tablette Android</h3>
+              <p class="text-muted small mb-0">Interface adaptée grand écran</p>
+            </div>
+            <div class="card-body d-flex flex-column">
+              <ul class="req-list list-unstyled mb-4">
+                <li><i class="bi bi-check-circle-fill text-success me-2"></i>Android 8.0 (Oreo) ou +</li>
+                <li><i class="bi bi-check-circle-fill text-success me-2"></i>Interface optimisée tablette</li>
+                <li><i class="bi bi-check-circle-fill text-success me-2"></i>Même fichier .apk que smartphone</li>
+                <li><i class="bi bi-info-circle text-secondary me-2"></i><span id="ver-android-tablet">Version 1.0.0 — mars 2026</span></li>
+              </ul>
+              <a href="assets/app-android/amicale-attt.apk" class="btn btn-success w-100 mt-auto mb-2" download onclick="VERSION_CHECK.recordInstall('android', VERSION_CHECK.getLatestVersion('android') || '1.0.0')">
+                <i class="bi bi-download me-2"></i>Télécharger (.apk)
+              </a>
+              <button class="btn btn-outline-secondary btn-sm w-100" onclick="switchTab('android')">
+                <i class="bi bi-book me-1"></i>Guide d'installation
+              </button>
+            </div>
+          </div>
+        </div>
+
+        <!-- iPhone / iPad / Web PWA -->
+        <div class="col-md-6 col-lg-3">
+          <div class="platform-card card h-100 border border-primary border-opacity-25">
+            <div class="card-header text-center">
+              <i class="bi bi-globe platform-icon" style="color:#003DA6;"></i>
+              <h3 class="h5 fw-bold mb-1">iPhone / iPad &amp; Web</h3>
+              <p class="text-muted small mb-0">Application web installable (PWA)</p>
+            </div>
+            <div class="card-body d-flex flex-column">
+              <ul class="req-list list-unstyled mb-4">
+                <li><i class="bi bi-check-circle-fill text-success me-2"></i>iPhone iOS 14+ (Safari)</li>
+                <li><i class="bi bi-check-circle-fill text-success me-2"></i>iPad (iOS/iPadOS 14+)</li>
+                <li><i class="bi bi-check-circle-fill text-success me-2"></i>Mac, Linux, Chromebook…</li>
+                <li><i class="bi bi-check-circle-fill text-success me-2"></i>Aucun téléchargement requis</li>
+              </ul>
+              <button class="btn btn-primary w-100 mt-auto mb-2" onclick="triggerPwaInstall()">
+                <i class="bi bi-plus-circle me-2"></i>Installer sur cet appareil
+              </button>
+              <button class="btn btn-outline-secondary btn-sm w-100" onclick="switchTab('pwa')">
+                <i class="bi bi-book me-1"></i>Guide d'installation
+              </button>
+            </div>
+          </div>
+        </div>
+
+      </div><!-- /row -->
+
+      <div class="alert alert-info d-flex gap-2 mt-4">
+        <i class="bi bi-shield-check fs-5 flex-shrink-0 mt-1"></i>
+        <div>
+          <strong>Sécurité des fichiers :</strong>
+          Les fichiers .exe et .apk sont produits par l'équipe technique de l'ATTT.
+          Si Windows ou Android affiche un avertissement, consultez le
+          <a href="#guide-install" class="alert-link">guide d'installation</a> ci-dessous.
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- TABLE COMPARAISON -->
+  <section class="py-5 bg-white">
+    <div class="container">
+      <h2 class="section-titre">Même expérience, toutes plateformes</h2>
+      <p class="text-muted mb-4">Quelle que soit la plateforme, vous bénéficiez de <strong>toutes les fonctionnalités</strong>.</p>
+      <div class="table-responsive">
+        <table class="table table-hover features-table align-middle border rounded-3 overflow-hidden">
+          <thead class="table-light">
+            <tr>
+              <th class="text-start ps-3">Fonctionnalité</th>
+              <th><i class="bi bi-windows me-1" style="color:#0078D4;"></i><span class="d-none d-sm-inline">Windows</span></th>
+              <th><i class="bi bi-phone me-1" style="color:#3DDC84;"></i><span class="d-none d-sm-inline">Android</span></th>
+              <th><i class="bi bi-tablet me-1" style="color:#3DDC84;"></i><span class="d-none d-sm-inline">Tablette</span></th>
+              <th><i class="bi bi-apple me-1"></i><span class="d-none d-sm-inline">iPhone/iPad</span></th>
+              <th><i class="bi bi-globe me-1" style="color:#003DA6;"></i><span class="d-none d-sm-inline">Web</span></th>
+            </tr>
+          </thead>
+          <tbody>
+            <tr><td class="ps-3"><i class="bi bi-newspaper text-muted me-2"></i>Actualités &amp; Annonces</td>
+              <td><span class="check-yes">✓</span></td><td><span class="check-yes">✓</span></td><td><span class="check-yes">✓</span></td><td><span class="check-yes">✓</span></td><td><span class="check-yes">✓</span></td></tr>
+            <tr><td class="ps-3"><i class="bi bi-calendar-event text-muted me-2"></i>Agenda des événements</td>
+              <td><span class="check-yes">✓</span></td><td><span class="check-yes">✓</span></td><td><span class="check-yes">✓</span></td><td><span class="check-yes">✓</span></td><td><span class="check-yes">✓</span></td></tr>
+            <tr><td class="ps-3"><i class="bi bi-tag text-muted me-2"></i>Offres &amp; Avantages membres</td>
+              <td><span class="check-yes">✓</span></td><td><span class="check-yes">✓</span></td><td><span class="check-yes">✓</span></td><td><span class="check-yes">✓</span></td><td><span class="check-yes">✓</span></td></tr>
+            <tr><td class="ps-3"><i class="bi bi-person-circle text-muted me-2"></i>Espace membre personnel</td>
+              <td><span class="check-yes">✓</span></td><td><span class="check-yes">✓</span></td><td><span class="check-yes">✓</span></td><td><span class="check-yes">✓</span></td><td><span class="check-yes">✓</span></td></tr>
+            <tr><td class="ps-3"><i class="bi bi-images text-muted me-2"></i>Galerie photos</td>
+              <td><span class="check-yes">✓</span></td><td><span class="check-yes">✓</span></td><td><span class="check-yes">✓</span></td><td><span class="check-yes">✓</span></td><td><span class="check-yes">✓</span></td></tr>
+            <tr><td class="ps-3"><i class="bi bi-envelope text-muted me-2"></i>Contact &amp; Informations</td>
+              <td><span class="check-yes">✓</span></td><td><span class="check-yes">✓</span></td><td><span class="check-yes">✓</span></td><td><span class="check-yes">✓</span></td><td><span class="check-yes">✓</span></td></tr>
+            <tr><td class="ps-3"><i class="bi bi-wifi-off text-muted me-2"></i>Utilisation hors connexion</td>
+              <td><span class="check-yes">✓</span></td><td><span class="check-yes">✓</span></td><td><span class="check-yes">✓</span></td><td><span class="check-yes">✓</span></td><td><span class="check-yes">✓</span></td></tr>
+            <tr><td class="ps-3"><i class="bi bi-house text-muted me-2"></i>Icône écran d'accueil</td>
+              <td><span class="check-yes">✓</span></td><td><span class="check-yes">✓</span></td><td><span class="check-yes">✓</span></td><td><span class="check-yes">✓</span></td><td><span class="check-no">—</span></td></tr>
+            <tr><td class="ps-3"><i class="bi bi-arrow-repeat text-muted me-2"></i>Mises à jour automatiques</td>
+              <td><span class="check-no">Manuelle</span></td><td><span class="check-no">Manuelle</span></td><td><span class="check-no">Manuelle</span></td><td><span class="check-yes">✓ Auto</span></td><td><span class="check-yes">✓ Auto</span></td></tr>
+          </tbody>
+        </table>
+      </div>
+    </div>
+  </section>
+
+  <!-- GUIDE D'INSTALLATION -->
+  <section class="py-5" id="guide-install">
+    <div class="container">
+      <h2 class="section-titre">Guides d'installation pas à pas</h2>
+      <ul class="nav nav-tabs" id="installTabs" role="tablist">
+        <li class="nav-item" role="presentation">
+          <button class="nav-link active" id="tab-windows" data-bs-toggle="tab" data-bs-target="#guide-windows" type="button" role="tab">
+            <i class="bi bi-windows me-1" style="color:#0078D4;"></i>Windows PC
+          </button>
+        </li>
+        <li class="nav-item" role="presentation">
+          <button class="nav-link" id="tab-android" data-bs-toggle="tab" data-bs-target="#guide-android" type="button" role="tab">
+            <i class="bi bi-android2 me-1" style="color:#3DDC84;"></i>Android
+          </button>
+        </li>
+        <li class="nav-item" role="presentation">
+          <button class="nav-link" id="tab-pwa" data-bs-toggle="tab" data-bs-target="#guide-pwa" type="button" role="tab">
+            <i class="bi bi-globe me-1"></i>iPhone / iPad / Web
+          </button>
+        </li>
+      </ul>
+      <div class="tab-content shadow-sm">
+
+        <!-- Guide Windows -->
+        <div class="tab-pane fade show active install-tab-content" id="guide-windows" role="tabpanel">
+          <div class="row g-4 align-items-start">
+            <div class="col-md-7">
+              <h3 class="h5 fw-bold mb-3"><i class="bi bi-windows me-2" style="color:#0078D4;"></i>Installation sur PC Windows</h3>
+              <ol class="text-muted">
+                <li class="mb-3"><strong>Téléchargez</strong> le fichier en cliquant sur <em>«&nbsp;Télécharger (.exe)&nbsp;»</em> ci-dessus. Le fichier <code>amicale-attt-setup.exe</code> apparaît dans votre dossier Téléchargements.</li>
+                <li class="mb-3"><strong>Ouvrez</strong> le fichier. Si Windows affiche une fenêtre SmartScreen :
+                  <ul class="mt-1">
+                    <li>Cliquez sur <strong>«&nbsp;Informations complémentaires&nbsp;»</strong></li>
+                    <li>Puis sur <strong>«&nbsp;Exécuter quand même&nbsp;»</strong></li>
+                  </ul>
+                </li>
+                <li class="mb-3"><strong>Suivez l'assistant</strong> d'installation, acceptez la licence, choisissez le dossier, cliquez <strong>Installer</strong>.</li>
+                <li class="mb-3"><strong>Attendez</strong> la fin de l'installation — un raccourci est créé sur le Bureau et dans le menu Démarrer.</li>
+                <li><strong>Lancez l'application</strong> depuis le raccourci Bureau ou le menu Démarrer.</li>
+              </ol>
+            </div>
+            <div class="col-md-5">
+              <div class="card border-0 bg-light p-4">
+                <h4 class="h6 fw-bold mb-3"><i class="bi bi-shield-check text-success me-2"></i>Vérification de sécurité</h4>
+                <p class="small text-muted mb-3">Clic droit sur le fichier .exe → <em>Propriétés</em> → onglet <em>Signatures numériques</em> pour vérifier l'authenticité.</p>
+                <h4 class="h6 fw-bold mb-3"><i class="bi bi-cpu text-primary me-2"></i>Configuration requise</h4>
+                <ul class="small text-muted list-unstyled mb-0">
+                  <li><i class="bi bi-check me-1"></i>Windows 10 / 11 (64 bits)</li>
+                  <li><i class="bi bi-check me-1"></i>Processeur 1 GHz ou plus</li>
+                  <li><i class="bi bi-check me-1"></i>4 Go de RAM</li>
+                  <li><i class="bi bi-check me-1"></i>200 Mo d'espace disque</li>
+                  <li><i class="bi bi-check me-1"></i>Résolution 1024×768 min.</li>
+                </ul>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <!-- Guide Android -->
+        <div class="tab-pane fade install-tab-content" id="guide-android" role="tabpanel">
+          <div class="row g-4 align-items-start">
+            <div class="col-md-7">
+              <h3 class="h5 fw-bold mb-3"><i class="bi bi-android2 me-2" style="color:#3DDC84;"></i>Installation sur Android (Smartphone &amp; Tablette)</h3>
+              <div class="alert alert-warning small mb-3">
+                <i class="bi bi-info-circle me-1"></i>
+                <strong>Le même fichier .apk fonctionne</strong> sur smartphone ET tablette Android.
+                L'interface s'adapte automatiquement à la taille de l'écran.
+              </div>
+              <ol class="text-muted">
+                <li class="mb-3"><strong>Téléchargez</strong> le fichier <code>amicale-attt.apk</code> depuis le bouton ci-dessus.</li>
+                <li class="mb-3"><strong>Autorisez les sources inconnues</strong> (une seule fois) :
+                  <ul class="mt-1">
+                    <li>Allez dans <strong>Paramètres → Sécurité</strong></li>
+                    <li>Activez <strong>«&nbsp;Sources inconnues&nbsp;»</strong> ou <strong>«&nbsp;Installer des apps inconnues&nbsp;»</strong></li>
+                    <li>Sélectionnez votre navigateur et autorisez</li>
+                  </ul>
+                </li>
+                <li class="mb-3"><strong>Ouvrez le fichier</strong> via la notification de téléchargement ou votre gestionnaire de fichiers.</li>
+                <li class="mb-3"><strong>Tapotez «&nbsp;Installer&nbsp;»</strong> et attendez la fin.</li>
+                <li><strong>Lancez l'application</strong> depuis votre écran d'accueil.</li>
+              </ol>
+            </div>
+            <div class="col-md-5">
+              <div class="card border-0 bg-light p-4">
+                <h4 class="h6 fw-bold mb-3"><i class="bi bi-shield-check text-success me-2"></i>Pourquoi pas le Play Store ?</h4>
+                <p class="small text-muted mb-3">Distribution directe (APK) pour éviter les coûts de publication. L'application est 100&nbsp;% sécurisée et produite par l'équipe ATTT.</p>
+                <h4 class="h6 fw-bold mb-3"><i class="bi bi-phone text-primary me-2"></i>Compatibilité</h4>
+                <ul class="small text-muted list-unstyled mb-0">
+                  <li><i class="bi bi-check me-1"></i>Android 8.0 (Oreo) ou supérieur</li>
+                  <li><i class="bi bi-check me-1"></i>Smartphones Android</li>
+                  <li><i class="bi bi-check me-1"></i>Tablettes Android</li>
+                  <li><i class="bi bi-check me-1"></i>50 Mo d'espace libre</li>
+                </ul>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <!-- Guide PWA -->
+        <div class="tab-pane fade install-tab-content" id="guide-pwa" role="tabpanel">
+          <h3 class="h5 fw-bold mb-4"><i class="bi bi-globe me-2"></i>Installation sur iPhone, iPad, Mac, Linux, Chromebook…</h3>
+          <div class="row g-4">
+            <div class="col-md-4">
+              <div class="card p-3 h-100 border-0 bg-light">
+                <div class="d-flex align-items-center gap-2 mb-3">
+                  <i class="bi bi-apple fs-3"></i>
+                  <h4 class="h6 fw-bold mb-0">iPhone &amp; iPad (Safari)</h4>
+                </div>
+                <ol class="small text-muted mb-0">
+                  <li class="mb-2">Ouvrez <strong>Safari</strong> et naviguez sur le site</li>
+                  <li class="mb-2">Tapotez l'icône <strong>Partager</strong> <i class="bi bi-box-arrow-up"></i></li>
+                  <li class="mb-2">Tapotez <strong>«&nbsp;Sur l'écran d'accueil&nbsp;»</strong></li>
+                  <li class="mb-2">Donnez un nom et tapotez <strong>Ajouter</strong></li>
+                  <li>L'icône apparaît sur votre écran !</li>
+                </ol>
+              </div>
+            </div>
+            <div class="col-md-4">
+              <div class="card p-3 h-100 border-0 bg-light">
+                <div class="d-flex align-items-center gap-2 mb-3">
+                  <i class="bi bi-browser-chrome fs-3 text-warning"></i>
+                  <h4 class="h6 fw-bold mb-0">Android — Chrome</h4>
+                </div>
+                <ol class="small text-muted mb-0">
+                  <li class="mb-2">Ouvrez <strong>Chrome</strong> et naviguez sur le site</li>
+                  <li class="mb-2">Tapotez le menu <strong>⋮</strong> en haut à droite</li>
+                  <li class="mb-2">Tapotez <strong>«&nbsp;Ajouter à l'écran d'accueil&nbsp;»</strong></li>
+                  <li class="mb-2">Confirmez en tapotant <strong>Ajouter</strong></li>
+                  <li>L'application s'ouvre comme une appli native !</li>
+                </ol>
+              </div>
+            </div>
+            <div class="col-md-4">
+              <div class="card p-3 h-100 border-0 bg-light">
+                <div class="d-flex align-items-center gap-2 mb-3">
+                  <i class="bi bi-pc-display fs-3 text-primary"></i>
+                  <h4 class="h6 fw-bold mb-0">PC / Mac — Edge ou Chrome</h4>
+                </div>
+                <ol class="small text-muted mb-0">
+                  <li class="mb-2">Ouvrez <strong>Edge</strong> ou <strong>Chrome</strong></li>
+                  <li class="mb-2">Cliquez sur l'icône <i class="bi bi-plus-square"></i> dans la barre d'adresse <em>(ou Menu → Installer l'application)</em></li>
+                  <li class="mb-2">Cliquez sur <strong>«&nbsp;Installer&nbsp;»</strong></li>
+                  <li>Un raccourci apparaît dans vos applications !</li>
+                </ol>
+              </div>
+            </div>
+          </div>
+          <div class="alert alert-success mt-4 small">
+            <i class="bi bi-stars me-2"></i>
+            <strong>Avantage PWA :</strong> Pas de téléchargement. Fonctionne sur <strong>tous les appareils</strong>.
+            Mises à jour automatiques. Expérience similaire à une application native.
+          </div>
+        </div>
+
+      </div><!-- /tab-content -->
+    </div>
+  </section>
+
+  <!-- BANDEAU PWA -->
+  <section class="py-5 bg-white">
+    <div class="container">
+      <div class="bandeau-pwa d-flex flex-wrap align-items-center justify-content-between gap-4">
+        <div>
+          <h3 class="h4 fw-bold mb-2"><i class="bi bi-stars me-2 text-warning"></i>Application Web Progressive (PWA)</h3>
+          <p class="mb-0 opacity-85">
+            Notre site est une <strong>PWA</strong> : installez-le sur n'importe quel appareil depuis votre navigateur,
+            sans passer par un store. Fonctionne hors connexion, se met à jour automatiquement.
+          </p>
+        </div>
+        <button class="btn btn-warning btn-lg fw-bold flex-shrink-0" onclick="triggerPwaInstall()">
+          <i class="bi bi-plus-circle me-2"></i>Installer maintenant
+        </button>
+      </div>
+    </div>
+  </section>
+
+  <!-- FAQ -->
+  <section class="py-5">
+    <div class="container">
+      <h2 class="section-titre">Questions fréquentes</h2>
+      <div class="accordion" id="faqAccordion">
+
+        <div class="accordion-item shadow-sm">
+          <h3 class="accordion-header">
+            <button class="accordion-button collapsed" type="button" data-bs-toggle="collapse" data-bs-target="#faq1">
+              L'application est-elle gratuite ?
+            </button>
+          </h3>
+          <div id="faq1" class="accordion-collapse collapse" data-bs-parent="#faqAccordion">
+            <div class="accordion-body text-muted">
+              Oui, entièrement gratuite pour tous les membres salariés de l'ATTT. Aucun abonnement, aucun achat intégré.
+            </div>
+          </div>
+        </div>
+
+        <div class="accordion-item shadow-sm">
+          <h3 class="accordion-header">
+            <button class="accordion-button collapsed" type="button" data-bs-toggle="collapse" data-bs-target="#faq2">
+              Quelle est la différence entre l'APK et la PWA ?
+            </button>
+          </h3>
+          <div id="faq2" class="accordion-collapse collapse" data-bs-parent="#faqAccordion">
+            <div class="accordion-body text-muted">
+              L'<strong>APK</strong> est une application native Android (comme les apps classiques). La <strong>PWA</strong> est le site web lui-même que vous ajoutez à votre écran d'accueil depuis un navigateur. Les deux offrent les mêmes fonctionnalités, mais la PWA est disponible sur <strong>tous les appareils</strong> sans téléchargement.
+            </div>
+          </div>
+        </div>
+
+        <div class="accordion-item shadow-sm">
+          <h3 class="accordion-header">
+            <button class="accordion-button collapsed" type="button" data-bs-toggle="collapse" data-bs-target="#faq3">
+              L'application est-elle disponible sur iPhone / iOS ?
+            </button>
+          </h3>
+          <div id="faq3" class="accordion-collapse collapse" data-bs-parent="#faqAccordion">
+            <div class="accordion-body text-muted">
+              Oui ! Via la <strong>PWA</strong> : ouvrez Safari sur votre iPhone ou iPad, naviguez sur ce site, tapotez Partager → <em>«&nbsp;Sur l'écran d'accueil&nbsp;»</em>. Vous obtenez une icône et une expérience d'application complète.
+            </div>
+          </div>
+        </div>
+
+        <div class="accordion-item shadow-sm">
+          <h3 class="accordion-header">
+            <button class="accordion-button collapsed" type="button" data-bs-toggle="collapse" data-bs-target="#faq4">
+              L'application fonctionne-t-elle sans Internet ?
+            </button>
+          </h3>
+          <div id="faq4" class="accordion-collapse collapse" data-bs-parent="#faqAccordion">
+            <div class="accordion-body text-muted">
+              Oui ! Grâce au Service Worker, les pages et données consultées récemment sont mises en cache. Vous pouvez consulter actualités, agenda et offres même sans connexion.
+            </div>
+          </div>
+        </div>
+
+        <div class="accordion-item shadow-sm">
+          <h3 class="accordion-header">
+            <button class="accordion-button collapsed" type="button" data-bs-toggle="collapse" data-bs-target="#faq5">
+              Comment mettre à jour l'application ?
+            </button>
+          </h3>
+          <div id="faq5" class="accordion-collapse collapse" data-bs-parent="#faqAccordion">
+            <div class="accordion-body text-muted">
+              <strong>Windows / Android :</strong> Téléchargez et installez la nouvelle version depuis cette page.<br />
+              <strong>PWA / Application Web :</strong> La mise à jour est automatique lors de votre prochaine visite en ligne.
+            </div>
+          </div>
+        </div>
+
+        <div class="accordion-item shadow-sm">
+          <h3 class="accordion-header">
+            <button class="accordion-button collapsed" type="button" data-bs-toggle="collapse" data-bs-target="#faq6">
+              J'ai un problème d'installation, que faire ?
+            </button>
+          </h3>
+          <div id="faq6" class="accordion-collapse collapse" data-bs-parent="#faqAccordion">
+            <div class="accordion-body text-muted">
+              Consultez le guide d'installation correspondant ci-dessus. Si le problème persiste, contactez-nous via la
+              <a href="contact.html">page de contact</a> en indiquant votre appareil, version d'OS et message d'erreur.
+            </div>
+          </div>
+        </div>
+
+      </div>
+    </div>
+  </section>
+
+  <!-- LIEN HÉBERGEMENT (webmaster) -->
+  <section class="py-4 bg-white border-top">
+    <div class="container text-center">
+      <p class="text-muted small mb-1">Vous êtes responsable technique ou webmaster du site ?</p>
+      <a href="hebergement.html" class="btn btn-outline-secondary btn-sm">
+        <i class="bi bi-server me-1"></i>Consulter le guide d'hébergement du site
+      </a>
+    </div>
+  </section>
+
+  <!-- FOOTER -->
+  <footer class="py-4 text-white">
+    <div class="container">
+      <div class="row align-items-center">
+        <div class="col-md-6 text-center text-md-start mb-3 mb-md-0">
+          <p class="mb-1 fw-semibold">Amicale de l'ATTT</p>
+          <p class="mb-0 small opacity-75">Association du personnel — Agence Technique des Transports Terrestres</p>
+        </div>
+        <div class="col-md-6 text-center text-md-end">
+          <div class="d-flex justify-content-center justify-content-md-end gap-3 mb-2 flex-wrap">
+            <a href="a-propos.html">L'association</a>
+            <a href="actualites.html">Actualités</a>
+            <a href="activites.html">Activités</a>
+            <a href="contact.html">Contact</a>
+          </div>
+          <p class="mb-0 small opacity-50">&copy; 2026 Amicale ATTT — Tous droits réservés</p>
+          <p class="mb-0 mt-1"><a href="hebergement.html" class="small opacity-40">Guide webmaster</a></p>
+        </div>
+      </div>
+    </div>
+  </footer>
+
+  <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js"></script>
+  <script src="js/version-check.js"></script>
+  <script src="js/auth.js"></script>
+  <script src="js/main.js"></script>
+  <script>
+    /* ── Chargement dynamique des versions depuis version.json ── */
+    VERSION_CHECK.fetchLatest().then(latest => {
+      if (!latest) return;
+
+      /* Mise à jour des libellés version dans les cartes */
+      function setVerLabel(id, platform) {
+        const el  = document.getElementById(id);
+        const v   = latest.platforms?.[platform]?.version || latest.version;
+        const sz  = latest.platforms?.[platform]?.taille  || '';
+        if (el) el.textContent = 'v' + v + (sz ? ' — ' + sz : '') + ' — ' + (latest.datePublication || '');
+      }
+      setVerLabel('ver-windows',       'windows');
+      setVerLabel('ver-android',        'android');
+      setVerLabel('ver-android-tablet', 'android');
+
+      /* Mise à jour des liens de téléchargement */
+      const dlWin = document.getElementById('dl-windows');
+      const dlApk = document.getElementById('dl-android');
+      if (dlWin && latest.platforms?.windows?.fichier) dlWin.href = latest.platforms.windows.fichier;
+      if (dlApk && latest.platforms?.android?.fichier) dlApk.href = latest.platforms.android.fichier;
+
+      /* Banniere si version installée dépassée */
+      VERSION_CHECK.checkAndNotify();
+
+      /* Indicateur "Dernier téléchargement" pour l'utilisateur */
+      const inst = VERSION_CHECK.getInstalled();
+      ['windows','android'].forEach(p => {
+        if (!inst[p]) return;
+        const latestV = VERSION_CHECK.getLatestVersion(p);
+        const isOld   = VERSION_CHECK._cmp(latestV, inst[p]) > 0;
+        const btnId   = p === 'windows' ? 'dl-windows' : 'dl-android';
+        const btn     = document.getElementById(btnId);
+        if (!btn) return;
+        if (isOld) {
+          const badge = document.createElement('span');
+          badge.className = 'badge bg-warning text-dark ms-2 align-middle';
+          badge.innerHTML = '<i class="bi bi-arrow-up-circle me-1"></i>MAJ';
+          btn.appendChild(badge);
+        } else {
+          const badge = document.createElement('span');
+          badge.className = 'badge bg-success text-white ms-2 align-middle';
+          badge.innerHTML = '<i class="bi bi-check-circle me-1"></i>À jour';
+          btn.appendChild(badge);
+        }
+      });
+    });
+
+    function switchTab(id) {
+      const tab = document.getElementById('tab-' + id);
+      if (tab) {
+        bootstrap.Tab.getOrCreateInstance(tab).show();
+        setTimeout(() => {
+          document.getElementById('guide-install').scrollIntoView({ behavior: 'smooth', block: 'start' });
+        }, 100);
+      }
+    }
+    function triggerPwaInstall() {
+      if (window._deferredInstall) {
+        window._deferredInstall.prompt();
+      } else {
+        switchTab('pwa');
+        document.getElementById('guide-install').scrollIntoView({ behavior: 'smooth' });
+      }
+    }
+  </script>
+</body>
+</html>

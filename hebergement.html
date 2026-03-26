@@ -1,0 +1,693 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Amicale ATTT — Guide d'hébergement</title>
+  <meta name="description" content="Guide complet pour héberger le site web de l'Amicale ATTT : GitHub Pages, Netlify, cPanel, nom de domaine, HTTPS, maintenance." />
+  <link rel="manifest" href="manifest.json" />
+  <meta name="theme-color" content="#003DA6" />
+  <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css" rel="stylesheet" />
+  <link href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.3/font/bootstrap-icons.css" rel="stylesheet" />
+  <link href="css/style.css" rel="stylesheet" />
+  <style>
+    .page-header { background: var(--gradient-principal); color: #fff; padding: 3rem 0 2.5rem; }
+    .step-badge {
+      width: 38px; height: 38px; border-radius: 50%;
+      background: var(--couleur-principale); color: #fff;
+      font-weight: 700; font-size: 1rem;
+      display: flex; align-items: center; justify-content: center;
+      flex-shrink: 0;
+    }
+    .step-badge.success { background: #198754; }
+    .step-line { border-left: 2px dashed #dee2e6; margin-left: 18px; padding-left: 28px; }
+    .option-card { border-left: 4px solid var(--couleur-principale); }
+    .option-card.netlify { border-color: #00C7B7; }
+    .option-card.cpanel  { border-color: #E87722; }
+    pre code { display: block; background: #1e1e2e; color: #cdd6f4; padding: 1rem 1.2rem;
+               border-radius: 8px; font-size: .87rem; overflow-x: auto; line-height: 1.6; }
+    .checklist-item { display: flex; align-items: flex-start; gap: .6rem; padding: .45rem 0; border-bottom: 1px solid #f0f0f0; }
+    .checklist-item:last-child { border-bottom: none; }
+    .toc-link { color: var(--couleur-principale); text-decoration: none; font-size: .9rem; }
+    .toc-link:hover { text-decoration: underline; }
+    .section-anchor { scroll-margin-top: 80px; }
+  </style>
+</head>
+<body>
+
+  <!-- NAVBAR -->
+  <nav class="navbar navbar-expand-lg navbar-dark">
+    <div class="container">
+      <a class="navbar-brand fw-bold d-flex align-items-center gap-2" href="index.html">
+        <i class="bi bi-people-fill fs-4"></i>Amicale ATTT
+      </a>
+      <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navMenu"
+              aria-controls="navMenu" aria-expanded="false" aria-label="Menu de navigation">
+        <span class="navbar-toggler-icon"></span>
+      </button>
+      <div class="collapse navbar-collapse" id="navMenu">
+        <ul class="navbar-nav ms-auto gap-1">
+          <li class="nav-item"><a class="nav-link" href="index.html">Accueil</a></li>
+          <li class="nav-item"><a class="nav-link" href="a-propos.html">L'association</a></li>
+          <li class="nav-item"><a class="nav-link" href="activites.html">Activités</a></li>
+          <li class="nav-item"><a class="nav-link" href="evenements.html">Événements</a></li>
+          <li class="nav-item"><a class="nav-link" href="actualites.html">Actualités</a></li>
+          <li class="nav-item"><a class="nav-link" href="galerie.html">Galerie</a></li>
+          <li class="nav-item"><a class="nav-link" href="telechargements.html">Téléchargements</a></li>
+          <li class="nav-item"><a class="nav-link" href="contact.html">Contact</a></li>
+        </ul>
+      </div>
+    </div>
+  </nav>
+
+  <!-- EN-TÊTE -->
+  <section class="page-header">
+    <div class="container">
+      <nav aria-label="breadcrumb" class="mb-2">
+        <ol class="breadcrumb mb-0" style="--bs-breadcrumb-divider-color:rgba(255,255,255,.5);">
+          <li class="breadcrumb-item"><a href="index.html" class="text-white-50">Accueil</a></li>
+          <li class="breadcrumb-item active text-white">Guide d'hébergement</li>
+        </ol>
+      </nav>
+      <div class="d-flex align-items-center gap-3 mb-2">
+        <span class="badge bg-warning text-dark">Webmaster</span>
+        <span class="badge bg-light text-dark">Guide technique</span>
+      </div>
+      <h1 class="fw-bold mb-2">Guide d'hébergement du site</h1>
+      <p class="opacity-75 mb-0 fs-5">
+        Tout ce qu'il faut savoir pour mettre le site en ligne, choisir un hébergeur,
+        configurer un nom de domaine et assurer la maintenance.
+      </p>
+    </div>
+  </section>
+
+  <!-- CONTENU PRINCIPAL -->
+  <main class="py-5">
+    <div class="container">
+      <div class="row g-5">
+
+        <!-- TABLE DES MATIÈRES (sidebar) -->
+        <div class="col-lg-3 d-none d-lg-block">
+          <div class="card p-3 sticky-top" style="top: 1.5rem;">
+            <p class="fw-bold mb-2 small text-uppercase text-muted">Table des matières</p>
+            <nav class="d-flex flex-column gap-1">
+              <a href="#intro"         class="toc-link"><i class="bi bi-info-circle me-2"></i>Introduction</a>
+              <a href="#prerequis"     class="toc-link"><i class="bi bi-check2-square me-2"></i>Prérequis</a>
+              <a href="#github"        class="toc-link"><i class="bi bi-github me-2"></i>GitHub Pages (gratuit)</a>
+              <a href="#netlify"       class="toc-link"><i class="bi bi-cloud-upload me-2"></i>Netlify (drag &amp; drop)</a>
+              <a href="#cpanel"        class="toc-link"><i class="bi bi-server me-2"></i>Hébergement cPanel/FTP</a>
+              <a href="#domaine"       class="toc-link"><i class="bi bi-globe me-2"></i>Nom de domaine &amp; DNS</a>
+              <a href="#https"         class="toc-link"><i class="bi bi-shield-lock me-2"></i>HTTPS / SSL</a>
+              <a href="#checklist"     class="toc-link"><i class="bi bi-list-check me-2"></i>Checklist mise en prod.</a>
+              <a href="#maintenance"   class="toc-link"><i class="bi bi-tools me-2"></i>Maintenance</a>
+              <a href="#faq-hebergement" class="toc-link"><i class="bi bi-question-circle me-2"></i>FAQ</a>
+            </nav>
+          </div>
+        </div>
+
+        <!-- CONTENU -->
+        <div class="col-lg-9">
+
+          <!-- ════ 1. INTRODUCTION ════ -->
+          <section id="intro" class="section-anchor mb-5">
+            <h2 class="section-titre">1. Introduction</h2>
+            <div class="card p-4 mb-4">
+              <h3 class="h5 fw-bold mb-3"><i class="bi bi-lightning-charge text-warning me-2"></i>Ce site est 100&nbsp;% statique</h3>
+              <p class="text-muted mb-3">
+                Le site de l'Amicale ATTT est composé uniquement de fichiers HTML, CSS et JavaScript.
+                <strong>Il ne nécessite aucun serveur applicatif, aucune base de données, aucun PHP/Python/Node.js.</strong>
+              </p>
+              <p class="text-muted mb-0">
+                N'importe quel hébergeur capable de servir des fichiers statiques peut l'héberger —
+                y compris les solutions <strong>entièrement gratuites</strong> comme GitHub Pages ou Netlify.
+              </p>
+            </div>
+
+            <div class="row g-3">
+              <div class="col-md-4">
+                <div class="card p-3 text-center h-100 border-0 bg-light">
+                  <i class="bi bi-github fs-2 mb-2"></i>
+                  <div class="fw-semibold">GitHub Pages</div>
+                  <div class="text-muted small">Gratuit · 1 Go · HTTPS</div>
+                  <span class="badge bg-success mt-2">Recommandé</span>
+                </div>
+              </div>
+              <div class="col-md-4">
+                <div class="card p-3 text-center h-100 border-0 bg-light">
+                  <i class="bi bi-cloud-upload fs-2 mb-2" style="color:#00C7B7;"></i>
+                  <div class="fw-semibold">Netlify</div>
+                  <div class="text-muted small">Gratuit · ∞ · HTTPS · CDN</div>
+                  <span class="badge bg-primary mt-2">Le plus simple</span>
+                </div>
+              </div>
+              <div class="col-md-4">
+                <div class="card p-3 text-center h-100 border-0 bg-light">
+                  <i class="bi bi-server fs-2 mb-2" style="color:#E87722;"></i>
+                  <div class="fw-semibold">cPanel / FTP</div>
+                  <div class="text-muted small">Payant · Domaine .dz possible</div>
+                  <span class="badge bg-secondary mt-2">Hébergeur classique</span>
+                </div>
+              </div>
+            </div>
+          </section>
+
+          <!-- ════ 2. PRÉREQUIS ════ -->
+          <section id="prerequis" class="section-anchor mb-5">
+            <h2 class="section-titre">2. Prérequis avant déploiement</h2>
+            <p class="text-muted mb-4">
+              Avant de mettre le site en ligne, assurez-vous d'avoir complété ces étapes :
+            </p>
+            <div class="card p-0 overflow-hidden mb-4">
+              <div class="card-header bg-warning bg-opacity-10 py-2 px-4">
+                <strong>Liste de vérification — contenu à personnaliser</strong>
+              </div>
+              <div class="card-body p-4">
+                <div class="checklist-item">
+                  <i class="bi bi-circle text-secondary mt-1"></i>
+                  <div><strong>Textes :</strong> Remplacez tous les textes de démonstration (description de l'association, membres du bureau, etc.) par le vrai contenu.</div>
+                </div>
+                <div class="checklist-item">
+                  <i class="bi bi-circle text-secondary mt-1"></i>
+                  <div><strong>Images :</strong> Ajoutez les vraies photos dans le dossier <code>img/</code>. Remplacez les images placeholder.</div>
+                </div>
+                <div class="checklist-item">
+                  <i class="bi bi-circle text-secondary mt-1"></i>
+                  <div><strong>Contact :</strong> Dans <code>contact.html</code>, mettez la vraie adresse e-mail et activez Formspree ou un autre service de formulaire.</div>
+                </div>
+                <div class="checklist-item">
+                  <i class="bi bi-circle text-secondary mt-1"></i>
+                  <div><strong>Applications :</strong> Remplacez les fichiers placeholder dans <code>assets/app-desktop/</code> et <code>assets/app-android/</code> par les vraies applications.</div>
+                </div>
+                <div class="checklist-item">
+                  <i class="bi bi-circle text-secondary mt-1"></i>
+                  <div><strong>Icônes PWA :</strong> Créez <code>img/icon-192.png</code> et <code>img/icon-512.png</code> à partir du logo de l'association (utilisez <a href="https://realfavicongenerator.net" target="_blank" rel="noopener">realfavicongenerator.net</a>).</div>
+                </div>
+                <div class="checklist-item">
+                  <i class="bi bi-circle text-secondary mt-1"></i>
+                  <div><strong>Comptes admin :</strong> Créez les vrais comptes (Maître, Direction, Délégués) et supprimez les comptes de démonstration.</div>
+                </div>
+                <div class="checklist-item">
+                  <i class="bi bi-circle text-secondary mt-1"></i>
+                  <div><strong>Test local :</strong> Testez le site en local sur <code>http://localhost:8080</code> avant de le déployer (voir commande ci-dessous).</div>
+                </div>
+              </div>
+            </div>
+            <div class="card p-3">
+              <p class="fw-semibold mb-2"><i class="bi bi-terminal me-2"></i>Lancer le serveur local de test</p>
+              <pre><code>cd "c:\site amicale attt"
+python -m http.server 8080
+# Puis ouvrez http://localhost:8080 dans votre navigateur</code></pre>
+            </div>
+          </section>
+
+          <!-- ════ 3. GITHUB PAGES ════ -->
+          <section id="github" class="section-anchor mb-5">
+            <h2 class="section-titre">3. Hébergement — GitHub Pages <span class="badge bg-success ms-2 fs-6">Gratuit</span></h2>
+            <div class="card option-card p-4 mb-4">
+              <div class="d-flex gap-3 mb-3">
+                <i class="bi bi-github fs-2"></i>
+                <div>
+                  <strong>GitHub Pages</strong> héberge votre site directement depuis un dépôt Git.
+                  <br /><span class="text-muted small">URL fournie : <code>https://votre-org.github.io/amicale-attt/</code></span>
+                </div>
+              </div>
+
+              <div class="step-line">
+
+                <div class="d-flex gap-3 mb-4">
+                  <div class="step-badge">1</div>
+                  <div>
+                    <strong>Créez un compte GitHub</strong>
+                    <p class="text-muted small mb-0">Inscrivez-vous sur <a href="https://github.com" target="_blank" rel="noopener">github.com</a> avec l'adresse e-mail de l'association.</p>
+                  </div>
+                </div>
+
+                <div class="d-flex gap-3 mb-4">
+                  <div class="step-badge">2</div>
+                  <div>
+                    <strong>Créez un nouveau dépôt (repository)</strong>
+                    <p class="text-muted small mb-1">Cliquez sur <em>New repository</em>. Nommez-le <code>amicale-attt</code>. Cochez <strong>Public</strong>. Cliquez <strong>Create repository</strong>.</p>
+                  </div>
+                </div>
+
+                <div class="d-flex gap-3 mb-4">
+                  <div class="step-badge">3</div>
+                  <div>
+                    <strong>Envoyez vos fichiers</strong>
+                    <p class="text-muted small mb-2">Option A — Interface web (sans Git) :</p>
+                    <ul class="text-muted small mb-2">
+                      <li>Clic sur <em>uploading an existing file</em></li>
+                      <li>Glissez-déposez tous les fichiers du site</li>
+                      <li>Cliquez <strong>Commit changes</strong></li>
+                    </ul>
+                    <p class="text-muted small mb-1">Option B — Via Git (recommandé pour les mises à jour) :</p>
+                    <pre><code>git init
+git add .
+git commit -m "Mise en ligne initiale"
+git remote add origin https://github.com/votre-org/amicale-attt.git
+git push -u origin main</code></pre>
+                  </div>
+                </div>
+
+                <div class="d-flex gap-3 mb-4">
+                  <div class="step-badge">4</div>
+                  <div>
+                    <strong>Activez GitHub Pages</strong>
+                    <p class="text-muted small mb-0">
+                      Dans votre dépôt → <em>Settings</em> → <em>Pages</em> (menu de gauche) →
+                      Source = <strong>Deploy from a branch</strong> → Branch = <strong>main</strong> → dossier <strong>/ (root)</strong> →
+                      Cliquez <strong>Save</strong>.
+                    </p>
+                  </div>
+                </div>
+
+                <div class="d-flex gap-3 mb-4">
+                  <div class="step-badge success">5</div>
+                  <div>
+                    <strong>Votre site est en ligne !</strong>
+                    <p class="text-muted small mb-0">
+                      Après 1 à 2 minutes, votre site est accessible à :<br />
+                      <code>https://votre-org.github.io/amicale-attt/</code>
+                    </p>
+                  </div>
+                </div>
+
+              </div><!-- /step-line -->
+            </div>
+
+            <div class="alert alert-info small">
+              <i class="bi bi-lightbulb me-2"></i>
+              <strong>Domaine personnalisé sur GitHub Pages :</strong> Dans <em>Settings → Pages → Custom domain</em>,
+              entrez votre domaine (ex. <code>amicale-attt.dz</code>) et créez un enregistrement <strong>CNAME</strong>
+              chez votre registraire DNS pointant vers <code>votre-org.github.io</code>.
+            </div>
+          </section>
+
+          <!-- ════ 4. NETLIFY ════ -->
+          <section id="netlify" class="section-anchor mb-5">
+            <h2 class="section-titre">4. Hébergement — Netlify <span class="badge bg-primary ms-2 fs-6">Le plus simple</span></h2>
+            <div class="card option-card netlify p-4 mb-4">
+              <div class="d-flex gap-3 mb-3">
+                <i class="bi bi-cloud-upload fs-2" style="color:#00C7B7;"></i>
+                <div>
+                  <strong>Netlify</strong> permet de déployer le site par simple glisser-déposer.
+                  <br /><span class="text-muted small">URL fournie : <code>https://amicale-attt.netlify.app</code></span>
+                </div>
+              </div>
+
+              <div class="step-line">
+                <div class="d-flex gap-3 mb-4">
+                  <div class="step-badge">1</div>
+                  <div>
+                    <strong>Créez un compte Netlify</strong>
+                    <p class="text-muted small mb-0">Inscrivez-vous sur <a href="https://netlify.com" target="_blank" rel="noopener">netlify.com</a> (gratuit, via GitHub, Google ou e-mail).</p>
+                  </div>
+                </div>
+
+                <div class="d-flex gap-3 mb-4">
+                  <div class="step-badge">2</div>
+                  <div>
+                    <strong>Préparez une archive ZIP</strong>
+                    <p class="text-muted small mb-0">Compressez le dossier entier du site en un fichier <code>.zip</code> (clic droit → Envoyer vers → Dossier compressé).</p>
+                  </div>
+                </div>
+
+                <div class="d-flex gap-3 mb-4">
+                  <div class="step-badge">3</div>
+                  <div>
+                    <strong>Déployez en glisser-déposer</strong>
+                    <p class="text-muted small mb-0">Sur le tableau de bord Netlify, faites glisser votre <code>.zip</code> dans la zone
+                    <em>«&nbsp;Drag and drop your site output folder here&nbsp;»</em>.</p>
+                  </div>
+                </div>
+
+                <div class="d-flex gap-3 mb-4">
+                  <div class="step-badge success">4</div>
+                  <div>
+                    <strong>Votre site est en ligne instantanément !</strong>
+                    <p class="text-muted small mb-0">
+                      URL automatique type <code>https://random-name-12345.netlify.app</code>.
+                      Vous pouvez la personnaliser dans <em>Site settings → Change site name</em>.
+                    </p>
+                  </div>
+                </div>
+              </div>
+            </div>
+
+            <div class="alert alert-info small">
+              <i class="bi bi-lightbulb me-2"></i>
+              <strong>Domaine personnalisé sur Netlify :</strong> <em>Domain settings → Add custom domain</em>.
+              Netlify active automatiquement le HTTPS via Let's Encrypt.
+            </div>
+          </section>
+
+          <!-- ════ 5. CPANEL / FTP ════ -->
+          <section id="cpanel" class="section-anchor mb-5">
+            <h2 class="section-titre">5. Hébergement cPanel / FTP <span class="badge bg-secondary ms-2 fs-6">Hébergeur classique</span></h2>
+            <div class="card option-card cpanel p-4 mb-4">
+              <div class="d-flex gap-3 mb-3">
+                <i class="bi bi-server fs-2" style="color:#E87722;"></i>
+                <div>
+                  <strong>Hébergement mutualisé (OVH, Hostinger, Hostens, etc.)</strong>
+                  <br /><span class="text-muted small">Nécessite l'achat d'un hébergement + nom de domaine (~15–50€/an)</span>
+                </div>
+              </div>
+
+              <div class="step-line">
+                <div class="d-flex gap-3 mb-4">
+                  <div class="step-badge">1</div>
+                  <div>
+                    <strong>Achetez un hébergement et un domaine</strong>
+                    <p class="text-muted small mb-1">Hébergeurs recommandés pour l'Algérie :</p>
+                    <ul class="text-muted small mb-0">
+                      <li><strong>OVH France</strong> — Plans à partir de 1,99€/mois, domaine .com/.fr</li>
+                      <li><strong>Hostinger</strong> — Économique, panneau Web Hostinger</li>
+                      <li><strong>CERIST / ENIC</strong> — Pour un domaine <strong>.dz</strong> (nécessite justificatifs)</li>
+                    </ul>
+                  </div>
+                </div>
+
+                <div class="d-flex gap-3 mb-4">
+                  <div class="step-badge">2</div>
+                  <div>
+                    <strong>Connectez-vous à cPanel ou au gestionnaire de fichiers</strong>
+                    <p class="text-muted small mb-0">
+                      Accédez à votre hébergement via <code>https://votre-domaine.com/cpanel</code>
+                      ou l'URL fournie par votre hébergeur.
+                    </p>
+                  </div>
+                </div>
+
+                <div class="d-flex gap-3 mb-4">
+                  <div class="step-badge">3</div>
+                  <div>
+                    <strong>Via le Gestionnaire de fichiers cPanel</strong>
+                    <ul class="text-muted small mb-0">
+                      <li>Naviguez vers le dossier <code>public_html/</code></li>
+                      <li>Supprimez les fichiers existants (index.php par défaut)</li>
+                      <li>Cliquez <strong>Téléverser</strong> et envoyez le fichier <code>.zip</code></li>
+                      <li>Extrayez l'archive dans <code>public_html/</code></li>
+                    </ul>
+                  </div>
+                </div>
+
+                <div class="d-flex gap-3 mb-4">
+                  <div class="step-badge">3b</div>
+                  <div>
+                    <strong>Via FTP (FileZilla) — méthode alternative</strong>
+                    <pre><code>Hôte    : ftp.votre-domaine.com
+Identifiant : (fourni par hébergeur)
+Mot de passe: (fourni par hébergeur)
+Port    : 21
+
+→ Glissez tous les fichiers du site vers /public_html/</code></pre>
+                  </div>
+                </div>
+
+                <div class="d-flex gap-3 mb-4">
+                  <div class="step-badge success">4</div>
+                  <div>
+                    <strong>Votre site est en ligne</strong>
+                    <p class="text-muted small mb-0">Accessible à <code>https://www.votre-domaine.com</code> (HTTPS après activation SSL).</p>
+                  </div>
+                </div>
+              </div>
+            </div>
+          </section>
+
+          <!-- ════ 6. NOM DE DOMAINE & DNS ════ -->
+          <section id="domaine" class="section-anchor mb-5">
+            <h2 class="section-titre">6. Nom de domaine &amp; DNS</h2>
+            <div class="row g-4 mb-4">
+              <div class="col-md-6">
+                <div class="card p-4 h-100">
+                  <h4 class="h6 fw-bold mb-3"><i class="bi bi-globe me-2 text-primary"></i>Domaines recommandés</h4>
+                  <ul class="text-muted small list-unstyled">
+                    <li class="mb-2"><code>.dz</code> — Domaine algérien officiel (via CERIST/ENIC, justificatifs requis, ~2000–5000 DA/an)</li>
+                    <li class="mb-2"><code>.com</code> — International, ~10–15€/an (OVH, Namecheap)</li>
+                    <li class="mb-2"><code>.org</code> — Pour les associations, ~10–15€/an</li>
+                    <li class="mb-2"><code>.netlify.app</code> — Gratuit si hébergé sur Netlify</li>
+                    <li><code>.github.io</code> — Gratuit si hébergé sur GitHub Pages</li>
+                  </ul>
+                </div>
+              </div>
+              <div class="col-md-6">
+                <div class="card p-4 h-100">
+                  <h4 class="h6 fw-bold mb-3"><i class="bi bi-diagram-3 me-2 text-primary"></i>Enregistrements DNS essentiels</h4>
+                  <pre><code># Pour GitHub Pages
+CNAME  www    →  votre-org.github.io
+A      @      →  185.199.108.153
+A      @      →  185.199.109.153
+
+# Pour Netlify
+CNAME  www    →  votre-site.netlify.app
+
+# Pour hébergeur classique
+A      @      →  (IP fournie par hébergeur)
+CNAME  www    →  @ ou votre-domaine.com</code></pre>
+                </div>
+              </div>
+            </div>
+          </section>
+
+          <!-- ════ 7. HTTPS / SSL ════ -->
+          <section id="https" class="section-anchor mb-5">
+            <h2 class="section-titre">7. HTTPS &amp; Certificat SSL</h2>
+            <div class="card p-4 mb-3">
+              <p class="text-muted mb-3">
+                Le HTTPS est <strong>obligatoire</strong> pour que la PWA (Application Web Progressive) fonctionne
+                et pour la sécurité de vos membres. Bonne nouvelle : il est <strong>gratuit</strong> dans la plupart des cas.
+              </p>
+              <div class="row g-3">
+                <div class="col-md-4">
+                  <div class="d-flex gap-2 align-items-start">
+                    <i class="bi bi-github fs-4 mt-1"></i>
+                    <div><strong>GitHub Pages</strong><br /><span class="text-muted small">HTTPS activé automatiquement. Option dans Settings → Pages → Enforce HTTPS.</span></div>
+                  </div>
+                </div>
+                <div class="col-md-4">
+                  <div class="d-flex gap-2 align-items-start">
+                    <i class="bi bi-cloud-upload fs-4 mt-1" style="color:#00C7B7;"></i>
+                    <div><strong>Netlify</strong><br /><span class="text-muted small">HTTPS activé automatiquement via Let's Encrypt. Aucune configuration requise.</span></div>
+                  </div>
+                </div>
+                <div class="col-md-4">
+                  <div class="d-flex gap-2 align-items-start">
+                    <i class="bi bi-server fs-4 mt-1" style="color:#E87722;"></i>
+                    <div><strong>cPanel</strong><br /><span class="text-muted small">Activez le certificat Let's Encrypt depuis cPanel → SSL/TLS → Let's Encrypt SSL.</span></div>
+                  </div>
+                </div>
+              </div>
+            </div>
+          </section>
+
+          <!-- ════ 8. CHECKLIST MISE EN PRODUCTION ════ -->
+          <section id="checklist" class="section-anchor mb-5">
+            <h2 class="section-titre">8. Checklist avant mise en production</h2>
+            <div class="card p-0 overflow-hidden">
+              <div class="card-header bg-danger bg-opacity-10 py-2 px-4">
+                <strong class="text-danger"><i class="bi bi-exclamation-triangle me-2"></i>À vérifier AVANT de mettre le site en ligne</strong>
+              </div>
+              <div class="card-body p-4">
+                <!-- Contenu -->
+                <h5 class="h6 fw-bold text-uppercase text-muted mb-3">Contenu</h5>
+                <div class="checklist-item"><i class="bi bi-square text-secondary mt-1"></i><div>Tous les textes placeholder remplacés par le vrai contenu de l'association</div></div>
+                <div class="checklist-item"><i class="bi bi-square text-secondary mt-1"></i><div>Photos réelles ajoutées (pas de placeholders)</div></div>
+                <div class="checklist-item"><i class="bi bi-square text-secondary mt-1"></i><div>Informations de contact (adresse, e-mail, téléphone) à jour</div></div>
+                <!-- Technique -->
+                <h5 class="h6 fw-bold text-uppercase text-muted mb-3 mt-4">Technique</h5>
+                <div class="checklist-item"><i class="bi bi-square text-secondary mt-1"></i><div>Tous les liens internes testés et fonctionnels (pas de liens cassés)</div></div>
+                <div class="checklist-item"><i class="bi bi-square text-secondary mt-1"></i><div>Site testé sur mobile (Chrome DevTools : responsive design)</div></div>
+                <div class="checklist-item"><i class="bi bi-square text-secondary mt-1"></i><div>Navigateurs testés : Chrome, Firefox, Edge, Safari (iOS)</div></div>
+                <div class="checklist-item"><i class="bi bi-square text-secondary mt-1"></i><div>Fichiers <code>amicale-attt-setup.exe</code> et <code>amicale-attt.apk</code> remplacés par les vraies applications</div></div>
+                <div class="checklist-item"><i class="bi bi-square text-secondary mt-1"></i><div>Icônes PWA créées (<code>img/icon-192.png</code> et <code>img/icon-512.png</code>)</div></div>
+                <div class="checklist-item"><i class="bi bi-square text-secondary mt-1"></i><div>Formulaire de contact configuré (Formspree ou autre service)</div></div>
+                <!-- Sécurité -->
+                <h5 class="h6 fw-bold text-uppercase text-muted mb-3 mt-4">Sécurité &amp; Comptes</h5>
+                <div class="checklist-item"><i class="bi bi-square text-secondary mt-1"></i><div>Compte Maître créé avec un mot de passe fort et mémorisé en lieu sûr</div></div>
+                <div class="checklist-item"><i class="bi bi-square text-secondary mt-1"></i><div>Compte de démonstration supprimé ou désactivé</div></div>
+                <div class="checklist-item"><i class="bi bi-square text-secondary mt-1"></i><div>Compte secours (<code>347</code>) connu du responsable technique uniquement</div></div>
+                <div class="checklist-item"><i class="bi bi-square text-secondary mt-1"></i><div>Connexion HTTPS activée sur l'hébergeur</div></div>
+              </div>
+            </div>
+          </section>
+
+          <!-- ════ 9. MAINTENANCE ════ -->
+          <section id="maintenance" class="section-anchor mb-5">
+            <h2 class="section-titre">9. Maintenance &amp; Mises à jour</h2>
+            <div class="row g-4">
+              <div class="col-md-6">
+                <div class="card p-4 h-100">
+                  <h4 class="h5 fw-bold mb-3"><i class="bi bi-arrow-repeat text-primary me-2"></i>Mettre à jour le contenu</h4>
+                  <p class="text-muted small mb-3">Pour modifier des pages (texte, photos, événements via l'espace admin) :</p>
+                  <ul class="text-muted small">
+                    <li class="mb-2"><strong>GitHub Pages :</strong> Modifiez les fichiers HTML localement, puis <code>git add . &amp;&amp; git commit -m "Mise à jour" &amp;&amp; git push</code>. Le site se met à jour automatiquement.</li>
+                    <li class="mb-2"><strong>Netlify :</strong> Re-déposez un nouveau <code>.zip</code> via le tableau de bord, ou liez votre dépôt Git pour des déploiements automatiques.</li>
+                    <li><strong>cPanel / FTP :</strong> Re-uploadez les fichiers modifiés via FileZilla ou le gestionnaire de fichiers.</li>
+                  </ul>
+                </div>
+              </div>
+              <div class="col-md-6">
+                <div class="card p-4 h-100">
+                  <h4 class="h5 fw-bold mb-3"><i class="bi bi-cloud-arrow-down text-success me-2"></i>Sauvegarde régulière</h4>
+                  <p class="text-muted small mb-3">Sauvegardez régulièrement les données du site :</p>
+                  <ul class="text-muted small mb-3">
+                    <li class="mb-2"><strong>Données membres / contenu :</strong> Les données sont dans <code>localStorage</code> du navigateur. Exportez depuis le panneau Maître (journal, membres).</li>
+                    <li class="mb-2"><strong>Code source :</strong> Conservez une copie du dossier complet sur un disque externe ou dans un dépôt Git privé.</li>
+                    <li><strong>Fréquence :</strong> Sauvegarde mensuelle recommandée, avant chaque mise à jour majeure.</li>
+                  </ul>
+                  <div class="alert alert-success small mb-0">
+                    <i class="bi bi-check-circle-fill me-1 text-success"></i>
+                    <strong>Firebase intégré !</strong> Les données sont maintenant synchronisées via <strong>Firebase Firestore</strong> (base de données cloud gratuite de Google).
+                    Activez-la en renseignant vos identifiants Firebase dans <code>js/firebase-config.js</code> et en mettant <code>FIREBASE_ENABLED = true</code>.
+                    <a href="firebase-setup.html" class="alert-link">Guide de configuration →</a>
+                  </div>
+                </div>
+              </div>
+            </div>
+
+            <div class="card p-4 mt-4">
+              <h4 class="h5 fw-bold mb-3"><i class="bi bi-calendar-check text-warning me-2"></i>Tâches de maintenance régulières</h4>
+              <div class="row g-3">
+                <div class="col-md-4">
+                  <div class="text-center p-3 bg-light rounded">
+                    <div class="fw-bold mb-1">Chaque mois</div>
+                    <ul class="text-muted small text-start list-unstyled mb-0">
+                      <li><i class="bi bi-check me-1"></i>Vérifier les membres en attente</li>
+                      <li><i class="bi bi-check me-1"></i>Mettre à jour les événements</li>
+                      <li><i class="bi bi-check me-1"></i>Publier nouvelles actualités</li>
+                    </ul>
+                  </div>
+                </div>
+                <div class="col-md-4">
+                  <div class="text-center p-3 bg-light rounded">
+                    <div class="fw-bold mb-1">Chaque trimestre</div>
+                    <ul class="text-muted small text-start list-unstyled mb-0">
+                      <li><i class="bi bi-check me-1"></i>Sauvegarder les données</li>
+                      <li><i class="bi bi-check me-1"></i>Vérifier tous les liens</li>
+                      <li><i class="bi bi-check me-1"></i>Renouveler le certificat SSL</li>
+                    </ul>
+                  </div>
+                </div>
+                <div class="col-md-4">
+                  <div class="text-center p-3 bg-light rounded">
+                    <div class="fw-bold mb-1">Chaque année</div>
+                    <ul class="text-muted small text-start list-unstyled mb-0">
+                      <li><i class="bi bi-check me-1"></i>Renouveler le nom de domaine</li>
+                      <li><i class="bi bi-check me-1"></i>Renouveler l'hébergement</li>
+                      <li><i class="bi bi-check me-1"></i>Archiver les anciennes données</li>
+                    </ul>
+                  </div>
+                </div>
+              </div>
+            </div>
+          </section>
+
+          <!-- ════ 10. FAQ HÉBERGEMENT ════ -->
+          <section id="faq-hebergement" class="section-anchor mb-5">
+            <h2 class="section-titre">10. FAQ Hébergement</h2>
+            <div class="accordion" id="faqHebAccordion">
+
+              <div class="accordion-item border mb-2 rounded-3 overflow-hidden">
+                <h3 class="accordion-header">
+                  <button class="accordion-button collapsed fw-semibold" type="button" data-bs-toggle="collapse" data-bs-target="#fh1">
+                    Peut-on avoir un domaine .dz pour l'association ?
+                  </button>
+                </h3>
+                <div id="fh1" class="accordion-collapse collapse" data-bs-parent="#faqHebAccordion">
+                  <div class="accordion-body text-muted">
+                    Oui. Les domaines <code>.dz</code> sont gérés par le <strong>CERIST</strong> (Centre de Recherche sur l'Information Scientifique et Technique) et l'ENIC. Il faut fournir des justificatifs (statuts de l'association, extrait de registre). Coût : environ 2000 à 5000 DA par an. Délai d'activation : 1 à 5 jours ouvrables.
+                  </div>
+                </div>
+              </div>
+
+              <div class="accordion-item border mb-2 rounded-3 overflow-hidden">
+                <h3 class="accordion-header">
+                  <button class="accordion-button collapsed fw-semibold" type="button" data-bs-toggle="collapse" data-bs-target="#fh2">
+                    Les données membres seront-elles perdues si on change d'hébergeur ?
+                  </button>
+                </h3>
+                <div id="fh2" class="accordion-collapse collapse" data-bs-parent="#faqHebAccordion">
+                  <div class="accordion-body text-muted">
+                    Oui, attention ! Les données (membres, actualités, événements) sont stockées dans le <code>localStorage</code> du navigateur de chaque utilisateur, pas sur le serveur. Changer d'hébergeur n'affecte pas les données des utilisateurs (qui restent sur leur appareil), mais les données saisies côté admin (depuis l'espace administrateur) sont stockées dans le navigateur du webmaster. Exportez ces données avant tout changement.
+                  </div>
+                </div>
+              </div>
+
+              <div class="accordion-item border mb-2 rounded-3 overflow-hidden">
+                <h3 class="accordion-header">
+                  <button class="accordion-button collapsed fw-semibold" type="button" data-bs-toggle="collapse" data-bs-target="#fh3">
+                    Comment améliorer les performances du site ?
+                  </button>
+                </h3>
+                <div id="fh3" class="accordion-collapse collapse" data-bs-parent="#faqHebAccordion">
+                  <div class="accordion-body text-muted">
+                    <ul class="mb-0">
+                      <li class="mb-2">Compressez les images avant de les ajouter (format WebP, outil : <a href="https://squoosh.app" target="_blank" rel="noopener">squoosh.app</a>)</li>
+                      <li class="mb-2">Activez la compression Gzip sur votre hébergeur (cPanel → Optimiser le site web)</li>
+                      <li class="mb-2">Netlify et GitHub Pages activent automatiquement le CDN et la compression</li>
+                      <li>Le Service Worker (déjà intégré) met en cache les pages pour un chargement quasi-instantané après la première visite</li>
+                    </ul>
+                  </div>
+                </div>
+              </div>
+
+              <div class="accordion-item border mb-2 rounded-3 overflow-hidden">
+                <h3 class="accordion-header">
+                  <button class="accordion-button collapsed fw-semibold" type="button" data-bs-toggle="collapse" data-bs-target="#fh4">
+                    La PWA fonctionne-t-elle depuis un hébergement cPanel ?
+                  </button>
+                </h3>
+                <div id="fh4" class="accordion-collapse collapse" data-bs-parent="#faqHebAccordion">
+                  <div class="accordion-body text-muted">
+                    Oui, à condition que le site soit servi en <strong>HTTPS</strong>. La PWA (Service Worker + manifest.json) ne fonctionne qu'avec HTTPS ou localhost. Activez votre certificat SSL depuis cPanel → SSL/TLS avant de tester la PWA.
+                  </div>
+                </div>
+              </div>
+
+            </div>
+          </section>
+
+          <!-- Retour -->
+          <div class="text-center pt-4 border-top">
+            <a href="telechargements.html" class="btn btn-outline-primary me-2">
+              <i class="bi bi-arrow-left me-1"></i>Retour aux téléchargements
+            </a>
+            <a href="index.html" class="btn btn-outline-secondary">
+              <i class="bi bi-house me-1"></i>Accueil
+            </a>
+          </div>
+
+        </div><!-- /col -->
+      </div><!-- /row -->
+    </div><!-- /container -->
+  </main>
+
+  <!-- FOOTER -->
+  <footer class="py-4 text-white">
+    <div class="container">
+      <div class="row align-items-center">
+        <div class="col-md-6 text-center text-md-start mb-3 mb-md-0">
+          <p class="mb-1 fw-semibold">Amicale de l'ATTT</p>
+          <p class="mb-0 small opacity-75">Association du personnel — Agence Technique des Transports Terrestres</p>
+        </div>
+        <div class="col-md-6 text-center text-md-end">
+          <div class="d-flex justify-content-center justify-content-md-end gap-3 mb-2 flex-wrap">
+            <a href="a-propos.html">L'association</a>
+            <a href="actualites.html">Actualités</a>
+            <a href="activites.html">Activités</a>
+            <a href="contact.html">Contact</a>
+          </div>
+          <p class="mb-0 small opacity-50">&copy; 2026 Amicale ATTT — Tous droits réservés</p>
+          <p class="mb-0 mt-1"><a href="hebergement.html" class="small opacity-40">Guide webmaster</a></p>
+        </div>
+      </div>
+    </div>
+  </footer>
+
+  <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js"></script>
+  <script src="js/auth.js"></script>
+  <script src="js/version-check.js"></script>
+  <script src="js/main.js"></script>
+</body>
+</html>

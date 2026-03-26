@@ -1,0 +1,341 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Amicale ATTT — Journal des opérations</title>
+  <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css" rel="stylesheet" />
+  <link href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.3/font/bootstrap-icons.css" rel="stylesheet" />
+  <link href="css/style.css" rel="stylesheet" />
+  <style>
+    .sidebar { min-height: calc(100vh - 58px); background: var(--couleur-principale); }
+    .sidebar .nav-link { color: rgba(255,255,255,.75); border-radius: 8px; transition: background .2s; }
+    .sidebar .nav-link:hover, .sidebar .nav-link.active { background: rgba(255,255,255,.15); color: #fff; }
+    @media(max-width:767px) { .sidebar { min-height: auto; } }
+    .table th { font-size:.80rem; text-transform:uppercase; letter-spacing:.04em; color:#6c757d; white-space:nowrap; }
+    .table td { font-size:.88rem; vertical-align:middle; }
+    .badge-action { font-size:.73rem; padding:.25em .55em; }
+    #log-tbody tr:hover { background:#f0f4ff; }
+    .filter-bar { background:#f8f9fa; border-radius:10px; padding:1rem 1.25rem; }
+    .ts-cell { font-size:.78rem; color:#6c757d; white-space:nowrap; }
+  </style>
+</head>
+<body>
+
+  <!-- TOPBAR -->
+  <nav class="navbar navbar-dark py-2" style="background:var(--couleur-principale);">
+    <div class="container-fluid px-3 d-flex justify-content-between">
+      <a class="navbar-brand fw-bold d-flex align-items-center gap-2 fs-6" href="index.html">
+        <i class="bi bi-people-fill"></i>Amicale ATTT
+        <span class="badge bg-warning text-dark ms-2">Journal</span>
+      </a>
+      <div class="d-flex align-items-center gap-2">
+        <span class="text-white-50 small d-none d-md-block" id="topbar-user"></span>
+        <a href="#" id="back-btn" class="btn btn-outline-light btn-sm">
+          <i class="bi bi-arrow-left me-1"></i>Retour
+        </a>
+        <a href="#" class="btn btn-danger btn-sm" onclick="AUTH.logout();return false;">
+          <i class="bi bi-box-arrow-right"></i>
+        </a>
+      </div>
+    </div>
+  </nav>
+
+  <div class="container-fluid">
+    <div class="row">
+
+      <!-- SIDEBAR -->
+      <div class="col-md-2 sidebar pt-4 pb-3">
+        <ul class="nav flex-column gap-1 px-2">
+          <li class="nav-item">
+            <button class="nav-link w-100 text-start active" id="btn-all" onclick="setView('all')">
+              <i class="bi bi-list-ul me-2"></i>Toutes
+            </button>
+          </li>
+          <li class="nav-item">
+            <button class="nav-link w-100 text-start" id="btn-auth" onclick="setView('auth')">
+              <i class="bi bi-key me-2"></i>Connexions
+            </button>
+          </li>
+          <li class="nav-item">
+            <button class="nav-link w-100 text-start" id="btn-membres" onclick="setView('membres')">
+              <i class="bi bi-people me-2"></i>Membres
+            </button>
+          </li>
+          <li class="nav-item">
+            <button class="nav-link w-100 text-start" id="btn-roles" onclick="setView('roles')">
+              <i class="bi bi-person-badge me-2"></i>Rôles
+            </button>
+          </li>
+          <li class="nav-item">
+            <button class="nav-link w-100 text-start" id="btn-data" onclick="setView('data')">
+              <i class="bi bi-calendar-event me-2"></i>Données
+            </button>
+          </li>
+          <li class="nav-item mt-3 border-top border-secondary pt-3" id="clear-section" style="display:none;">
+            <button class="nav-link w-100 text-start text-danger" onclick="clearLog()">
+              <i class="bi bi-trash me-2"></i>Effacer tout
+            </button>
+          </li>
+        </ul>
+      </div>
+
+      <!-- CONTENU PRINCIPAL -->
+      <div class="col-md-10 py-4 px-4">
+
+        <div class="d-flex justify-content-between align-items-center mb-3">
+          <h1 class="h4 section-titre mb-0">Journal des opérations</h1>
+          <span id="result-count" class="badge bg-secondary fs-6">0 entrée(s)</span>
+        </div>
+
+        <!-- BARRE DE FILTRES -->
+        <div class="filter-bar mb-3">
+          <div class="row g-2 align-items-end">
+            <div class="col-sm-6 col-md-3">
+              <label class="form-label small fw-semibold mb-1">Recherche libre</label>
+              <input type="text" class="form-control form-control-sm" id="f-q" placeholder="login, action, détail…" oninput="renderLog()" />
+            </div>
+            <div class="col-sm-6 col-md-2">
+              <label class="form-label small fw-semibold mb-1">Login acteur</label>
+              <input type="text" class="form-control form-control-sm" id="f-acteur" placeholder="ex: ahmed" oninput="renderLog()" />
+            </div>
+            <div class="col-sm-6 col-md-2">
+              <label class="form-label small fw-semibold mb-1">Login cible</label>
+              <input type="text" class="form-control form-control-sm" id="f-cible" placeholder="ex: karim" oninput="renderLog()" />
+            </div>
+            <div class="col-sm-6 col-md-2">
+              <label class="form-label small fw-semibold mb-1">Date début</label>
+              <input type="date" class="form-control form-control-sm" id="f-from" onchange="renderLog()" />
+            </div>
+            <div class="col-sm-6 col-md-2">
+              <label class="form-label small fw-semibold mb-1">Date fin</label>
+              <input type="date" class="form-control form-control-sm" id="f-to" onchange="renderLog()" />
+            </div>
+            <div class="col-sm-6 col-md-1 d-flex align-items-end">
+              <button class="btn btn-outline-secondary btn-sm w-100" onclick="resetFilters()">
+                <i class="bi bi-x-lg me-1"></i>Reset
+              </button>
+            </div>
+          </div>
+        </div>
+
+        <!-- TABLE JOURNAL -->
+        <div class="card p-0 overflow-hidden">
+          <div class="table-responsive">
+            <table class="table table-hover align-middle mb-0" id="log-table">
+              <thead class="table-light">
+                <tr>
+                  <th style="width:5%">#</th>
+                  <th style="width:14%">Date / Heure</th>
+                  <th style="width:18%">Action</th>
+                  <th style="width:16%">Acteur</th>
+                  <th style="width:16%">Cible</th>
+                  <th>Détail</th>
+                </tr>
+              </thead>
+              <tbody id="log-tbody"></tbody>
+            </table>
+          </div>
+        </div>
+
+        <!-- PAGINATION -->
+        <div class="d-flex justify-content-between align-items-center mt-3">
+          <span class="small text-muted" id="page-info">Page 1</span>
+          <div class="d-flex gap-2">
+            <button class="btn btn-outline-secondary btn-sm" id="btn-prev" onclick="changePage(-1)">
+              <i class="bi bi-chevron-left"></i>
+            </button>
+            <button class="btn btn-outline-secondary btn-sm" id="btn-next" onclick="changePage(1)">
+              <i class="bi bi-chevron-right"></i>
+            </button>
+          </div>
+          <button class="btn btn-outline-success btn-sm" onclick="exportCSV()">
+            <i class="bi bi-download me-1"></i>Exporter CSV
+          </button>
+        </div>
+
+      </div>
+    </div>
+  </div>
+
+<script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js"></script>
+<!-- Firebase SDK (Base de données Cloud) -->
+<script src="https://www.gstatic.com/firebasejs/10.14.1/firebase-app-compat.js"></script>
+<script src="https://www.gstatic.com/firebasejs/10.14.1/firebase-firestore-compat.js"></script>
+<script src="js/firebase-config.js"></script>
+<script src="js/db.js"></script>
+<script src="js/auth.js"></script>
+<script src="js/log.js"></script>
+<script>
+'use strict';
+/* ─── Accès : Maître uniquement ─────────────────────────── */
+const user = AUTH.requireAuth('master');
+if (!user) throw new Error();
+document.getElementById('topbar-user').textContent = user.prenom + ' ' + user.nom;
+document.getElementById('back-btn').href = AUTH.dashUrl(user.role);
+
+/* "Effacer tout" toujours visible pour le Maître */
+document.getElementById('clear-section').style.display = '';
+
+/* ─── Couleurs des badges d'action ───────────────────────── */
+const ACTION_COLOR = {
+  LOGIN:             'bg-success bg-opacity-75',
+  LOGOUT:            'bg-secondary',
+  REGISTER:          'bg-info text-dark',
+  VALIDATE_MEMBER:   'bg-success',
+  REJECT_MEMBER:     'bg-danger',
+  SUSPEND_MEMBER:    'bg-warning text-dark',
+  REACTIVATE_MEMBER: 'bg-success bg-opacity-50 text-dark',
+  ROLE_CHANGE:       'bg-primary',
+  EVENT_ADD:         'bg-primary bg-opacity-75',
+  EVENT_EDIT:        'bg-primary bg-opacity-50 text-dark',
+  EVENT_DEL:         'bg-danger bg-opacity-75',
+  OFFER_ADD:         'bg-warning text-dark',
+  OFFER_EDIT:        'bg-warning bg-opacity-50 text-dark',
+  OFFER_DEL:         'bg-danger',
+  ACCOUNT_DELETE:    'bg-danger fw-bold',
+};
+
+/* Vue active (catégorie filtrée en sidebar) */
+let _viewActions = null;
+
+/* ─── Groupes de vues ─────────────────────────────────────── */
+const VIEW_ACTIONS = {
+  auth:    ['LOGIN','LOGOUT','REGISTER'],
+  membres: ['VALIDATE_MEMBER','REJECT_MEMBER','SUSPEND_MEMBER','REACTIVATE_MEMBER'],
+  roles:   ['ROLE_CHANGE'],
+  data:    ['EVENT_ADD','EVENT_EDIT','EVENT_DEL','OFFER_ADD','OFFER_EDIT','OFFER_DEL','ACCOUNT_DELETE'],
+};
+
+function setView(name) {
+  ['all','auth','membres','roles','data'].forEach(v => {
+    document.getElementById('btn-' + v).classList.toggle('active', v === name);
+  });
+  _viewActions = VIEW_ACTIONS[name] || null;
+  _page = 0;
+  renderLog();
+}
+
+/* ─── Pagination ──────────────────────────────────────────── */
+const PAGE_SIZE = 50;
+let _page = 0;
+let _filtered = [];
+
+function changePage(dir) {
+  const maxPage = Math.max(0, Math.ceil(_filtered.length / PAGE_SIZE) - 1);
+  _page = Math.min(maxPage, Math.max(0, _page + dir));
+  renderTable(_filtered);
+}
+
+/* ─── Rendu principal ─────────────────────────────────────── */
+function renderLog() {
+  _page = 0;
+  const filters = {
+    q:            document.getElementById('f-q').value.trim()     || undefined,
+    acteurLogin:  document.getElementById('f-acteur').value.trim()|| undefined,
+    cibleLogin:   document.getElementById('f-cible').value.trim() || undefined,
+    dateFrom:     document.getElementById('f-from').value         || undefined,
+    dateTo:       document.getElementById('f-to').value           || undefined,
+  };
+
+  let entries = LOG.getLog(filters);
+  if (_viewActions) entries = entries.filter(e => _viewActions.includes(e.action));
+
+  _filtered = entries;
+  document.getElementById('result-count').textContent = entries.length + ' entrée(s)';
+  renderTable(entries);
+}
+
+function renderTable(entries) {
+  const start = _page * PAGE_SIZE;
+  const page  = entries.slice(start, start + PAGE_SIZE);
+  const total = entries.length;
+  const maxPage = Math.max(1, Math.ceil(total / PAGE_SIZE));
+
+  document.getElementById('page-info').textContent =
+    'Page ' + (_page + 1) + ' / ' + maxPage + ' — ' + total + ' entrée(s)';
+  document.getElementById('btn-prev').disabled = _page === 0;
+  document.getElementById('btn-next').disabled = _page >= maxPage - 1;
+
+  const tbody = document.getElementById('log-tbody');
+  if (!page.length) {
+    tbody.innerHTML = '<tr><td colspan="6" class="text-center text-muted py-5"><i class="bi bi-inbox fs-2 d-block mb-2 opacity-25"></i>Aucune entrée dans le journal.</td></tr>';
+    return;
+  }
+
+  tbody.innerHTML = page.map((l, i) => {
+    const ts   = new Date(l.ts);
+    const date = ts.toLocaleDateString('fr-DZ', { day:'2-digit', month:'2-digit', year:'numeric' });
+    const time = ts.toLocaleTimeString('fr-DZ', { hour:'2-digit', minute:'2-digit', second:'2-digit' });
+    const colorClass = ACTION_COLOR[l.action] || 'bg-secondary';
+    const acteurRole = l.acteurRole ? ' <span class="badge bg-light text-dark border ms-1">' + AUTH.esc(AUTH.ROLE_LABELS[l.acteurRole]||l.acteurRole) + '</span>' : '';
+
+    return `
+      <tr>
+        <td class="ts-cell fw-semibold">${start + i + 1}</td>
+        <td class="ts-cell">
+          <div>${AUTH.esc(date)}</div>
+          <div class="text-muted">${AUTH.esc(time)}</div>
+        </td>
+        <td>
+          <span class="badge badge-action ${colorClass}">${AUTH.esc(l.actionLabel)}</span>
+        </td>
+        <td>
+          ${l.acteurLogin ? `<code class="small">${AUTH.esc(l.acteurLogin)}</code>${acteurRole}` : '<span class="text-muted">—</span>'}
+        </td>
+        <td>
+          ${l.cibleLogin ? `<code class="small">${AUTH.esc(l.cibleLogin)}</code>` : '<span class="text-muted">—</span>'}
+        </td>
+        <td class="small text-muted">${AUTH.esc(l.detail || '—')}</td>
+      </tr>`;
+  }).join('');
+}
+
+/* ─── Reset filtres ───────────────────────────────────────── */
+function resetFilters() {
+  document.getElementById('f-q').value      = '';
+  document.getElementById('f-acteur').value = '';
+  document.getElementById('f-cible').value  = '';
+  document.getElementById('f-from').value   = '';
+  document.getElementById('f-to').value     = '';
+  renderLog();
+}
+
+/* ─── Effacer journal (Maître seulement) ──────────────────── */
+function clearLog() {
+  if (user.role !== 'master') return;
+  if (!confirm('Effacer définitivement tout le journal ? Cette action est irréversible.')) return;
+  LOG.clearAll();
+  renderLog();
+}
+
+/* ─── Export CSV ──────────────────────────────────────────── */
+function exportCSV() {
+  const rows    = [['#','Date','Heure','Action','Acteur','Rôle acteur','Cible','Détail']];
+  _filtered.forEach((l, i) => {
+    const ts = new Date(l.ts);
+    rows.push([
+      i + 1,
+      ts.toLocaleDateString('fr-DZ'),
+      ts.toLocaleTimeString('fr-DZ'),
+      l.actionLabel || l.action,
+      l.acteurLogin || '',
+      AUTH.ROLE_LABELS[l.acteurRole] || l.acteurRole || '',
+      l.cibleLogin  || '',
+      l.detail      || ''
+    ]);
+  });
+  const csv  = rows.map(r => r.map(v => '"' + String(v).replace(/"/g,'""') + '"').join(',')).join('\r\n');
+  const blob = new Blob(['\uFEFF' + csv], { type: 'text/csv;charset=utf-8' });
+  const url  = URL.createObjectURL(blob);
+  const a    = document.createElement('a');
+  a.href = url; a.download = 'journal-attt-' + new Date().toISOString().slice(0,10) + '.csv';
+  document.body.appendChild(a); a.click();
+  document.body.removeChild(a); URL.revokeObjectURL(url);
+}
+
+/* ─── Init ────────────────────────────────────────────────── */
+DB_READY.then(() => renderLog());
+</script>
+</body>
+</html>

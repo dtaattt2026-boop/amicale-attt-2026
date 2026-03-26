@@ -1,0 +1,368 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Configuration Firebase — Amicale ATTT</title>
+  <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css" />
+  <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.3/font/bootstrap-icons.min.css" />
+  <link rel="stylesheet" href="css/style.css" />
+  <link rel="manifest" href="manifest.json" />
+  <meta name="theme-color" content="#003DA6" />
+  <style>
+    .step-badge { width:2rem;height:2rem;min-width:2rem;border-radius:50%;background:var(--couleur-principale);color:#fff;display:inline-flex;align-items:center;justify-content:center;font-weight:700;font-size:.9rem; }
+    .code-block  { background:#1e1e2e;color:#cdd6f4;border-radius:8px;padding:1rem 1.25rem;font-family:monospace;font-size:.85rem;overflow-x:auto; }
+    .code-block .kw { color:#cba6f7; }
+    .code-block .str { color:#a6e3a1; }
+    .code-block .cm  { color:#6c7086; }
+    .step-line { border-left:3px solid var(--couleur-principale);padding-left:1rem;margin-left:1rem; }
+  </style>
+</head>
+<body>
+
+  <!-- NAVBAR -->
+  <nav class="navbar navbar-expand-lg py-2">
+    <div class="container">
+      <a class="navbar-brand d-flex align-items-center gap-2" href="index.html">
+        <img src="img/logo-attt.png" alt="Logo ATTT" height="40"
+             onerror="this.style.display='none'" />
+        <span class="fw-bold">Amicale ATTT</span>
+      </a>
+      <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navMenu">
+        <span class="navbar-toggler-icon"></span>
+      </button>
+      <div class="collapse navbar-collapse" id="navMenu">
+        <ul class="navbar-nav ms-auto gap-1">
+          <li class="nav-item"><a class="nav-link" href="index.html">Accueil</a></li>
+          <li class="nav-item"><a class="nav-link" href="hebergement.html">Guide hébergement</a></li>
+        </ul>
+      </div>
+    </div>
+  </nav>
+
+  <!-- Breadcrumb -->
+  <div class="bg-light border-bottom py-2">
+    <div class="container">
+      <nav aria-label="breadcrumb">
+        <ol class="breadcrumb mb-0 small">
+          <li class="breadcrumb-item"><a href="hebergement.html">Guide hébergement</a></li>
+          <li class="breadcrumb-item active">Configuration Firebase</li>
+        </ol>
+      </nav>
+    </div>
+  </div>
+
+  <main class="py-5">
+    <div class="container" style="max-width:860px;">
+
+      <!-- En-tête -->
+      <div class="text-center mb-5">
+        <div class="mb-3">
+          <i class="bi bi-fire text-warning fs-1"></i>
+        </div>
+        <h1 class="h2 fw-bold">Activer la base de données Firebase</h1>
+        <p class="lead text-muted">
+          Guide pas-à-pas pour passer du stockage local <span class="badge bg-secondary">localStorage</span>
+          à une vraie base de données cloud gratuite <span class="badge bg-warning text-dark">Firebase Firestore</span>
+        </p>
+      </div>
+
+      <!-- Pourquoi Firebase -->
+      <div class="card border-0 shadow-sm mb-5">
+        <div class="card-body p-4">
+          <h2 class="h5 fw-bold mb-3"><i class="bi bi-question-circle text-primary me-2"></i>Pourquoi Firebase ?</h2>
+          <div class="row g-3">
+            <div class="col-md-6">
+              <div class="d-flex gap-2 align-items-start">
+                <i class="bi bi-x-circle-fill text-danger mt-1 flex-shrink-0"></i>
+                <div>
+                  <strong>Avant (localStorage)</strong>
+                  <ul class="text-muted small mb-0 mt-1">
+                    <li>Données stockées dans UN seul navigateur</li>
+                    <li>Perdues si le navigateur est effacé</li>
+                    <li>Non partagées entre ordinateurs</li>
+                    <li>Inaccessibles après formatage</li>
+                  </ul>
+                </div>
+              </div>
+            </div>
+            <div class="col-md-6">
+              <div class="d-flex gap-2 align-items-start">
+                <i class="bi bi-check-circle-fill text-success mt-1 flex-shrink-0"></i>
+                <div>
+                  <strong>Après (Firebase Firestore)</strong>
+                  <ul class="text-muted small mb-0 mt-1">
+                    <li>Données stockées dans le cloud Google</li>
+                    <li>Survivent aux reformatages et changements de PC</li>
+                    <li>Partagées entre tous les administrateurs</li>
+                    <li>Gratuit jusqu'à 1 Go / 50 000 lectures par jour</li>
+                  </ul>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- ÉTAPE 1 -->
+      <div class="mb-5">
+        <div class="d-flex align-items-center gap-3 mb-3">
+          <span class="step-badge">1</span>
+          <h2 class="h5 fw-bold mb-0">Créer un compte et un projet Firebase</h2>
+        </div>
+        <div class="step-line">
+          <ol class="mb-0">
+            <li class="mb-2">Allez sur <strong><code>https://console.firebase.google.com</code></strong> (connexion avec un compte Google)</li>
+            <li class="mb-2">Cliquez <strong>« Créer un projet »</strong></li>
+            <li class="mb-2">Nom du projet : <code>amicale-attt</code> (ou tout autre nom)</li>
+            <li class="mb-2">Désactiver Google Analytics (inutile pour ce projet) → <strong>Créer le projet</strong></li>
+            <li>Attendez 30 secondes que le projet soit prêt, puis cliquez <strong>Continuer</strong></li>
+          </ol>
+        </div>
+      </div>
+
+      <!-- ÉTAPE 2 -->
+      <div class="mb-5">
+        <div class="d-flex align-items-center gap-3 mb-3">
+          <span class="step-badge">2</span>
+          <h2 class="h5 fw-bold mb-0">Créer la base de données Firestore</h2>
+        </div>
+        <div class="step-line">
+          <ol class="mb-0">
+            <li class="mb-2">Dans le menu gauche → <strong>Build</strong> → <strong>Firestore Database</strong></li>
+            <li class="mb-2">Cliquez <strong>« Create database »</strong></li>
+            <li class="mb-2">Choisissez un serveur : sélectionnez <strong><code>europe-west1 (Belgium)</code></strong> (le plus proche de l'Algérie)</li>
+            <li class="mb-2">Démarrez en mode <strong>« Production mode »</strong> → <strong>Create</strong></li>
+            <li>Attendez que la base soit initialisée (10-20 secondes)</li>
+          </ol>
+        </div>
+      </div>
+
+      <!-- ÉTAPE 3 -->
+      <div class="mb-5">
+        <div class="d-flex align-items-center gap-3 mb-3">
+          <span class="step-badge">3</span>
+          <h2 class="h5 fw-bold mb-0">Configurer les règles d'accès Firestore</h2>
+        </div>
+        <div class="step-line">
+          <ol class="mb-3">
+            <li class="mb-2">Dans Firestore → onglet <strong>« Rules »</strong></li>
+            <li class="mb-2">Remplacez tout le contenu par les règles ci-dessous</li>
+            <li>Cliquez <strong>« Publish »</strong></li>
+          </ol>
+          <div class="code-block mb-3">
+<span class="cm">// Règles Firestore — Amicale ATTT</span>
+<br /><span class="kw">rules_version</span> = <span class="str">'2'</span>;
+<br /><span class="kw">service</span> cloud.firestore {
+<br />&nbsp;&nbsp;<span class="kw">match</span> /databases/{database}/documents {
+<br />&nbsp;&nbsp;&nbsp;&nbsp;<span class="kw">match</span> /site_data/{document} {
+<br />&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<span class="kw">allow</span> read, write: <span class="kw">if</span> <span class="kw">true</span>;
+<br />&nbsp;&nbsp;&nbsp;&nbsp;}
+<br />&nbsp;&nbsp;}
+<br />}
+          </div>
+          <div class="alert alert-info small">
+            <i class="bi bi-info-circle me-1"></i>
+            Ces règles permettent l'accès en lecture/écriture depuis le site web. 
+            Pour un site interne à l'ATTT, ce niveau de sécurité est suffisant.
+          </div>
+        </div>
+      </div>
+
+      <!-- ÉTAPE 4 -->
+      <div class="mb-5">
+        <div class="d-flex align-items-center gap-3 mb-3">
+          <span class="step-badge">4</span>
+          <h2 class="h5 fw-bold mb-0">Obtenir la configuration Firebase</h2>
+        </div>
+        <div class="step-line">
+          <ol class="mb-3">
+            <li class="mb-2">Cliquez sur l'icône <strong>⚙ (Paramètres du projet)</strong> en haut à gauche</li>
+            <li class="mb-2">Onglet <strong>« Général »</strong> → descendez jusqu'à <strong>« Vos applications »</strong></li>
+            <li class="mb-2">Cliquez <strong>« Ajouter une application »</strong> → choisissez <strong>&lt;/&gt; Web</strong></li>
+            <li class="mb-2">Nom de l'application : <code>Amicale ATTT Site</code></li>
+            <li class="mb-2">Ne cochez <strong>pas</strong> « Configurer Firebase Hosting » → cliquez <strong>Enregistrer l'application</strong></li>
+            <li>Copiez les valeurs de <code>firebaseConfig</code> affichées</li>
+          </ol>
+          <div class="code-block">
+<span class="cm">// Exemple de configuration affichée par Firebase :</span>
+<br /><span class="kw">const</span> firebaseConfig = {
+<br />&nbsp;&nbsp;apiKey: <span class="str">"AIzaSy..."</span>,
+<br />&nbsp;&nbsp;authDomain: <span class="str">"amicale-attt.firebaseapp.com"</span>,
+<br />&nbsp;&nbsp;projectId: <span class="str">"amicale-attt"</span>,
+<br />&nbsp;&nbsp;storageBucket: <span class="str">"amicale-attt.appspot.com"</span>,
+<br />&nbsp;&nbsp;messagingSenderId: <span class="str">"123456789012"</span>,
+<br />&nbsp;&nbsp;appId: <span class="str">"1:123456789012:web:abc123def456"</span>
+<br />};
+          </div>
+        </div>
+      </div>
+
+      <!-- ÉTAPE 5 -->
+      <div class="mb-5">
+        <div class="d-flex align-items-center gap-3 mb-3">
+          <span class="step-badge">5</span>
+          <h2 class="h5 fw-bold mb-0">Modifier le fichier <code>js/firebase-config.js</code></h2>
+        </div>
+        <div class="step-line">
+          <p class="text-muted mb-3">Ouvrez le fichier <code>js/firebase-config.js</code> et remplacez les valeurs par vos propres identifiants Firebase :</p>
+          <div class="code-block mb-3">
+<span class="cm">/* ─── Activer/Désactiver Firebase ─────────────────────────── */</span>
+<br /><span class="kw">const</span> FIREBASE_ENABLED = <span class="kw">true</span>;  <span class="cm">/* ← Mettre true */</span>
+<br />
+<br /><span class="cm">/* ─── Votre configuration Firebase ─────────────────────────── */</span>
+<br /><span class="kw">const</span> FIREBASE_CONFIG = {
+<br />&nbsp;&nbsp;apiKey:            <span class="str">'AIzaSy...'</span>,               <span class="cm">// &lt;-- coller vos valeurs</span>
+<br />&nbsp;&nbsp;authDomain:        <span class="str">'amicale-attt.firebaseapp.com'</span>,
+<br />&nbsp;&nbsp;projectId:         <span class="str">'amicale-attt'</span>,
+<br />&nbsp;&nbsp;storageBucket:     <span class="str">'amicale-attt.appspot.com'</span>,
+<br />&nbsp;&nbsp;messagingSenderId: <span class="str">'123456789012'</span>,
+<br />&nbsp;&nbsp;appId:             <span class="str">'1:123456789012:web:abc123def456'</span>
+<br />};
+          </div>
+          <div class="alert alert-success mb-0">
+            <i class="bi bi-check-circle-fill me-2"></i>
+            <strong>C'est tout !</strong> Sauvegardez le fichier, déployez le site — Firebase est actif.
+            Toutes les saisies (membres, événements, offres, articles) seront automatiquement sauvegardées dans le cloud.
+          </div>
+        </div>
+      </div>
+
+      <!-- ÉTAPE 6 -->
+      <div class="mb-5">
+        <div class="d-flex align-items-center gap-3 mb-3">
+          <span class="step-badge">6</span>
+          <h2 class="h5 fw-bold mb-0">Migrer les données existantes (si nécessaire)</h2>
+        </div>
+        <div class="step-line">
+          <p class="text-muted mb-3">
+            Si vous avez déjà des données dans le navigateur (membres, événements créés avant l'activation de Firebase),
+            voici comment les migrer vers le cloud en une seule opération :
+          </p>
+          <ol class="mb-3">
+            <li class="mb-2">Connectez-vous en tant que <strong>Maître</strong> sur le PC qui contient les données</li>
+            <li class="mb-2">Ouvrez <strong>master.html</strong> → section <strong>Sauvegarde</strong></li>
+            <li class="mb-2">Cliquez <strong>« Télécharger la sauvegarde (.json) »</strong></li>
+            <li class="mb-2">Activez Firebase (étapes 1 à 5 ci-dessus) et redéployez le site</li>
+            <li>Reconnectez-vous en Maître → Sauvegarde → Importer → sélectionnez votre fichier .json → <strong>Remplacer toutes les données</strong></li>
+          </ol>
+          <div class="alert alert-info small mb-0">
+            <i class="bi bi-info-circle me-1"></i>
+            Après import, les données sont dans Firestore. Tous les appareils connectés au même projet Firebase les verront automatiquement au prochain chargement de page.
+          </div>
+        </div>
+      </div>
+
+      <!-- Vérification -->
+      <div class="card border-success mb-5">
+        <div class="card-header bg-success bg-opacity-10 fw-semibold text-success">
+          <i class="bi bi-check2-all me-2"></i>Checklist de vérification
+        </div>
+        <div class="card-body">
+          <ul class="list-unstyled mb-0">
+            <li class="mb-2"><i class="bi bi-square me-2 text-muted"></i>Projet Firebase créé sur console.firebase.google.com</li>
+            <li class="mb-2"><i class="bi bi-square me-2 text-muted"></i>Firestore Database activé (europe-west1)</li>
+            <li class="mb-2"><i class="bi bi-square me-2 text-muted"></i>Règles Firestore publiées (<code>allow read, write: if true</code>)</li>
+            <li class="mb-2"><i class="bi bi-square me-2 text-muted"></i>Application Web ajoutée dans les paramètres du projet</li>
+            <li class="mb-2"><i class="bi bi-square me-2 text-muted"></i><code>FIREBASE_ENABLED = true</code> dans <code>js/firebase-config.js</code></li>
+            <li class="mb-2"><i class="bi bi-square me-2 text-muted"></i>Valeurs <code>FIREBASE_CONFIG</code> renseignées correctement</li>
+            <li class="mb-2"><i class="bi bi-square me-2 text-muted"></i>Site redéployé</li>
+            <li class="mb-2"><i class="bi bi-square me-2 text-muted"></i>Console navigateur (F12) affiche <strong>[DB] ✓ Firebase connecté</strong></li>
+            <li><i class="bi bi-square me-2 text-muted"></i>Un membre inscrit depuis l'appareil A est visible depuis l'appareil B</li>
+          </ul>
+        </div>
+      </div>
+
+      <!-- FAQ -->
+      <div class="mb-5">
+        <h2 class="h5 fw-bold mb-3"><i class="bi bi-question-circle text-primary me-2"></i>Questions fréquentes</h2>
+        <div class="accordion" id="faqFirebase">
+
+          <div class="accordion-item">
+            <h3 class="accordion-header">
+              <button class="accordion-button collapsed fw-semibold" type="button" data-bs-toggle="collapse" data-bs-target="#ff1">
+                Firebase est-il vraiment gratuit ?
+              </button>
+            </h3>
+            <div id="ff1" class="accordion-collapse collapse" data-bs-parent="#faqFirebase">
+              <div class="accordion-body text-muted">
+                Le plan "Spark" (gratuit) de Firebase inclut : <strong>1 Go de stockage Firestore</strong>, <strong>50 000 lectures/jour</strong>,
+                <strong>20 000 écritures/jour</strong>. Pour un site associatif comme l'Amicale ATTT avec quelques centaines de membres,
+                ces limites ne seront jamais atteintes. Aucune carte bancaire requise pour s'inscrire.
+              </div>
+            </div>
+          </div>
+
+          <div class="accordion-item">
+            <h3 class="accordion-header">
+              <button class="accordion-button collapsed fw-semibold" type="button" data-bs-toggle="collapse" data-bs-target="#ff2">
+                Que se passe-t-il si Firebase est hors ligne ?
+              </button>
+            </h3>
+            <div id="ff2" class="accordion-collapse collapse" data-bs-parent="#faqFirebase">
+              <div class="accordion-body text-muted">
+                Le site bascule automatiquement en mode <strong>localStorage</strong> (mode hors-ligne).
+                Les données déjà en cache restent accessibles. Dès que la connexion est rétablie, les nouvelles saisies
+                reprendront leur synchronisation. Un message d'avertissement s'affiche dans la console du navigateur.
+              </div>
+            </div>
+          </div>
+
+          <div class="accordion-item">
+            <h3 class="accordion-header">
+              <button class="accordion-button collapsed fw-semibold" type="button" data-bs-toggle="collapse" data-bs-target="#ff3">
+                Est-ce sécurisé d'exposer la clé API Firebase dans le code HTML ?
+              </button>
+            </h3>
+            <div id="ff3" class="accordion-collapse collapse" data-bs-parent="#faqFirebase">
+              <div class="accordion-body text-muted">
+                Oui, c'est normal. La clé API Firebase (<code>apiKey</code>) n'est pas un secret — elle identifie simplement votre projet.
+                La sécurité est assurée par les <strong>Rules Firestore</strong> côté serveur, pas par la clé API.
+                Pour renforcer la sécurité, vous pouvez restreindre l'utilisation de la clé API à votre domaine dans
+                la console Google Cloud (APIs & Services → Credentials).
+              </div>
+            </div>
+          </div>
+
+          <div class="accordion-item">
+            <h3 class="accordion-header">
+              <button class="accordion-button collapsed fw-semibold" type="button" data-bs-toggle="collapse" data-bs-target="#ff4">
+                Peut-on voir les données dans la console Firebase ?
+              </button>
+            </h3>
+            <div id="ff4" class="accordion-collapse collapse" data-bs-parent="#faqFirebase">
+              <div class="accordion-body text-muted">
+                Oui ! Dans la console Firebase → <strong>Firestore Database</strong>, vous verrez la collection
+                <code>site_data</code> avec 5 documents : <code>attt_users</code>, <code>attt_events</code>,
+                <code>attt_offers</code>, <code>attt_articles</code>, <code>attt_log</code>.
+                Vous pouvez y consulter toutes les données en temps réel.
+              </div>
+            </div>
+          </div>
+
+        </div>
+      </div>
+
+      <!-- Lien retour -->
+      <div class="text-center">
+        <a href="hebergement.html" class="btn btn-outline-secondary me-2">
+          <i class="bi bi-arrow-left me-1"></i>Guide hébergement
+        </a>
+        <a href="master.html" class="btn btn-attt">
+          <i class="bi bi-shield-lock me-1"></i>Panel Maître
+        </a>
+      </div>
+
+    </div>
+  </main>
+
+  <!-- FOOTER -->
+  <footer class="py-4 text-white">
+    <div class="container text-center">
+      <p class="mb-0 small opacity-75">&copy; 2026 Amicale ATTT — Guide webmaster</p>
+    </div>
+  </footer>
+
+  <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js"></script>
+</body>
+</html>

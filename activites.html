@@ -1,0 +1,326 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Amicale ATTT — Activités</title>
+  <meta name="description" content="Découvrez toutes les activités sportives, culturelles et familiales proposées par l'Amicale de l'ATTT." />
+  <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css" rel="stylesheet" />
+  <link href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.3/font/bootstrap-icons.css" rel="stylesheet" />
+  <link href="css/style.css" rel="stylesheet" />
+  <link rel="manifest" href="manifest.json" />
+  <meta name="theme-color" content="#003DA6" />
+</head>
+<body>
+
+  <!-- NAVBAR -->
+  <nav class="navbar navbar-expand-lg navbar-dark">
+    <div class="container">
+      <a class="navbar-brand fw-bold d-flex align-items-center gap-2" href="index.html">
+        <i class="bi bi-people-fill fs-4"></i>Amicale ATTT
+      </a>
+      <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navMenu" aria-controls="navMenu" aria-expanded="false" aria-label="Menu de navigation">
+        <span class="navbar-toggler-icon"></span>
+      </button>
+      <div class="collapse navbar-collapse" id="navMenu">
+        <ul class="navbar-nav ms-auto gap-1">
+          <li class="nav-item"><a class="nav-link" href="index.html">Accueil</a></li>
+          <li class="nav-item"><a class="nav-link" href="a-propos.html">L'association</a></li>
+          <li class="nav-item"><a class="nav-link active" href="activites.html">Activités</a></li>
+          <li class="nav-item"><a class="nav-link" href="evenements.html">Événements</a></li>
+          <li class="nav-item"><a class="nav-link" href="actualites.html">Actualités</a></li>
+          <li class="nav-item"><a class="nav-link" href="galerie.html">Galerie</a></li>
+          <li class="nav-item"><a class="nav-link" href="telechargements.html">Téléchargements</a></li>
+          <li class="nav-item"><a class="nav-link" href="contact.html">Contact</a></li>
+        </ul>
+      </div>
+    </div>
+  </nav>
+
+  <!-- EN-TÊTE PAGE -->
+  <div class="py-4" style="background: linear-gradient(135deg, var(--couleur-principale), #0056cc); color:white;">
+    <div class="container">
+      <nav aria-label="breadcrumb">
+        <ol class="breadcrumb mb-1">
+          <li class="breadcrumb-item"><a href="index.html" class="text-white-50">Accueil</a></li>
+          <li class="breadcrumb-item active text-white">Activités</li>
+        </ol>
+      </nav>
+      <h1 class="fw-bold mb-0">Nos activités</h1>
+    </div>
+  </div>
+
+  <!-- CONTENU PRINCIPAL -->
+  <main class="py-5">
+    <div class="container">
+
+      <!-- FILTRES / ONGLETS -->
+      <ul class="nav nav-pills mb-5 gap-2" id="filtreActivites" role="tablist">
+        <li class="nav-item" role="presentation">
+          <button class="nav-link active" id="tab-all" data-bs-toggle="pill" data-bs-target="#all" type="button" role="tab">
+            Toutes
+          </button>
+        </li>
+        <li class="nav-item" role="presentation">
+          <button class="nav-link" id="tab-sport" data-bs-toggle="pill" data-bs-target="#sport" type="button" role="tab">
+            <i class="bi bi-trophy me-1"></i>Sports
+          </button>
+        </li>
+        <li class="nav-item" role="presentation">
+          <button class="nav-link" id="tab-culture" data-bs-toggle="pill" data-bs-target="#culture" type="button" role="tab">
+            <i class="bi bi-film me-1"></i>Culture
+          </button>
+        </li>
+        <li class="nav-item" role="presentation">
+          <button class="nav-link" id="tab-famille" data-bs-toggle="pill" data-bs-target="#famille" type="button" role="tab">
+            <i class="bi bi-heart me-1"></i>Famille
+          </button>
+        </li>
+      </ul>
+
+      <div class="tab-content">
+
+        <!-- TOUTES LES ACTIVITÉS -->
+        <div class="tab-pane fade show active" id="all" role="tabpanel">
+          <div class="row g-4">
+
+            <!-- SPORT -->
+            <div class="col-sm-6 col-lg-4">
+              <div class="card h-100">
+                <div class="img-placeholder rounded-top" style="height:160px;">
+                  <i class="bi bi-trophy-fill fs-1"></i>
+                </div>
+                <div class="card-body p-4">
+                  <span class="badge mb-2" style="background-color: var(--couleur-principale);">Sport</span>
+                  <h3 class="h5 fw-bold">Football</h3>
+                  <p class="text-muted small">Tournois inter-services, entraînements hebdomadaires et matchs amicaux ouverts à tous les agents.</p>
+                </div>
+              </div>
+            </div>
+
+            <div class="col-sm-6 col-lg-4">
+              <div class="card h-100">
+                <div class="img-placeholder rounded-top" style="height:160px;">
+                  <i class="bi bi-bicycle fs-1"></i>
+                </div>
+                <div class="card-body p-4">
+                  <span class="badge mb-2" style="background-color: var(--couleur-principale);">Sport</span>
+                  <h3 class="h5 fw-bold">Randonnée</h3>
+                  <p class="text-muted small">Sorties randonnée en plein air plusieurs fois par trimestre pour découvrir les paysages locaux.</p>
+                </div>
+              </div>
+            </div>
+
+            <div class="col-sm-6 col-lg-4">
+              <div class="card h-100">
+                <div class="img-placeholder rounded-top" style="height:160px;">
+                  <i class="bi bi-controller fs-1"></i>
+                </div>
+                <div class="card-body p-4">
+                  <span class="badge mb-2" style="background-color: var(--couleur-principale);">Sport</span>
+                  <h3 class="h5 fw-bold">Tennis de table</h3>
+                  <p class="text-muted small">Compétitions internes et tournois ouverts, accessibles à tous niveaux.</p>
+                </div>
+              </div>
+            </div>
+
+            <div class="col-sm-6 col-lg-4">
+              <div class="card h-100">
+                <div class="img-placeholder rounded-top" style="height:160px;">
+                  <i class="bi bi-film fs-1"></i>
+                </div>
+                <div class="card-body p-4">
+                  <span class="badge mb-2 bg-warning text-dark">Culture</span>
+                  <h3 class="h5 fw-bold">Sorties cinéma</h3>
+                  <p class="text-muted small">Séances groupées avec tarifs préférentiels pour les membres de l'Amicale.</p>
+                </div>
+              </div>
+            </div>
+
+            <div class="col-sm-6 col-lg-4">
+              <div class="card h-100">
+                <div class="img-placeholder rounded-top" style="height:160px;">
+                  <i class="bi bi-map fs-1"></i>
+                </div>
+                <div class="card-body p-4">
+                  <span class="badge mb-2 bg-warning text-dark">Culture</span>
+                  <h3 class="h5 fw-bold">Voyages & Excursions</h3>
+                  <p class="text-muted small">Séjours organisés en groupe à travers le pays, week-ends culturels et visites touristiques.</p>
+                </div>
+              </div>
+            </div>
+
+            <div class="col-sm-6 col-lg-4">
+              <div class="card h-100">
+                <div class="img-placeholder rounded-top" style="height:160px;">
+                  <i class="bi bi-music-note-beamed fs-1"></i>
+                </div>
+                <div class="card-body p-4">
+                  <span class="badge mb-2 bg-warning text-dark">Culture</span>
+                  <h3 class="h5 fw-bold">Soirées culturelles</h3>
+                  <p class="text-muted small">Concerts, théâtre, expositions et événements artistiques pour découvrir la culture locale.</p>
+                </div>
+              </div>
+            </div>
+
+            <div class="col-sm-6 col-lg-4">
+              <div class="card h-100">
+                <div class="img-placeholder rounded-top" style="height:160px;">
+                  <i class="bi bi-gift fs-1"></i>
+                </div>
+                <div class="card-body p-4">
+                  <span class="badge mb-2 bg-success">Famille</span>
+                  <h3 class="h5 fw-bold">Arbre de Noël</h3>
+                  <p class="text-muted small">Fête annuelle pour les enfants des salariés avec cadeaux, animations et spectacles.</p>
+                </div>
+              </div>
+            </div>
+
+            <div class="col-sm-6 col-lg-4">
+              <div class="card h-100">
+                <div class="img-placeholder rounded-top" style="height:160px;">
+                  <i class="bi bi-balloon-heart fs-1"></i>
+                </div>
+                <div class="card-body p-4">
+                  <span class="badge mb-2 bg-success">Famille</span>
+                  <h3 class="h5 fw-bold">Fête des enfants</h3>
+                  <p class="text-muted small">Journée dédiée aux familles avec jeux, activités et repas partagé en plein air.</p>
+                </div>
+              </div>
+            </div>
+
+            <div class="col-sm-6 col-lg-4">
+              <div class="card h-100">
+                <div class="img-placeholder rounded-top" style="height:160px;">
+                  <i class="bi bi-hand-thumbs-up fs-1"></i>
+                </div>
+                <div class="card-body p-4">
+                  <span class="badge mb-2 bg-success">Famille</span>
+                  <h3 class="h5 fw-bold">Actions solidaires</h3>
+                  <p class="text-muted small">Collectes, aide mutuelle et initiatives solidaires pour renforcer les liens entre collègues.</p>
+                </div>
+              </div>
+            </div>
+
+          </div>
+        </div>
+
+        <!-- sports, culture, famille — onglets simplifiés (même contenu filtré visuellement) -->
+        <div class="tab-pane fade" id="sport" role="tabpanel">
+          <p class="text-muted">Filtrez en cliquant sur l'onglet sur cette page — implémentez un filtrage JS si besoin.</p>
+        </div>
+        <div class="tab-pane fade" id="culture" role="tabpanel">
+          <p class="text-muted">Filtrez en cliquant sur l'onglet sur cette page — implémentez un filtrage JS si besoin.</p>
+        </div>
+        <div class="tab-pane fade" id="famille" role="tabpanel">
+          <p class="text-muted">Filtrez en cliquant sur l'onglet sur cette page — implémentez un filtrage JS si besoin.</p>
+        </div>
+      </div>
+
+      <!-- CTA rejoindre -->
+      <div class="text-center mt-5 p-5 rounded-4 bg-white shadow-sm">
+        <h3 class="fw-bold mb-2" style="color: var(--couleur-principale);">Vous voulez participer ?</h3>
+        <p class="text-muted mb-4">Contactez-nous pour rejoindre une activité ou proposer une nouvelle idée.</p>
+        <a href="contact.html" class="btn btn-attt btn-lg px-5">
+          <i class="bi bi-envelope-fill me-2"></i>Nous contacter
+        </a>
+      </div>
+
+    </div>
+  </main>
+
+  <!-- PROCHAINS ÉVÉNEMENTS PAR ACTIVITÉ (dynamique) -->
+  <section class="py-5 bg-white">
+    <div class="container">
+      <div class="d-flex justify-content-between align-items-center mb-4">
+        <h2 class="section-titre mb-0">Prochains événements</h2>
+        <a href="evenements.html" class="btn btn-outline-attt btn-sm">Tous les événements <i class="bi bi-arrow-right ms-1"></i></a>
+      </div>
+      <div id="activites-events" class="row g-4">
+        <div class="col-12 text-center text-muted py-3"><i class="bi bi-hourglass-split me-2"></i>Chargement…</div>
+      </div>
+    </div>
+  </section>
+
+  <!-- FOOTER -->
+  <footer class="py-4 text-white">
+    <div class="container">
+      <div class="row align-items-center">
+        <div class="col-md-6 text-center text-md-start mb-3 mb-md-0">
+          <p class="mb-1 fw-semibold">Amicale de l'ATTT</p>
+          <p class="mb-0 small opacity-75">Association du personnel — Agence Technique des Transports Terrestres</p>
+        </div>
+        <div class="col-md-6 text-center text-md-end">
+          <div class="d-flex justify-content-center justify-content-md-end gap-3 mb-2 flex-wrap">
+            <a href="a-propos.html">L'association</a>
+            <a href="actualites.html">Actualités</a>
+            <a href="activites.html">Activités</a>
+            <a href="contact.html">Contact</a>
+          </div>
+          <p class="mb-0 small opacity-50">&copy; 2026 Amicale ATTT — Tous droits réservés</p>
+          <p class="mb-0 mt-1"><a href="hebergement.html" class="small opacity-40">Guide webmaster</a></p>
+        </div>
+      </div>
+    </div>
+  </footer>
+
+  <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js"></script>
+  <script src="https://www.gstatic.com/firebasejs/10.14.1/firebase-app-compat.js"></script>
+  <script src="https://www.gstatic.com/firebasejs/10.14.1/firebase-firestore-compat.js"></script>
+  <script src="js/firebase-config.js"></script>
+  <script src="js/db.js"></script>
+  <script src="js/auth.js"></script>
+  <script src="js/data.js"></script>
+  <script src="js/version-check.js"></script>
+  <script src="js/main.js"></script>
+  <script>
+  'use strict';
+  const _MOIS = ['Jan','Fév','Mar','Avr','Mai','Juin','Juil','Août','Sep','Oct','Nov','Déc'];
+  const _catColor = { sport:'primary', culture:'warning', famille:'success', autre:'secondary' };
+
+  /* Liaison filtres onglets ↔ section événements */
+  document.querySelectorAll('#filtreActivites button').forEach(btn => {
+    btn.addEventListener('shown.bs.tab', () => {
+      const target = btn.dataset.bsTarget || '';
+      const cat = target.replace('#','');
+      renderActiviteEvents(cat === 'all' ? '' : cat);
+    });
+  });
+
+  function renderActiviteEvents(cat) {
+    const container = document.getElementById('activites-events');
+    const today = new Date().toISOString().split('T')[0];
+    let events = DATA.getEvents().filter(e => e.date >= today);
+    if (cat) events = events.filter(e => e.categorie === cat);
+    events = events.sort((a,b) => a.date.localeCompare(b.date)).slice(0,6);
+    if (!events.length) {
+      container.innerHTML = `<div class="col-12 text-center text-muted py-3"><i class="bi bi-calendar-x me-2"></i>Aucun événement prévu${cat ? ' dans cette catégorie' : ''}.</div>`;
+      return;
+    }
+    container.innerHTML = events.map(e => {
+      const d = new Date(e.date + 'T00:00:00');
+      return `<div class="col-sm-6 col-lg-4">
+        <div class="card h-100 p-3">
+          <div class="d-flex gap-3 align-items-start">
+            <div class="text-center rounded-3 px-2 py-1 flex-shrink-0" style="background:var(--couleur-principale);color:white;min-width:52px;">
+              <div class="fw-bold fs-5 lh-1">${String(d.getDate()).padStart(2,'0')}</div>
+              <div class="small text-uppercase">${_MOIS[d.getMonth()]}</div>
+            </div>
+            <div>
+              <span class="badge bg-${_catColor[e.categorie]||'secondary'} mb-1">${e.categorie}</span>
+              <h3 class="h6 fw-bold mb-1">${e.titre}</h3>
+              <p class="text-muted small mb-0"><i class="bi bi-geo-alt me-1"></i>${e.lieu}</p>
+            </div>
+          </div>
+          <div class="mt-3">
+            <a href="evenements.html" class="btn btn-attt btn-sm w-100"><i class="bi bi-calendar-check me-1"></i>Voir et participer</a>
+          </div>
+        </div>
+      </div>`;
+    }).join('');
+  }
+
+  DB_READY.then(() => renderActiviteEvents(''));
+  </script>
+</body>
+</html>

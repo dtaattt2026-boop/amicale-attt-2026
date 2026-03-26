@@ -1,0 +1,9 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 512 512">
+  <rect width="512" height="512" fill="#003DA6" rx="72"/>
+  <circle cx="256" cy="256" r="200" fill="rgba(255,255,255,0.06)"/>
+  <text x="256" y="310" font-family="'Segoe UI',Arial,sans-serif" font-size="230"
+        fill="#E8A020" text-anchor="middle" font-weight="900">A</text>
+  <text x="256" y="430" font-family="'Segoe UI',Arial,sans-serif" font-size="72"
+        fill="rgba(255,255,255,0.85)" text-anchor="middle" font-weight="700"
+        letter-spacing="8">ATTT</text>
+</svg>

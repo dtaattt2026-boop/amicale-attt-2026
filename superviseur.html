@@ -1,0 +1,692 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Amicale ATTT — Espace Direction</title>
+  <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css" rel="stylesheet" />
+  <link href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.3/font/bootstrap-icons.css" rel="stylesheet" />
+  <link href="css/style.css" rel="stylesheet" />
+  <style>
+    .sidebar { min-height: calc(100vh - 58px); background: var(--couleur-principale); }
+    .sidebar .nav-link { color: rgba(255,255,255,.75); border-radius: 8px; transition: background .2s; }
+    .sidebar .nav-link:hover, .sidebar .nav-link.active { background: rgba(255,255,255,.15); color: #fff; }
+    @media(max-width:767px) { .sidebar { min-height: auto; } }
+    .table th { font-size:.83rem; text-transform:uppercase; letter-spacing:.04em; color:#6c757d; }
+    .empty-state { text-align:center; padding:3rem 1rem; color:#6c757d; }
+    .empty-state i { font-size:3rem; display:block; opacity:.35; margin-bottom:.75rem; }
+    .kpi-card .stat-number { font-size:2rem; font-weight:700; line-height:1; }
+    .kpi-card .stat-label  { font-size:.78rem; text-transform:uppercase; letter-spacing:.05em; color:#6c757d; margin-top:.25rem; }
+  </style>
+</head>
+<body>
+
+  <!-- TOPBAR -->
+  <nav class="navbar navbar-dark py-2" style="background:var(--couleur-principale);">
+    <div class="container-fluid px-3 d-flex justify-content-between">
+      <a class="navbar-brand fw-bold d-flex align-items-center gap-2 fs-6" href="index.html">
+        <i class="bi bi-people-fill"></i>Amicale ATTT
+        <span class="badge bg-warning text-dark ms-2">Direction</span>
+      </a>
+      <div class="d-flex align-items-center gap-2">
+        <span class="text-white-50 small d-none d-md-block" id="topbar-user"></span>
+        <a href="espace-membre.html" class="btn btn-outline-light btn-sm">
+          <i class="bi bi-person-circle me-1"></i>Mon espace
+        </a>
+        <a href="#" class="btn btn-danger btn-sm" onclick="AUTH.logout();return false;">
+          <i class="bi bi-box-arrow-right"></i>
+        </a>
+      </div>
+    </div>
+  </nav>
+
+  <div class="container-fluid">
+    <div class="row">
+
+      <!-- SIDEBAR -->
+      <div class="col-md-2 sidebar pt-4 pb-3">
+        <ul class="nav flex-column gap-1 px-2">
+          <li class="nav-item">
+            <button class="nav-link w-100 text-start active" id="btn-dashboard" onclick="showSection('dashboard')">
+              <i class="bi bi-speedometer2 me-2"></i>Tableau de bord
+            </button>
+          </li>
+          <li class="nav-item">
+            <button class="nav-link w-100 text-start" id="btn-delegues" onclick="showSection('delegues')">
+              <i class="bi bi-person-badge me-2"></i>Délégués
+            </button>
+          </li>
+          <li class="nav-item">
+            <button class="nav-link w-100 text-start" id="btn-membres" onclick="showSection('membres')">
+              <i class="bi bi-people me-2"></i>Membres
+            </button>
+          </li>
+          <li class="nav-item">
+            <button class="nav-link w-100 text-start d-flex justify-content-between align-items-center"
+                    id="btn-attente" onclick="showSection('attente')">
+              <span><i class="bi bi-hourglass-split me-2"></i>En attente</span>
+              <span id="attente-badge" class="badge bg-warning text-dark d-none">0</span>
+            </button>
+          </li>
+          <li class="nav-item">
+            <button class="nav-link w-100 text-start" id="btn-events" onclick="showSection('events')">
+              <i class="bi bi-calendar-event me-2"></i>Événements
+            </button>
+          </li>
+          <li class="nav-item">
+            <button class="nav-link w-100 text-start" id="btn-offers" onclick="showSection('offers')">
+              <i class="bi bi-tag me-2"></i>Offres
+            </button>
+          </li>
+          <li class="nav-item mt-3 border-top border-secondary pt-3">
+            <a href="droits.html" class="nav-link">
+              <i class="bi bi-shield-lock me-2"></i>Droits
+            </a>
+          </li>
+          <li class="nav-item">
+            <a href="contenu-admin.html" class="nav-link">
+              <i class="bi bi-file-richtext me-2"></i>Actualités
+            </a>
+          </li>
+        </ul>
+      </div>
+
+      <!-- CONTENU PRINCIPAL -->
+      <div class="col-md-10 py-4 px-4">
+
+        <!-- ════ TABLEAU DE BORD ════ -->
+        <div id="section-dashboard">
+          <h1 class="h4 section-titre">Tableau de bord</h1>
+          <div class="row g-3 mb-4" id="kpi-row"></div>
+          <h2 class="h5 mt-4 mb-3">Vue rapide — Délégués &amp; leurs membres</h2>
+          <div id="delegues-overview"></div>
+        </div>
+
+        <!-- ════ DÉLÉGUÉS ════ -->
+        <div id="section-delegues" class="d-none">
+          <h1 class="h4 section-titre">Gestion des Délégués</h1>
+          <p class="text-muted mb-4">Vous pouvez modifier le rôle des Délégués (Délégué ↔ Direction) ou les rétrograder en Membre.</p>
+          <div id="delegues-content"></div>
+        </div>
+
+        <!-- ════ MEMBRES ════ -->
+        <div id="section-membres" class="d-none">
+          <h1 class="h4 section-titre">Membres actifs</h1>
+          <p class="text-muted mb-4">Promouvez un membre au rôle de Délégué ou de Direction.</p>
+          <div class="mb-3">
+            <input type="text" class="form-control" style="max-width:300px;"
+                   id="search-membres" placeholder="Rechercher…" oninput="renderMembres()" />
+          </div>
+          <div id="membres-content"></div>
+        </div>
+
+        <!-- ════ EN ATTENTE ════ -->
+        <div id="section-attente" class="d-none">
+          <h1 class="h4 section-titre">Demandes d'inscription en attente</h1>
+          <p class="text-muted mb-4">Validez ou rejetez les demandes d'inscription en attente.</p>
+          <div id="attente-content"></div>
+        </div>
+
+        <!-- ════ SECTION ÉVÉNEMENTS ════ -->
+        <div id="section-events" class="d-none">
+          <div class="d-flex justify-content-between align-items-center mb-4">
+            <h1 class="h4 section-titre mb-0">Gestion des événements</h1>
+            <button class="btn btn-attt" data-bs-toggle="modal" data-bs-target="#eventModal" onclick="openEventModal()">
+              <i class="bi bi-plus-lg me-1"></i>Ajouter
+            </button>
+          </div>
+          <div class="card p-0 overflow-hidden">
+            <div class="table-responsive">
+              <table class="table table-hover align-middle mb-0">
+                <thead class="table-light">
+                  <tr><th>Date</th><th>Titre</th><th>Lieu</th><th>Catégorie</th><th>Accès</th><th>Inscrits</th><th class="text-end">Actions</th></tr>
+                </thead>
+                <tbody id="events-tbody"></tbody>
+              </table>
+            </div>
+          </div>
+        </div>
+
+        <!-- ════ SECTION OFFRES ════ -->
+        <div id="section-offers" class="d-none">
+          <div class="d-flex justify-content-between align-items-center mb-4">
+            <h1 class="h4 section-titre mb-0">Gestion des offres</h1>
+            <button class="btn btn-attt" data-bs-toggle="modal" data-bs-target="#offerModal" onclick="openOfferModal()">
+              <i class="bi bi-plus-lg me-1"></i>Ajouter
+            </button>
+          </div>
+          <div class="card p-0 overflow-hidden">
+            <div class="table-responsive">
+              <table class="table table-hover align-middle mb-0">
+                <thead class="table-light">
+                  <tr><th>Titre</th><th>Partenaire</th><th>Réduction</th><th>Expiration</th><th>Code</th><th class="text-end">Actions</th></tr>
+                </thead>
+                <tbody id="offers-tbody"></tbody>
+              </table>
+            </div>
+          </div>
+        </div>
+
+      </div>
+    </div>
+  </div>
+
+  <!-- MODAL MODIFIER RÔLE -->
+  <div class="modal fade" id="roleModal" tabindex="-1">
+    <div class="modal-dialog">
+      <div class="modal-content rounded-4">
+        <div class="modal-header" style="background:var(--couleur-principale);color:white;">
+          <h2 class="modal-title h5"><i class="bi bi-person-gear me-2"></i>Modifier le rôle</h2>
+          <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal"></button>
+        </div>
+        <div class="modal-body p-4">
+          <input type="hidden" id="edit-id" />
+          <p class="fw-semibold mb-3" id="edit-fullname"></p>
+          <div class="mb-3">
+            <label class="form-label fw-semibold">Nouveau rôle</label>
+            <select class="form-select" id="edit-role">
+              <option value="membre">Membre</option>
+              <option value="admin">Délégué</option>
+              <option value="superviseur">Direction</option>
+            </select>
+          </div>
+        </div>
+        <div class="modal-footer">
+          <button class="btn btn-secondary" data-bs-dismiss="modal">Annuler</button>
+          <button class="btn btn-attt" onclick="saveRole()"><i class="bi bi-check-lg me-1"></i>Enregistrer</button>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- ════ MODAL ÉVÉNEMENT ════ -->
+  <div class="modal fade" id="eventModal" tabindex="-1" aria-labelledby="eventModalLabel">
+    <div class="modal-dialog modal-lg">
+      <div class="modal-content rounded-4">
+        <div class="modal-header" style="background:var(--couleur-principale);color:white;">
+          <h2 class="modal-title h5" id="eventModalLabel">Événement</h2>
+          <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal"></button>
+        </div>
+        <div class="modal-body p-4">
+          <input type="hidden" id="evt-id" />
+          <div class="row g-3">
+            <div class="col-12">
+              <label class="form-label fw-semibold">Titre <span class="text-danger">*</span></label>
+              <input type="text" class="form-control" id="evt-titre" required maxlength="120" />
+            </div>
+            <div class="col-sm-6">
+              <label class="form-label fw-semibold">Date <span class="text-danger">*</span></label>
+              <input type="date" class="form-control" id="evt-date" required />
+            </div>
+            <div class="col-sm-6">
+              <label class="form-label fw-semibold">Heure</label>
+              <input type="time" class="form-control" id="evt-heure" />
+            </div>
+            <div class="col-12">
+              <label class="form-label fw-semibold">Lieu <span class="text-danger">*</span></label>
+              <input type="text" class="form-control" id="evt-lieu" required maxlength="120" />
+            </div>
+            <div class="col-sm-6">
+              <label class="form-label fw-semibold">Catégorie</label>
+              <select class="form-select" id="evt-categorie">
+                <option value="sport">Sport</option>
+                <option value="culture">Culture</option>
+                <option value="famille">Famille</option>
+                <option value="autre">Autre</option>
+              </select>
+            </div>
+            <div class="col-sm-6">
+              <label class="form-label fw-semibold">Accès</label>
+              <select class="form-select" id="evt-acces">
+                <option value="tous">Ouvert à tous</option>
+                <option value="membres">Membres uniquement</option>
+              </select>
+            </div>
+            <div class="col-12">
+              <label class="form-label fw-semibold">Description</label>
+              <textarea class="form-control" id="evt-description" rows="3" maxlength="500"></textarea>
+            </div>
+          </div>
+        </div>
+        <div class="modal-footer">
+          <button class="btn btn-secondary" data-bs-dismiss="modal">Annuler</button>
+          <button class="btn btn-attt" onclick="saveEvent()"><i class="bi bi-check-lg me-1"></i>Enregistrer</button>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- ════ MODAL OFFRE ════ -->
+  <div class="modal fade" id="offerModal" tabindex="-1" aria-labelledby="offerModalLabel">
+    <div class="modal-dialog modal-lg">
+      <div class="modal-content rounded-4">
+        <div class="modal-header" style="background:var(--couleur-principale);color:white;">
+          <h2 class="modal-title h5" id="offerModalLabel">Offre</h2>
+          <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal"></button>
+        </div>
+        <div class="modal-body p-4">
+          <input type="hidden" id="off-id" />
+          <div class="row g-3">
+            <div class="col-12">
+              <label class="form-label fw-semibold">Titre <span class="text-danger">*</span></label>
+              <input type="text" class="form-control" id="off-titre" required maxlength="120" />
+            </div>
+            <div class="col-sm-6">
+              <label class="form-label fw-semibold">Partenaire <span class="text-danger">*</span></label>
+              <input type="text" class="form-control" id="off-partenaire" required maxlength="120" />
+            </div>
+            <div class="col-sm-3">
+              <label class="form-label fw-semibold">Réduction</label>
+              <input type="text" class="form-control" id="off-reduction" placeholder="ex: 30%" maxlength="20" />
+            </div>
+            <div class="col-sm-3">
+              <label class="form-label fw-semibold">Code promo</label>
+              <input type="text" class="form-control" id="off-code" placeholder="CODE" maxlength="30" />
+            </div>
+            <div class="col-sm-6">
+              <label class="form-label fw-semibold">Date d'expiration</label>
+              <input type="date" class="form-control" id="off-expiration" />
+            </div>
+            <div class="col-12">
+              <label class="form-label fw-semibold">Description</label>
+              <textarea class="form-control" id="off-description" rows="3" maxlength="500"></textarea>
+            </div>
+          </div>
+        </div>
+        <div class="modal-footer">
+          <button class="btn btn-secondary" data-bs-dismiss="modal">Annuler</button>
+          <button class="btn btn-attt" onclick="saveOffer()"><i class="bi bi-check-lg me-1"></i>Enregistrer</button>
+        </div>
+      </div>
+    </div>
+  </div>
+
+<script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js"></script>
+<!-- Firebase SDK (Base de données Cloud) -->
+<script src="https://www.gstatic.com/firebasejs/10.14.1/firebase-app-compat.js"></script>
+<script src="https://www.gstatic.com/firebasejs/10.14.1/firebase-firestore-compat.js"></script>
+<script src="js/firebase-config.js"></script>
+<script src="js/db.js"></script>
+<script src="js/auth.js"></script>
+<script src="js/data.js"></script>
+<script src="js/profile.js"></script>
+<script src="js/log.js"></script>
+<script>
+'use strict';
+const user = AUTH.requireAuth('superviseur');
+if (!user) throw new Error();
+document.getElementById('topbar-user').textContent = user.prenom + ' ' + user.nom;
+
+const RL = AUTH.ROLE_LABELS;   /* Délégué, Direction, Maître… */
+
+/* ─── Navigation ──────────────────────────────────── */
+const SECTIONS = ['dashboard','delegues','membres','attente','events','offers'];
+function showSection(name) {
+  SECTIONS.forEach(s => {
+    document.getElementById('section-' + s).classList.toggle('d-none', s !== name);
+    document.getElementById('btn-' + s).classList.toggle('active', s === name);
+  });
+  if (name === 'dashboard') renderDashboard();
+  if (name === 'delegues')  renderDelegues();
+  if (name === 'membres')   renderMembres();
+  if (name === 'attente')   renderAttente();
+  if (name === 'events')    renderEventsTable();
+  if (name === 'offers')    renderOffersTable();
+}
+
+/* ─── Badge en attente ────────────────────────────── */
+function updateAttenteBadge() {
+  const cnt   = AUTH.getPendingMembers().length;
+  const badge = document.getElementById('attente-badge');
+  if (cnt > 0) { badge.textContent = cnt; badge.classList.remove('d-none'); }
+  else           badge.classList.add('d-none');
+}
+
+/* ─── Tableau de bord ─────────────────────────────── */
+function renderDashboard() {
+  updateAttenteBadge();
+  const all       = AUTH.getUsers();
+  const actifs    = all.filter(u => u.statut === 'actif').length;
+  const delegues  = all.filter(u => u.role === 'admin').length;
+  const directions= all.filter(u => u.role === 'superviseur').length;
+  const pending   = AUTH.getPendingMembers().length;
+
+  document.getElementById('kpi-row').innerHTML = `
+    <div class="col-6 col-md-3">
+      <div class="card p-3 text-center kpi-card">
+        <div class="stat-number">${actifs}</div><div class="stat-label">Membres actifs</div>
+      </div>
+    </div>
+    <div class="col-6 col-md-3">
+      <div class="card p-3 text-center kpi-card">
+        <div class="stat-number" style="color:var(--couleur-principale)">${delegues}</div>
+        <div class="stat-label">Délégués</div>
+      </div>
+    </div>
+    <div class="col-6 col-md-3">
+      <div class="card p-3 text-center kpi-card">
+        <div class="stat-number text-warning">${directions}</div>
+        <div class="stat-label">Directions</div>
+      </div>
+    </div>
+    <div class="col-6 col-md-3">
+      <div class="card p-3 text-center kpi-card">
+        <div class="stat-number text-danger">${pending}</div>
+        <div class="stat-label">En attente</div>
+      </div>
+    </div>`;
+
+  /* Vue rapide Délégués */
+  const deleg = all.filter(u => u.role === 'admin');
+  const container = document.getElementById('delegues-overview');
+  if (!deleg.length) {
+    container.innerHTML = `<p class="text-muted small">Aucun Délégué désigné. Allez dans <strong>Membres</strong> pour promouvoir un membre.</p>`;
+    return;
+  }
+  container.innerHTML = `
+    <div class="row g-3">
+      ${deleg.map(d => {
+        const cnt = AUTH.getMembersByValidateur(d.id).length;
+        return `
+          <div class="col-md-4">
+            <div class="card p-3">
+              <div class="fw-semibold">${AUTH.esc(d.nom)} ${AUTH.esc(d.prenom)}</div>
+              <div class="text-muted small">@${AUTH.esc(d.login)}</div>
+              <div class="mt-2">
+                <span class="badge bg-success">${cnt} membre${cnt>1?'s':''} validé${cnt>1?'s':''}</span>
+              </div>
+            </div>
+          </div>`;
+      }).join('')}
+    </div>`;
+}
+
+/* ─── Section Délégués ─────────────────────────────── */
+function renderDelegues() {
+  const deleg     = AUTH.getUsers().filter(u => u.role === 'admin');
+  const container = document.getElementById('delegues-content');
+  if (!deleg.length) {
+    container.innerHTML = `
+      <div class="empty-state">
+        <i class="bi bi-person-badge"></i>
+        <p class="fw-semibold">Aucun Délégué désigné</p>
+        <p class="small">Promouvez un membre depuis la section "Membres".</p>
+      </div>`;
+    return;
+  }
+  container.innerHTML = `
+    <div class="card p-0 overflow-hidden">
+      <div class="table-responsive">
+        <table class="table table-hover align-middle mb-0">
+          <thead class="table-light">
+            <tr><th>Nom &amp; Prénom</th><th>Login</th><th>E-mail</th><th>Membres validés</th><th class="text-end">Actions</th></tr>
+          </thead>
+          <tbody>
+            ${deleg.map(u => {
+              const cnt = AUTH.getMembersByValidateur(u.id).length;
+              return `
+                <tr>
+                  <td class="fw-semibold">${AUTH.esc(u.nom)} ${AUTH.esc(u.prenom)}</td>
+                  <td><code>${AUTH.esc(u.login)}</code></td>
+                  <td class="text-muted small">${AUTH.esc(u.email || '—')}</td>
+                  <td><span class="badge bg-success">${cnt}</span></td>
+                  <td class="text-end">
+                    <button class="btn btn-sm btn-outline-primary" onclick='openRoleModal(${JSON.stringify(u)})'>
+                      <i class="bi bi-pencil me-1"></i>Rôle
+                    </button>
+                  </td>
+                </tr>`;
+            }).join('')}
+          </tbody>
+        </table>
+      </div>
+    </div>`;
+}
+
+/* ─── Section Membres ──────────────────────────────── */
+function renderMembres() {
+  const q   = (document.getElementById('search-membres')?.value || '').toLowerCase();
+  const all = AUTH.getUsers().filter(u =>
+    u.role === 'membre' && u.statut === 'actif' &&
+    (!q || (u.nom + u.prenom + u.login).toLowerCase().includes(q))
+  ).sort((a,b) => a.nom.localeCompare(b.nom));
+
+  const container = document.getElementById('membres-content');
+  if (!all.length) {
+    container.innerHTML = `<div class="empty-state"><i class="bi bi-people"></i><p class="fw-semibold">Aucun membre actif trouvé</p></div>`;
+    return;
+  }
+  container.innerHTML = `
+    <div class="card p-0 overflow-hidden">
+      <div class="table-responsive">
+        <table class="table table-hover align-middle mb-0">
+          <thead class="table-light">
+            <tr><th>Nom &amp; Prénom</th><th>Login</th><th>E-mail</th><th>Inscrit le</th><th class="text-end">Promouvoir</th></tr>
+          </thead>
+          <tbody>
+            ${all.map(u => `
+              <tr>
+                <td class="fw-semibold">${AUTH.esc(u.nom)} ${AUTH.esc(u.prenom)}</td>
+                <td><code>${AUTH.esc(u.login)}</code></td>
+                <td class="text-muted small">${AUTH.esc(u.email || '—')}</td>
+                <td class="text-muted small">${AUTH.esc(u.dateInscription)}</td>
+                <td class="text-end">
+                  <button class="btn btn-sm btn-outline-primary" onclick='openRoleModal(${JSON.stringify(u)})'>
+                    <i class="bi bi-arrow-up-circle me-1"></i>Promouvoir
+                  </button>
+                </td>
+              </tr>`).join('')}
+          </tbody>
+        </table>
+      </div>
+    </div>`;
+}
+
+/* ─── Section En attente ─────────────────────────── */
+function renderAttente() {
+  updateAttenteBadge();
+  const pending   = AUTH.getPendingMembers();
+  const container = document.getElementById('attente-content');
+  if (!pending.length) {
+    container.innerHTML = `
+      <div class="empty-state">
+        <i class="bi bi-inbox"></i>
+        <p class="fw-semibold">Aucune inscription en attente</p>
+      </div>`;
+    return;
+  }
+  container.innerHTML = `
+    <div class="card p-0 overflow-hidden">
+      <div class="table-responsive">
+        <table class="table align-middle mb-0">
+          <thead class="table-light">
+            <tr><th>Nom &amp; Prénom</th><th>Login</th><th>E-mail</th><th>Inscrit le</th><th class="text-end">Actions</th></tr>
+          </thead>
+          <tbody>
+            ${pending.map(u => `
+              <tr>
+                <td class="fw-semibold">${AUTH.esc(u.nom)} ${AUTH.esc(u.prenom)}</td>
+                <td><code>${AUTH.esc(u.login)}</code></td>
+                <td class="text-muted small">${AUTH.esc(u.email || '—')}</td>
+                <td class="text-muted small">${AUTH.esc(u.dateInscription)}</td>
+                <td class="text-end">
+                  <button class="btn btn-sm btn-success me-1" onclick="validateUser('${u.id}')">
+                    <i class="bi bi-check-lg"></i> Valider
+                  </button>
+                  <button class="btn btn-sm btn-danger" onclick="rejectUser('${u.id}','${AUTH.esc(u.prenom)} ${AUTH.esc(u.nom)}')">
+                    <i class="bi bi-x-lg"></i> Rejeter
+                  </button>
+                </td>
+              </tr>`).join('')}
+          </tbody>
+        </table>
+      </div>
+    </div>`;
+}
+
+function validateUser(id) {
+  if (!confirm('Valider cet utilisateur ?')) return;
+  AUTH.validateMember(id, user.id);
+  updateAttenteBadge();
+  renderAttente();
+}
+
+function rejectUser(id, name) {
+  if (!confirm(`Rejeter et supprimer la demande de ${name} ?`)) return;
+  AUTH.rejectMember(id);
+  updateAttenteBadge();
+  renderAttente();
+}
+
+/* ─── Table événements ─────────────────────────────── */
+function renderEventsTable() {
+  const events = DATA.getEvents().sort((a,b) => a.date.localeCompare(b.date));
+  const tbody  = document.getElementById('events-tbody');
+  const catBadge = { sport:'primary', culture:'warning', famille:'success', autre:'secondary' };
+  tbody.innerHTML = events.length ? events.map(e => `
+    <tr>
+      <td class="fw-semibold">${AUTH.esc(e.date)} <span class="text-muted small">${AUTH.esc(e.heure||'')}</span></td>
+      <td>${AUTH.esc(e.titre)}</td>
+      <td class="text-muted small">${AUTH.esc(e.lieu)}</td>
+      <td><span class="badge bg-${catBadge[e.categorie]||'secondary'}">${AUTH.esc(e.categorie)}</span></td>
+      <td>${e.acces === 'membres' ? '<span class="badge bg-warning text-dark">Membres</span>' : '<span class="badge bg-light text-dark border">Tous</span>'}</td>
+      <td><span class="badge bg-info text-dark">${typeof PROFILE !== 'undefined' ? PROFILE.getEventParticipants(e.id).length : 0}${e.nbMaxParticipants > 0 ? ' / '+e.nbMaxParticipants : ''}</span></td>
+      <td class="text-end">
+        <button class="btn btn-sm btn-outline-primary me-1" onclick='openEventModal(${JSON.stringify(e)})'>
+          <i class="bi bi-pencil"></i>
+        </button>
+        <button class="btn btn-sm btn-outline-danger" onclick="delEvent('${AUTH.esc(e.id)}')">
+          <i class="bi bi-trash"></i>
+        </button>
+      </td>
+    </tr>`).join('') : '<tr><td colspan="7" class="text-center text-muted py-4">Aucun événement.</td></tr>';
+}
+
+/* ─── Table offres ──────────────────────────────────── */
+function renderOffersTable() {
+  const offers = DATA.getOffers();
+  const tbody  = document.getElementById('offers-tbody');
+  tbody.innerHTML = offers.length ? offers.map(o => `
+    <tr>
+      <td class="fw-semibold">${AUTH.esc(o.titre)}</td>
+      <td class="text-muted small">${AUTH.esc(o.partenaire)}</td>
+      <td><span class="badge" style="background:var(--couleur-secondaire);color:#111;">${AUTH.esc(o.reduction||'—')}</span></td>
+      <td class="small">${AUTH.esc(o.dateExpiration||'—')}</td>
+      <td><code>${AUTH.esc(o.code||'—')}</code></td>
+      <td class="text-end">
+        <button class="btn btn-sm btn-outline-primary me-1" onclick='openOfferModal(${JSON.stringify(o)})'>
+          <i class="bi bi-pencil"></i>
+        </button>
+        <button class="btn btn-sm btn-outline-danger" onclick="delOffer('${AUTH.esc(o.id)}')">
+          <i class="bi bi-trash"></i>
+        </button>
+      </td>
+    </tr>`).join('') : '<tr><td colspan="6" class="text-center text-muted py-4">Aucune offre.</td></tr>';
+}
+
+/* ─── Modal événement ───────────────────────────────── */
+const evtModal = new bootstrap.Modal(document.getElementById('eventModal'));
+function openEventModal(evt) {
+  document.getElementById('eventModalLabel').textContent = evt ? "Modifier l'événement" : 'Nouvel événement';
+  document.getElementById('evt-id').value          = evt?.id          || '';
+  document.getElementById('evt-titre').value       = evt?.titre       || '';
+  document.getElementById('evt-date').value        = evt?.date        || '';
+  document.getElementById('evt-heure').value       = evt?.heure       || '';
+  document.getElementById('evt-lieu').value        = evt?.lieu        || '';
+  document.getElementById('evt-categorie').value   = evt?.categorie   || 'sport';
+  document.getElementById('evt-acces').value       = evt?.acces       || 'tous';
+  document.getElementById('evt-description').value = evt?.description || '';
+  evtModal.show();
+}
+function saveEvent() {
+  const titre = document.getElementById('evt-titre').value.trim();
+  const date  = document.getElementById('evt-date').value;
+  const lieu  = document.getElementById('evt-lieu').value.trim();
+  if (!titre || !date || !lieu) { alert('Titre, date et lieu sont requis.'); return; }
+  const data = {
+    titre, date, lieu,
+    heure:       document.getElementById('evt-heure').value,
+    categorie:   document.getElementById('evt-categorie').value,
+    acces:       document.getElementById('evt-acces').value,
+    description: document.getElementById('evt-description').value.trim()
+  };
+  const id = document.getElementById('evt-id').value;
+  if (id) { DATA.updateEvent(id, data); LOG.add('EVENT_EDIT', { acteurId: user.id, acteurLogin: user.login, acteurRole: user.role, detail: data.titre }); }
+  else    { DATA.addEvent(data);         LOG.add('EVENT_ADD',  { acteurId: user.id, acteurLogin: user.login, acteurRole: user.role, detail: data.titre }); }
+  evtModal.hide();
+  renderEventsTable();
+}
+function delEvent(id) {
+  if (!confirm('Supprimer cet événement ?')) return;
+  const evt = DATA.getEvents().find(e => e.id === id);
+  DATA.deleteEvent(id);
+  LOG.add('EVENT_DEL', { acteurId: user.id, acteurLogin: user.login, acteurRole: user.role, detail: evt?.titre });
+  renderEventsTable();
+}
+
+/* ─── Modal offre ───────────────────────────────────── */
+const offModal = new bootstrap.Modal(document.getElementById('offerModal'));
+function openOfferModal(off) {
+  document.getElementById('offerModalLabel').textContent = off ? "Modifier l'offre" : 'Nouvelle offre';
+  document.getElementById('off-id').value          = off?.id          || '';
+  document.getElementById('off-titre').value       = off?.titre       || '';
+  document.getElementById('off-partenaire').value  = off?.partenaire  || '';
+  document.getElementById('off-reduction').value   = off?.reduction   || '';
+  document.getElementById('off-code').value        = off?.code        || '';
+  document.getElementById('off-expiration').value  = off?.dateExpiration || '';
+  document.getElementById('off-description').value = off?.description || '';
+  offModal.show();
+}
+function saveOffer() {
+  const titre      = document.getElementById('off-titre').value.trim();
+  const partenaire = document.getElementById('off-partenaire').value.trim();
+  if (!titre || !partenaire) { alert('Titre et partenaire sont requis.'); return; }
+  const data = {
+    titre, partenaire,
+    reduction:      document.getElementById('off-reduction').value.trim(),
+    code:           document.getElementById('off-code').value.trim(),
+    dateExpiration: document.getElementById('off-expiration').value,
+    description:    document.getElementById('off-description').value.trim()
+  };
+  const id = document.getElementById('off-id').value;
+  if (id) { DATA.updateOffer(id, data); LOG.add('OFFER_EDIT', { acteurId: user.id, acteurLogin: user.login, acteurRole: user.role, detail: data.titre }); }
+  else    { DATA.addOffer(data);         LOG.add('OFFER_ADD',  { acteurId: user.id, acteurLogin: user.login, acteurRole: user.role, detail: data.titre }); }
+  offModal.hide();
+  renderOffersTable();
+}
+function delOffer(id) {
+  if (!confirm('Supprimer cette offre ?')) return;
+  const off = DATA.getOffers().find(o => o.id === id);
+  DATA.deleteOffer(id);
+  LOG.add('OFFER_DEL', { acteurId: user.id, acteurLogin: user.login, acteurRole: user.role, detail: off?.titre });
+  renderOffersTable();
+}
+
+/* ─── Modal modification rôle ─────────────────────── */
+const roleModal = new bootstrap.Modal(document.getElementById('roleModal'));
+function openRoleModal(u) {
+  document.getElementById('edit-id').value = u.id;
+  document.getElementById('edit-fullname').textContent = u.prenom + ' ' + u.nom + ' (@' + u.login + ')';
+  document.getElementById('edit-role').value = u.role;
+  roleModal.show();
+}
+
+function saveRole() {
+  const id   = document.getElementById('edit-id').value;
+  const role = document.getElementById('edit-role').value;
+  /* Direction ne peut pas attribuer le rôle master */
+  if (role === 'master') { alert('Droits insuffisants pour attribuer ce rôle.'); return; }
+  AUTH.updateUser(id, { role });
+  roleModal.hide();
+  renderDashboard();
+  /* Refresh active section */
+  const active = SECTIONS.find(s => !document.getElementById('section-' + s).classList.contains('d-none'));
+  if (active === 'delegues') renderDelegues();
+  if (active === 'membres')  renderMembres();
+}
+
+/* ─── Init ─────────────────────────────────────────── */
+DB_READY.then(() => { renderDashboard(); updateAttenteBadge(); });
+</script>
+</body>
+</html>

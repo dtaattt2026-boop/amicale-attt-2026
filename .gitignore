@@ -1,0 +1,18 @@
+# Node
+node_modules/
+npm-debug.log*
+
+# Scripts de vérification (usage local uniquement)
+check.js
+check-links.js
+
+# Dossier interne
+amicale attt/
+
+# OS
+.DS_Store
+Thumbs.db
+desktop.ini
+
+# VS Code
+.vscode/

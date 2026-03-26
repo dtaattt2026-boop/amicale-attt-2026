@@ -1,0 +1,1240 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Amicale ATTT — Panneau Maître</title>
+  <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css" rel="stylesheet" />
+  <link href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.3/font/bootstrap-icons.css" rel="stylesheet" />
+  <link href="css/style.css" rel="stylesheet" />
+  <style>
+    .table th { font-size:.82rem; text-transform:uppercase; letter-spacing:.04em; color:#6c757d; }
+    .sidebar { min-height: calc(100vh - 58px); background: var(--couleur-principale); }
+    .sidebar .nav-link { color: rgba(255,255,255,.75); border-radius: 8px; transition: background .2s; }
+    .sidebar .nav-link:hover, .sidebar .nav-link.active { background: rgba(255,255,255,.15); color: #fff; }
+    @media(max-width:767px){ .sidebar { min-height:auto; } }
+    .empty-state { text-align:center; padding:3rem 1rem; color:#6c757d; }
+    .empty-state i { font-size:3rem; display:block; opacity:.35; margin-bottom:.75rem; }
+  </style>
+</head>
+<body>
+
+  <!-- TOPBAR -->
+  <nav class="navbar navbar-dark py-2" style="background:var(--couleur-principale);">
+    <div class="container-fluid px-3 d-flex justify-content-between">
+      <a class="navbar-brand fw-bold d-flex align-items-center gap-2 fs-6" href="index.html">
+        <i class="bi bi-people-fill"></i>Amicale ATTT
+        <span class="badge" style="background:var(--couleur-secondaire);color:#111;">Maître</span>
+      </a>
+      <div class="d-flex align-items-center gap-2">
+        <span class="text-white-50 small d-none d-md-block" id="topbar-user"></span>
+        <a href="#" class="btn btn-danger btn-sm" onclick="AUTH.logout();return false;">
+          <i class="bi bi-box-arrow-right me-1"></i>Déconnexion
+        </a>
+      </div>
+    </div>
+  </nav>
+
+  <div class="container-fluid">
+    <div class="row">
+
+      <!-- SIDEBAR -->
+      <div class="col-md-2 sidebar pt-4 pb-3">
+        <ul class="nav flex-column gap-1 px-2">
+          <li><button class="nav-link w-100 text-start active" id="btn-tableau" onclick="showSection('tableau')">
+            <i class="bi bi-speedometer2 me-2"></i>Tableau de bord
+          </button></li>
+          <li><button class="nav-link w-100 text-start" id="btn-users" onclick="showSection('users')">
+            <i class="bi bi-people me-2"></i>Utilisateurs
+          </button></li>
+          <li><button class="nav-link w-100 text-start d-flex justify-content-between align-items-center"
+                      id="btn-demandes" onclick="showSection('demandes')">
+            <span><i class="bi bi-person-check me-2"></i>Demandes</span>
+            <span id="pending-badge" class="badge bg-danger d-none">0</span>
+          </button></li>
+          <li><button class="nav-link w-100 text-start" id="btn-events" onclick="showSection('events')">
+            <i class="bi bi-calendar-event me-2"></i>Événements
+          </button></li>
+          <li><button class="nav-link w-100 text-start" id="btn-offers" onclick="showSection('offers')">
+            <i class="bi bi-tag me-2"></i>Offres
+          </button></li>
+          <li class="mt-3 border-top border-secondary pt-3">
+            <a href="admin.html" class="nav-link">
+              <i class="bi bi-pencil-square me-2"></i>Panel Délégué
+            </a>
+          </li>
+          <li class="nav-item">
+            <a href="contenu-admin.html" class="nav-link">
+              <i class="bi bi-file-richtext me-2"></i>Actualités
+            </a>
+          </li>
+            </a>
+          </li>
+          <li class="nav-item">
+            <a href="journal.html" class="nav-link">
+              <i class="bi bi-journal-text me-2"></i>Journal
+            </a>
+          </li>
+          <li class="nav-item">
+            <a href="guide.html" class="nav-link">
+              <i class="bi bi-book me-2"></i>Guide technique
+            </a>
+          </li>
+          <li class="nav-item">
+            <button class="nav-link w-100 text-start" id="btn-sauvegarde" onclick="showSection('sauvegarde')">
+              <i class="bi bi-cloud-arrow-down me-2"></i>Sauvegarde
+            </button>
+          </li>
+          <li class="nav-item">
+            <button class="nav-link w-100 text-start" id="btn-versions" onclick="showSection('versions')">
+              <i class="bi bi-box-arrow-up me-2"></i>Versions app
+            </button>
+          </li>
+          <li class="nav-item mt-2">
+            <button class="nav-link w-100 text-start" id="btn-conventions" onclick="showSection('conventions')">
+              <i class="bi bi-award me-2"></i>Conventions
+            </button>
+          </li>
+          <li class="nav-item">
+            <button class="nav-link w-100 text-start d-flex justify-content-between align-items-center" id="btn-messages" onclick="showSection('messages')">
+              <span><i class="bi bi-chat me-2"></i>Messages</span>
+              <span id="master-msg-badge" class="badge bg-danger d-none">0</span>
+            </button>
+          </li>
+          <li class="nav-item">
+            <button class="nav-link w-100 text-start" id="btn-paiements" onclick="showSection('paiements')">
+              <i class="bi bi-credit-card me-2"></i>Paiements
+            </button>
+          </li>
+          <li class="nav-item">
+            <button class="nav-link w-100 text-start" id="btn-locations" onclick="showSection('locations')">
+              <i class="bi bi-house-door me-2"></i>Locations
+            </button>
+          </li>
+        </ul>
+      </div>
+
+      <!-- MAIN CONTENT -->
+      <div class="col-md-10 py-4 px-4">
+
+        <!-- ════ TABLEAU DE BORD ════ -->
+        <div id="section-tableau">
+          <h1 class="h4 section-titre">Tableau de bord</h1>
+          <div class="row g-3 mb-5" id="kpi-row"></div>
+          <h2 class="h5 fw-bold mb-3">Derniers inscrits</h2>
+          <div id="recent-users" class="row g-3"></div>
+        </div>
+
+        <!-- ════ UTILISATEURS ════ -->
+        <div id="section-users" class="d-none">
+          <div class="d-flex flex-wrap gap-3 align-items-center mb-4">
+            <h1 class="h4 section-titre mb-0 me-auto">Tous les utilisateurs</h1>
+            <input type="text" class="form-control" style="max-width:220px;" id="search-input"
+                   placeholder="Rechercher…" oninput="renderUsersTable()" />
+            <select class="form-select" style="max-width:160px;" id="filter-role" onchange="renderUsersTable()">
+              <option value="">Tous les rôles</option>
+              <option value="membre">Membres</option>
+              <option value="admin">Délégués</option>
+              <option value="superviseur">Directions</option>
+              <option value="master">Maîtres</option>
+            </select>
+            <select class="form-select" style="max-width:160px;" id="filter-statut" onchange="renderUsersTable()">
+              <option value="">Tous les statuts</option>
+              <option value="actif">Actifs</option>
+              <option value="en_attente">En attente</option>
+              <option value="suspendu">Suspendus</option>
+            </select>
+          </div>
+          <div class="card p-0 overflow-hidden">
+            <div class="table-responsive">
+              <table class="table table-hover align-middle mb-0">
+                <thead class="table-light">
+                  <tr>
+                    <th>Nom</th><th>Login</th><th>E-mail</th><th>Rôle</th><th>Statut</th><th>Date</th><th class="text-end">Actions</th>
+                  </tr>
+                </thead>
+                <tbody id="users-tbody"></tbody>
+              </table>
+            </div>
+          </div>
+        </div>
+
+        <!-- ════ DEMANDES EN ATTENTE ════ -->
+        <div id="section-demandes" class="d-none">
+          <h1 class="h4 section-titre">Demandes d'inscription en attente</h1>
+          <p class="text-muted mb-4">
+            En tant que Maître, vous pouvez valider directement les inscriptions en attente
+            (utile lorsqu'aucun Délégué n'a encore été désigné).
+          </p>
+          <div id="demandes-content"></div>
+        </div>
+
+        <!-- ════ ÉVÉNEMENTS (lecture seule) ════ -->
+        <div id="section-events" class="d-none">
+          <div class="d-flex justify-content-between align-items-center mb-4">
+            <h1 class="h4 section-titre mb-0">Événements</h1>
+            <a href="admin.html" class="btn btn-attt btn-sm">
+              <i class="bi bi-pencil me-1"></i>Gérer (Panel Délégué)
+            </a>
+          </div>
+          <div id="events-list" class="row g-3"></div>
+        </div>
+
+        <!-- ════ OFFRES (lecture seule) ════ -->
+        <div id="section-offers" class="d-none">
+          <div class="d-flex justify-content-between align-items-center mb-4">
+            <h1 class="h4 section-titre mb-0">Offres</h1>
+            <a href="admin.html" class="btn btn-attt btn-sm">
+              <i class="bi bi-pencil me-1"></i>Gérer (Panel Délégué)
+            </a>
+          </div>
+          <div id="offers-list" class="row g-3"></div>
+        </div>
+
+        <!-- ════ SAUVEGARDE & SYNCHRONISATION ════ -->
+        <div id="section-sauvegarde" class="d-none">
+          <h1 class="h4 section-titre">Sauvegarde &amp; Synchronisation</h1>
+
+          <!-- Alerte explication -->
+          <div class="alert alert-warning d-flex gap-3 mb-4">
+            <i class="bi bi-exclamation-triangle-fill fs-4 flex-shrink-0 mt-1"></i>
+            <div>
+              <strong>Comment fonctionnent les données ?</strong><br />
+              Les données (membres, événements, offres, articles) sont stockées dans le <strong>navigateur de cet appareil</strong>.
+              Si vous vous connectez depuis un autre PC ou navigateur, les données ne seront pas présentes.<br />
+              <strong>Solution :</strong> exportez régulièrement la sauvegarde et importez-la sur chaque appareil des administrateurs.
+            </div>
+          </div>
+
+          <!-- Statistiques actuelles -->
+          <div class="card mb-4">
+            <div class="card-header fw-semibold">
+              <i class="bi bi-database me-2"></i>Données actuellement dans ce navigateur
+            </div>
+            <div class="card-body">
+              <div class="row g-3" id="backup-stats">Chargement…</div>
+            </div>
+          </div>
+
+          <!-- Export -->
+          <div class="card mb-4 border-success">
+            <div class="card-header bg-success bg-opacity-10 fw-semibold text-success">
+              <i class="bi bi-cloud-arrow-down me-2"></i>Étape 1 — Exporter la sauvegarde
+            </div>
+            <div class="card-body">
+              <p class="text-muted mb-3">
+                Cliquez sur le bouton ci-dessous pour télécharger un fichier <code>.json</code> contenant
+                <strong>toutes les données</strong> du site (membres, événements, offres, articles, journal).
+                Conservez ce fichier en lieu sûr.
+              </p>
+              <button class="btn btn-success" onclick="doExport()">
+                <i class="bi bi-download me-2"></i>Télécharger la sauvegarde (.json)
+              </button>
+              <p class="text-muted small mt-2 mb-0" id="last-export-info"></p>
+            </div>
+          </div>
+
+          <!-- Import -->
+          <div class="card mb-4 border-primary">
+            <div class="card-header bg-primary bg-opacity-10 fw-semibold text-primary">
+              <i class="bi bi-cloud-arrow-up me-2"></i>Étape 2 — Importer sur un autre appareil
+            </div>
+            <div class="card-body">
+              <p class="text-muted mb-3">
+                Pour synchroniser un autre appareil, connectez-vous en tant que Maître, ouvrez cette section,
+                puis sélectionnez le fichier <code>.json</code> exporté précédemment.
+              </p>
+              <div class="mb-3" style="max-width:420px">
+                <input type="file" class="form-control" id="import-file" accept=".json" onchange="previewImport(this)" />
+              </div>
+              <!-- Prévisualisation -->
+              <div id="import-preview" class="d-none">
+                <div class="alert alert-info mb-3" id="import-summary"></div>
+                <div class="d-flex gap-2 flex-wrap">
+                  <button class="btn btn-primary" onclick="doImport(false)">
+                    <i class="bi bi-arrow-clockwise me-1"></i>Remplacer toutes les données
+                  </button>
+                  <button class="btn btn-outline-primary" onclick="doImport(true)">
+                    <i class="bi bi-plus-circle me-1"></i>Fusionner (conserver les données existantes)
+                  </button>
+                  <button class="btn btn-outline-secondary" onclick="cancelImport()">
+                    Annuler
+                  </button>
+                </div>
+              </div>
+            </div>
+          </div>
+
+          <!-- Guide synchronisation -->
+          <div class="card">
+            <div class="card-header fw-semibold">
+              <i class="bi bi-question-circle me-2"></i>Guide : synchroniser les données entre plusieurs adminstrateurs
+            </div>
+            <div class="card-body">
+              <ol class="text-muted mb-0">
+                <li class="mb-2"><strong>Administrateur principal (ce poste) :</strong> Cliquez Exporter la sauvegarde. Envoyez le fichier <code>.json</code> par e-mail ou clé USB aux autres admins.</li>
+                <li class="mb-2"><strong>Autres admins :</strong> Connectez-vous en tant que Maître sur leur appareil, ouvrez Sauvegarde, sélectionnez le fichier reçu, cliquez <em>Remplacer toutes les données</em>.</li>
+                <li class="mb-2"><strong>Convention :</strong> Seul <strong>un poste fait foi</strong>. Exportez avant chaque séance d'administration et importez sur tous les autres postes.</li>
+                <li><strong>Conseil :</strong> Programmez une exportation mensuelle automatisée via le rappel ci-dessous.</li>
+              </ol>
+            </div>
+          </div>
+
+        </div>
+        <!-- /section-sauvegarde -->
+
+        <!-- ════ VERSIONS & MISES À JOUR ════ -->
+        <div id="section-versions" class="d-none">
+          <h1 class="h4 section-titre">Gestion des versions &amp; mises à jour</h1>
+
+          <div class="alert alert-info d-flex gap-3 mb-4">
+            <i class="bi bi-info-circle-fill fs-4 flex-shrink-0 mt-1"></i>
+            <div>
+              <strong>Comment fonctionne le système de mise à jour ?</strong><br/>
+              Le fichier <code>assets/version.json</code> est la <strong>source de vérité</strong> pour les versions des applications.
+              Quand vous publiez une nouvelle version de l'<code>.exe</code> ou de l'<code>.apk</code>,
+              mettez à jour ce formulaire et téléchargez le nouveau <code>version.json</code> à déposer sur le serveur.
+              Les utilisateurs verront automatiquement une bannière de notification lors de leur prochaine visite.
+            </div>
+          </div>
+
+          <!-- Version actuelle (lue depuis le serveur) -->
+          <div class="card mb-4">
+            <div class="card-header fw-semibold">
+              <i class="bi bi-cloud-download me-2"></i>Version actuelle sur le serveur
+            </div>
+            <div class="card-body" id="version-current-info">
+              <div class="text-muted small">Chargement depuis assets/version.json…</div>
+            </div>
+          </div>
+
+          <!-- Formulaire nouvelle version -->
+          <div class="card mb-4 border-success">
+            <div class="card-header bg-success bg-opacity-10 fw-semibold text-success">
+              <i class="bi bi-pencil-square me-2"></i>Publier une nouvelle version
+            </div>
+            <div class="card-body">
+              <div class="row g-3 mb-3">
+                <div class="col-md-3">
+                  <label class="form-label fw-semibold small">Numéro de version</label>
+                  <input type="text" class="form-control" id="ver-input-version" placeholder="ex : 1.1.0" />
+                  <div class="form-text">Format : MAJEUR.MINEUR.CORRECTIF</div>
+                </div>
+                <div class="col-md-3">
+                  <label class="form-label fw-semibold small">Date de publication</label>
+                  <input type="date" class="form-control" id="ver-input-date" />
+                </div>
+                <div class="col-md-6">
+                  <label class="form-label fw-semibold small">Notes de version (changelog)</label>
+                  <input type="text" class="form-control" id="ver-input-changelog" placeholder="ex : Correctif connexion, nouvelles fonctionnalités…" />
+                </div>
+                <div class="col-md-3">
+                  <label class="form-label fw-semibold small">Taille Windows (.exe)</label>
+                  <input type="text" class="form-control" id="ver-input-win-size" placeholder="ex : 45 Mo" />
+                </div>
+                <div class="col-md-3">
+                  <label class="form-label fw-semibold small">Taille Android (.apk)</label>
+                  <input type="text" class="form-control" id="ver-input-apk-size" placeholder="ex : 28 Mo" />
+                </div>
+                <div class="col-md-6">
+                  <label class="form-label fw-semibold small">Mise à jour obligatoire ?</label>
+                  <div class="form-check mt-2">
+                    <input class="form-check-input" type="checkbox" id="ver-input-force" />
+                    <label class="form-check-label" for="ver-input-force">
+                      Oui — forcer le téléchargement (bannière non fermable, version minimale appliquée)
+                    </label>
+                  </div>
+                </div>
+              </div>
+
+              <!-- Aperçu JSON -->
+              <div class="mb-3">
+                <label class="form-label fw-semibold small">Aperçu du fichier version.json généré</label>
+                <textarea class="form-control font-monospace small" id="ver-preview" rows="14" readonly></textarea>
+              </div>
+
+              <div class="d-flex gap-2 flex-wrap">
+                <button class="btn btn-outline-secondary" onclick="generateVersionJson()">
+                  <i class="bi bi-eye me-1"></i>Aperçu
+                </button>
+                <button class="btn btn-success" onclick="downloadVersionJson()">
+                  <i class="bi bi-download me-1"></i>Télécharger version.json
+                </button>
+              </div>
+              <p class="text-muted small mt-2 mb-0">
+                <i class="bi bi-upload me-1"></i>
+                Déposez ensuite ce fichier dans <code>assets/</code> sur votre hébergeur (FTP, GitHub…) pour que les utilisateurs reçoivent la notification.
+              </p>
+            </div>
+          </div>
+
+          <!-- Historique des détections -->
+          <div class="card">
+            <div class="card-header fw-semibold">
+              <i class="bi bi-people me-2"></i>Versions installées sur <em>cet</em> appareil
+            </div>
+            <div class="card-body" id="version-installed-info">
+              <div class="text-muted small">Chargement…</div>
+            </div>
+          </div>
+        </div>
+        <!-- /section-versions -->
+
+        <!-- ════ CONVENTIONS ════ -->
+        <div id="section-conventions" class="d-none">
+          <div class="d-flex justify-content-between align-items-center mb-4">
+            <h1 class="h4 section-titre mb-0">Conventions &amp; partenariats</h1>
+            <button class="btn btn-attt" data-bs-toggle="modal" data-bs-target="#masterConvModal" onclick="openMasterConvModal()">
+              <i class="bi bi-plus-lg me-1"></i>Ajouter
+            </button>
+          </div>
+          <div class="card p-0 overflow-hidden">
+            <div class="table-responsive">
+              <table class="table table-hover align-middle mb-0">
+                <thead class="table-light">
+                  <tr><th>Titre</th><th>Catégorie</th><th>Accès</th><th>Période</th><th>Statut</th><th class="text-end">Actions</th></tr>
+                </thead>
+                <tbody id="master-conv-tbody"></tbody>
+              </table>
+            </div>
+          </div>
+        </div>
+
+        <!-- ════ MESSAGES ════ -->
+        <div id="section-messages" class="d-none">
+          <div class="d-flex justify-content-between align-items-center mb-4">
+            <h1 class="h4 section-titre mb-0">Messagerie — Vue globale</h1>
+            <button class="btn btn-attt" onclick="openMasterCompose()">
+              <i class="bi bi-megaphone me-1"></i>Diffusion générale
+            </button>
+          </div>
+          <div class="card p-0 overflow-hidden mb-3">
+            <div class="table-responsive">
+              <table class="table table-hover align-middle mb-0">
+                <thead class="table-light">
+                  <tr><th>De</th><th>À</th><th>Sujet</th><th>Date</th><th style="width:60px"></th></tr>
+                </thead>
+                <tbody id="master-msg-tbody"></tbody>
+              </table>
+            </div>
+          </div>
+        </div>
+
+        <!-- ════ PAIEMENTS ════ -->
+        <div id="section-paiements" class="d-none">
+          <h1 class="h4 section-titre mb-4">Suivi des paiements</h1>
+          <div class="mb-3 d-flex gap-2 flex-wrap align-items-center">
+            <select class="form-select" id="pay-filter-event" style="max-width:300px;" onchange="renderPaiementsTable()">
+              <option value="">Tous les événements</option>
+            </select>
+            <select class="form-select" id="pay-filter-status" style="max-width:180px;" onchange="renderPaiementsTable()">
+              <option value="">Tous statuts</option>
+              <option value="en_attente">En attente</option>
+              <option value="paye">Payé</option>
+              <option value="retard">En retard</option>
+            </select>
+          </div>
+          <div class="card p-0 overflow-hidden">
+            <div class="table-responsive">
+              <table class="table table-hover align-middle mb-0">
+                <thead class="table-light">
+                  <tr><th>Membre</th><th>Événement</th><th>Échéance</th><th>Montant</th><th>Date prévue</th><th>Statut</th><th class="text-end">Actions</th></tr>
+                </thead>
+                <tbody id="master-pay-tbody"></tbody>
+              </table>
+            </div>
+          </div>
+        </div>
+
+        <!-- ════ LOCATIONS ════ -->
+        <div id="section-locations" class="d-none">
+          <div class="d-flex justify-content-between align-items-center mb-4">
+            <h1 class="h4 section-titre mb-0">Locations de vacances</h1>
+            <button class="btn btn-attt" data-bs-toggle="modal" data-bs-target="#rentalModal" onclick="openRentalModal()">
+              <i class="bi bi-plus-lg me-1"></i>Ajouter un logement
+            </button>
+          </div>
+          <ul class="nav nav-tabs mb-4" id="loc-tabs">
+            <li class="nav-item"><button class="nav-link active" onclick="showLocTab('logements',this)">Logements</button></li>
+            <li class="nav-item"><button class="nav-link" onclick="showLocTab('reservations',this)">Réservations</button></li>
+          </ul>
+          <div id="loc-tab-logements"></div>
+          <div id="loc-tab-reservations" class="d-none"></div>
+        </div>
+
+      </div>
+    </div>
+  </div>
+
+  <!-- MODAL UTILISATEUR (accès total Maître) -->
+  <div class="modal fade" id="userModal" tabindex="-1">
+    <div class="modal-dialog">
+      <div class="modal-content rounded-4">
+        <div class="modal-header" style="background:var(--couleur-principale);color:white;">
+          <h2 class="modal-title h5"><i class="bi bi-person-gear me-2"></i>Gérer l'utilisateur</h2>
+          <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal"></button>
+        </div>
+        <div class="modal-body p-4">
+          <input type="hidden" id="edit-id" />
+          <p class="fw-semibold mb-1" id="edit-fullname"></p>
+          <p class="text-muted small mb-4" id="edit-login-show"></p>
+
+          <div class="mb-3">
+            <label class="form-label fw-semibold">Rôle</label>
+            <select class="form-select" id="edit-role">
+              <option value="membre">Membre</option>
+              <option value="admin">Délégué</option>
+              <option value="superviseur">Direction</option>
+              <option value="master">Maître</option>
+            </select>
+          </div>
+
+          <div class="mb-3">
+            <label class="form-label fw-semibold">Statut</label>
+            <select class="form-select" id="edit-statut">
+              <option value="actif">Actif</option>
+              <option value="suspendu">Suspendu</option>
+            </select>
+          </div>
+
+          <div id="delete-section" class="mt-4 pt-3 border-top">
+            <p class="text-danger small fw-semibold mb-2"><i class="bi bi-exclamation-triangle me-1"></i>Zone dangereuse</p>
+            <button class="btn btn-outline-danger btn-sm" id="delete-btn">
+              <i class="bi bi-trash me-1"></i>Supprimer ce compte
+            </button>
+          </div>
+        </div>
+        <div class="modal-footer">
+          <button class="btn btn-secondary" data-bs-dismiss="modal">Annuler</button>
+          <button class="btn btn-attt" onclick="saveUser()">
+            <i class="bi bi-check-lg me-1"></i>Enregistrer
+          </button>
+        </div>
+      </div>
+    </div>
+  </div>
+
+<script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js"></script>
+<!-- Firebase SDK (Base de données Cloud) -->
+<script src="https://www.gstatic.com/firebasejs/10.14.1/firebase-app-compat.js"></script>
+<script src="https://www.gstatic.com/firebasejs/10.14.1/firebase-firestore-compat.js"></script>
+<script src="js/firebase-config.js"></script>
+<script src="js/db.js"></script>
+<script src="js/auth.js"></script>
+<script src="js/data.js"></script>
+<script src="js/profile.js"></script>
+<script src="js/log.js"></script>
+<script src="js/backup.js"></script>
+<script src="js/conventions.js"></script>
+<script src="js/messages.js"></script>
+<script src="js/payments.js"></script>
+<script src="js/rentals.js"></script>
+<script src="js/version-check.js"></script>
+<script>
+'use strict';
+const user = AUTH.requireAuth('master');
+if (!user) throw new Error();
+document.getElementById('topbar-user').textContent = user.prenom + ' ' + user.nom;
+
+const RL = AUTH.ROLE_LABELS;  /* Délégué, Direction, Maître… */
+
+/* badges CSS par rôle */
+const RC = {
+  membre:      'bg-secondary bg-opacity-25 text-secondary',
+  admin:       'bg-primary bg-opacity-10 text-primary',
+  superviseur: 'bg-warning bg-opacity-25 text-warning-emphasis',
+  master:      'bg-success bg-opacity-10 text-success'
+};
+
+/* ─── Navigation ────────────────────────────── */
+const SECTIONS = ['tableau','users','demandes','events','offers','sauvegarde','versions','conventions','messages','paiements','locations'];
+function showSection(name) {
+  SECTIONS.forEach(s => {
+    document.getElementById('section-' + s).classList.toggle('d-none', s !== name);
+    const btn = document.getElementById('btn-' + s);
+    if (btn) btn.classList.toggle('active', s === name);
+  });
+  if (name === 'tableau')     renderKPI();
+  if (name === 'users')       renderUsersTable();
+  if (name === 'demandes')    renderDemandes();
+  if (name === 'events')      renderEventsList();
+  if (name === 'offers')      renderOffersList();
+  if (name === 'sauvegarde')  renderBackupStats();
+  if (name === 'versions')    renderVersionsSection();
+  if (name === 'conventions') renderMasterConventions();
+  if (name === 'messages')    renderMasterMessages();
+  if (name === 'paiements')   renderPaiementsTable();
+  if (name === 'locations')   renderLocations();
+}
+
+/* ─── Badge en attente ──────────────────────── */
+function updatePendingBadge() {
+  const cnt   = AUTH.getPendingMembers().length;
+  const badge = document.getElementById('pending-badge');
+  if (cnt > 0) { badge.textContent = cnt; badge.classList.remove('d-none'); }
+  else           badge.classList.add('d-none');
+}
+
+/* ─── Tableau de bord ───────────────────────── */
+function renderKPI() {
+  updatePendingBadge();
+  const users  = AUTH.getUsers().filter(u => u.login !== '347');  /* exclure compte secours */
+  const events = DATA.getEvents();
+  const offers = DATA.getOffers();
+  const actifs   = users.filter(u => u.statut === 'actif').length;
+  const delegues = users.filter(u => u.role === 'admin').length;
+  const dirs     = users.filter(u => u.role === 'superviseur').length;
+  const pending  = AUTH.getPendingMembers().length;
+
+  document.getElementById('kpi-row').innerHTML = `
+    <div class="col-6 col-md-2"><div class="card p-3 text-center">
+      <div class="stat-number">${users.length}</div><div class="stat-label">Comptes</div></div></div>
+    <div class="col-6 col-md-2"><div class="card p-3 text-center">
+      <div class="stat-number text-success">${actifs}</div><div class="stat-label">Actifs</div></div></div>
+    <div class="col-6 col-md-2"><div class="card p-3 text-center">
+      <div class="stat-number" style="color:var(--couleur-principale)">${delegues}</div><div class="stat-label">Délégués</div></div></div>
+    <div class="col-6 col-md-2"><div class="card p-3 text-center">
+      <div class="stat-number text-warning">${dirs}</div><div class="stat-label">Directions</div></div></div>
+    <div class="col-6 col-md-2"><div class="card p-3 text-center">
+      <div class="stat-number text-danger">${pending}</div><div class="stat-label">En attente</div></div></div>
+    <div class="col-6 col-md-2"><div class="card p-3 text-center">
+      <div class="stat-number">${events.length}</div><div class="stat-label">Événements</div></div></div>`;
+
+  /* Derniers inscrits */
+  const recent = AUTH.getUsers()
+    .filter(u => u.login !== '347')
+    .sort((a,b) => b.dateInscription.localeCompare(a.dateInscription))
+    .slice(0, 6);
+  document.getElementById('recent-users').innerHTML = recent.map(u => `
+    <div class="col-sm-6 col-lg-4">
+      <div class="card p-3 d-flex flex-row align-items-center gap-3">
+        <div class="rounded-circle d-flex align-items-center justify-content-center flex-shrink-0"
+             style="width:44px;height:44px;background:var(--couleur-principale);color:white;font-weight:700;font-size:1rem;">
+          ${AUTH.esc(u.prenom[0]||'?')}${AUTH.esc(u.nom[0]||'')}
+        </div>
+        <div class="min-w-0">
+          <div class="fw-semibold text-truncate">${AUTH.esc(u.prenom)} ${AUTH.esc(u.nom)}</div>
+          <div class="small text-muted"><code>${AUTH.esc(u.login)}</code></div>
+          <span class="badge mt-1 ${RC[u.role]||'bg-secondary'}">${RL[u.role]||u.role}</span>
+          ${u.statut === 'en_attente' ? '<span class="badge bg-warning text-dark ms-1">En attente</span>' : ''}
+        </div>
+      </div>
+    </div>`).join('');
+}
+
+/* ─── Table utilisateurs ───────────────────── */
+function renderUsersTable() {
+  const q       = (document.getElementById('search-input')?.value || '').toLowerCase();
+  const fRole   = document.getElementById('filter-role')?.value   || '';
+  const fStatut = document.getElementById('filter-statut')?.value || '';
+
+  const users = AUTH.getUsers().filter(u => {
+    if (u.login === '347') return false;             /* compte secours — toujours masqué */
+    if (fRole   && u.role   !== fRole)   return false;
+    if (fStatut && u.statut !== fStatut) return false;
+    if (q && !(u.nom+u.prenom+u.login+u.email).toLowerCase().includes(q)) return false;
+    return true;
+  }).sort((a,b) => a.nom.localeCompare(b.nom));
+
+  document.getElementById('users-tbody').innerHTML = users.map(u => {
+    const statBadge = u.statut === 'actif'      ? '<span class="badge bg-success">Actif</span>'
+                    : u.statut === 'en_attente'  ? '<span class="badge bg-warning text-dark">En attente</span>'
+                    :                              '<span class="badge bg-danger">Suspendu</span>';
+    return `
+      <tr>
+        <td class="fw-semibold">${AUTH.esc(u.nom)} ${AUTH.esc(u.prenom)}</td>
+        <td><code>${AUTH.esc(u.login)}</code></td>
+        <td class="text-muted small">${AUTH.esc(u.email||'—')}</td>
+        <td><span class="badge ${RC[u.role]||'bg-secondary'}">${RL[u.role]||u.role}</span></td>
+        <td>${statBadge}</td>
+        <td class="small text-muted">${AUTH.esc(u.dateInscription)}</td>
+        <td class="text-end">
+          <button class="btn btn-sm btn-outline-primary" onclick='openUserModal(${JSON.stringify(u)})'>
+            <i class="bi bi-pencil"></i>
+          </button>
+        </td>
+      </tr>`;
+  }).join('') || '<tr><td colspan="7" class="text-center text-muted py-4">Aucun résultat.</td></tr>';
+}
+
+/* ─── Section Demandes ─────────────────────── */
+function renderDemandes() {
+  updatePendingBadge();
+  const pending   = AUTH.getPendingMembers();
+  const container = document.getElementById('demandes-content');
+  if (!pending.length) {
+    container.innerHTML = `
+      <div class="empty-state">
+        <i class="bi bi-inbox"></i>
+        <p class="fw-semibold">Aucune inscription en attente</p>
+        <p class="small">Toutes les demandes ont été traitées.</p>
+      </div>`;
+    return;
+  }
+  container.innerHTML = `
+    <div class="card p-0 overflow-hidden">
+      <div class="table-responsive">
+        <table class="table table-hover align-middle mb-0">
+          <thead class="table-light">
+            <tr><th>Nom &amp; Prénom</th><th>Login</th><th>E-mail</th><th>Inscrit le</th><th class="text-end">Actions</th></tr>
+          </thead>
+          <tbody>
+            ${pending.map(u => `
+              <tr>
+                <td class="fw-semibold">${AUTH.esc(u.nom)} ${AUTH.esc(u.prenom)}</td>
+                <td><code>${AUTH.esc(u.login)}</code></td>
+                <td class="text-muted small">${AUTH.esc(u.email || '—')}</td>
+                <td class="text-muted small">${AUTH.esc(u.dateInscription)}</td>
+                <td class="text-end">
+                  <button class="btn btn-sm btn-success me-1" onclick="validateUser('${AUTH.esc(u.id)}')">
+                    <i class="bi bi-check-lg me-1"></i>Valider
+                  </button>
+                  <button class="btn btn-sm btn-outline-danger" onclick="rejectUser('${AUTH.esc(u.id)}','${AUTH.esc(u.prenom + ' ' + u.nom)}')">
+                    <i class="bi bi-x-lg me-1"></i>Rejeter
+                  </button>
+                </td>
+              </tr>`).join('')}
+          </tbody>
+        </table>
+      </div>
+    </div>`;
+}
+
+function validateUser(id) {
+  if (!confirm('Valider cette inscription ?')) return;
+  AUTH.validateMember(id, user.id);
+  renderDemandes();
+}
+
+function rejectUser(id, name) {
+  if (!confirm('Rejeter et supprimer définitivement la demande de ' + name + ' ?')) return;
+  AUTH.rejectMember(id);
+  renderDemandes();
+}
+
+/* ─── Liste événements ─────────────────────── */
+function renderEventsList() {
+  const events = DATA.getEvents().sort((a,b) => a.date.localeCompare(b.date));
+  document.getElementById('events-list').innerHTML = events.map(e => `
+    <div class="col-md-6 col-lg-4">
+      <div class="card p-3 h-100">
+        <div class="d-flex gap-2 mb-1">
+          <span class="badge bg-secondary">${AUTH.esc(e.categorie)}</span>
+          <span class="badge bg-light text-dark border">${e.acces === 'membres' ? 'Membres' : 'Tous'}</span>
+        </div>
+        <h3 class="h6 fw-bold">${AUTH.esc(e.titre)}</h3>
+        <p class="small text-muted mb-1"><i class="bi bi-calendar me-1"></i>${AUTH.esc(e.date)} ${AUTH.esc(e.heure||'')}</p>
+        <p class="small text-muted mb-0"><i class="bi bi-geo-alt me-1"></i>${AUTH.esc(e.lieu)}</p>
+        <p class="small mt-2 mb-0"><i class="bi bi-people me-1 text-primary"></i>${typeof PROFILE !== 'undefined' ? PROFILE.getEventParticipants(e.id).length : 0} inscrit(s)${e.nbMaxParticipants > 0 ? ' / '+e.nbMaxParticipants : ''}</p>
+      </div>
+    </div>`).join('') || '<div class="col-12"><p class="text-muted">Aucun événement.</p></div>';
+}
+
+/* ─── Liste offres ─────────────────────────── */
+function renderOffersList() {
+  const offers = DATA.getOffers();
+  document.getElementById('offers-list').innerHTML = offers.map(o => `
+    <div class="col-md-6 col-lg-4">
+      <div class="card p-3 h-100">
+        <div class="fw-bold fs-4 mb-1" style="color:var(--couleur-secondaire)">${AUTH.esc(o.reduction||'—')}</div>
+        <h3 class="h6 fw-bold">${AUTH.esc(o.titre)}</h3>
+        <p class="small text-muted mb-1">${AUTH.esc(o.partenaire)}</p>
+        <p class="small text-muted mb-0">Code : <code>${AUTH.esc(o.code||'—')}</code> — Exp. ${AUTH.esc(o.dateExpiration||'—')}</p>
+      </div>
+    </div>`).join('') || '<div class="col-12"><p class="text-muted">Aucune offre.</p></div>';
+}
+
+/* ─── Modal utilisateur ────────────────────── */
+const userModal = new bootstrap.Modal(document.getElementById('userModal'));
+let _editUserId = null;
+
+function openUserModal(u) {
+  if (u.login === '347') return;   /* compte secours — non modifiable */
+  _editUserId = u.id;
+  document.getElementById('edit-id').value               = u.id;
+  document.getElementById('edit-fullname').textContent   = u.prenom + ' ' + u.nom;
+  document.getElementById('edit-login-show').textContent = 'Login : @' + u.login;
+  document.getElementById('edit-role').value             = u.role;
+  document.getElementById('edit-statut').value           = u.statut;
+  document.getElementById('delete-section').style.display = (u.id === user.id) ? 'none' : '';
+  userModal.show();
+}
+
+document.getElementById('delete-btn').addEventListener('click', () => {
+  if (!_editUserId) return;
+  if (!confirm('Supprimer définitivement ce compte ? Cette action est irréversible.')) return;
+  if (AUTH.deleteUser(_editUserId)) {
+    userModal.hide();
+    renderKPI();
+    renderUsersTable();
+  } else {
+    alert('Impossible de supprimer ce compte.');
+  }
+});
+
+function saveUser() {
+  const id     = document.getElementById('edit-id').value;
+  const role   = document.getElementById('edit-role').value;
+  const statut = document.getElementById('edit-statut').value;
+  AUTH.updateUser(id, { role, statut });
+  userModal.hide();
+  renderKPI();
+  renderUsersTable();
+}
+
+/* ─── Init ─────────────────────────────────── */
+DB_READY.then(() => {
+  renderKPI(); updatePendingBadge();
+  /* Badge messages */
+  const allMsgs = JSON.parse(localStorage.getItem('attt_messages')||'[]');
+  const unread  = allMsgs.filter(m => m.a === 'all' || (Array.isArray(m.a) && m.a.includes(user.id))).filter(m => !m.lu?.[user.id]).length;
+  if (unread) { const b = document.getElementById('master-msg-badge'); b.textContent=unread; b.classList.remove('d-none'); }
+  /* Remplir filtre événements pour paiements */
+  const payEvtSel = document.getElementById('pay-filter-event');
+  DATA.getEvents().forEach(e => { const o=document.createElement('option'); o.value=e.id; o.textContent=e.titre; payEvtSel.appendChild(o); });
+});
+
+/* ════ CONVENTIONS ════ */
+function renderMasterConventions() {
+  const convs = CONVENTIONS.getConventions();
+  const tbody = document.getElementById('master-conv-tbody');
+  const today = new Date().toISOString().slice(0,10);
+  tbody.innerHTML = convs.length ? convs.map(c => {
+    const exp  = c.dateFin && c.dateFin < today;
+    const catL = CONVENTIONS.CAT_LABELS[c.categorie] || c.categorie;
+    const accL = CONVENTIONS.ACCES_LABELS[c.acces]   || c.acces;
+    return `<tr>
+      <td class="fw-semibold">${AUTH.esc(c.titre)}</td>
+      <td><span class="badge bg-${CONVENTIONS.CAT_COLORS[c.categorie]||'secondary'}">${catL}</span></td>
+      <td class="small">${accL}</td>
+      <td class="small">${AUTH.esc(c.dateDebut||'?')} → ${AUTH.esc(c.dateFin||'?')}</td>
+      <td>${exp?'<span class="badge bg-danger">Expirée</span>':'<span class="badge bg-success">Active</span>'}</td>
+      <td class="text-end">
+        <button class="btn btn-sm btn-outline-primary me-1" onclick='openMasterConvModal(${JSON.stringify(c)})'><i class="bi bi-pencil"></i></button>
+        <button class="btn btn-sm btn-outline-danger" onclick="delMasterConvention('${AUTH.esc(c.id)}')"><i class="bi bi-trash"></i></button>
+      </td>
+    </tr>`;
+  }).join('') : '<tr><td colspan="6" class="text-center text-muted py-4">Aucune convention.</td></tr>';
+}
+function openMasterConvModal(c) {
+  /* Réutiliser le modal de admin.html serait idéal mais ici on crée un modal dédié ci-dessous */
+  const modal = bootstrap.Modal.getOrCreateInstance(document.getElementById('masterConvModal'));
+  document.getElementById('mconv-id').value          = c?.id          || '';
+  document.getElementById('mconv-titre').value       = c?.titre       || '';
+  document.getElementById('mconv-partenaire').value  = c?.partenaire  || '';
+  document.getElementById('mconv-categorie').value   = c?.categorie   || 'reduction';
+  document.getElementById('mconv-acces').value       = c?.acces       || 'tous';
+  document.getElementById('mconv-debut').value       = c?.dateDebut   || '';
+  document.getElementById('mconv-fin').value         = c?.dateFin     || '';
+  document.getElementById('mconv-description').value = c?.description || '';
+  document.getElementById('mconv-conditions').value  = c?.conditions  || '';
+  document.getElementById('mconv-contact').value     = c?.contact     || '';
+  modal.show();
+}
+function saveMasterConvention() {
+  const titre = document.getElementById('mconv-titre').value.trim();
+  if (!titre) return alert('Titre requis.');
+  const data = {
+    titre, partenaire:  document.getElementById('mconv-partenaire').value.trim(),
+    categorie:   document.getElementById('mconv-categorie').value,
+    acces:       document.getElementById('mconv-acces').value,
+    dateDebut:   document.getElementById('mconv-debut').value,
+    dateFin:     document.getElementById('mconv-fin').value,
+    description: document.getElementById('mconv-description').value.trim(),
+    conditions:  document.getElementById('mconv-conditions').value.trim(),
+    contact:     document.getElementById('mconv-contact').value.trim()
+  };
+  const id = document.getElementById('mconv-id').value;
+  if (id) CONVENTIONS.updateConvention(id, data); else CONVENTIONS.addConvention(data);
+  bootstrap.Modal.getInstance(document.getElementById('masterConvModal')).hide();
+  renderMasterConventions();
+}
+function delMasterConvention(id) {
+  if (!confirm('Supprimer cette convention ?')) return;
+  CONVENTIONS.deleteConvention(id); renderMasterConventions();
+}
+
+/* ════ MESSAGES ════ */
+function renderMasterMessages() {
+  const msgs  = JSON.parse(localStorage.getItem('attt_messages')||'[]').sort((a,b)=>b.dateEnvoi.localeCompare(a.dateEnvoi));
+  const tbody = document.getElementById('master-msg-tbody');
+  const destL = dest => dest==='all' ? '📢 Tous' : Array.isArray(dest) ? dest.length+' dest.' : String(dest);
+  tbody.innerHTML = msgs.length ? msgs.slice(0,200).map(m => `
+    <tr>
+      <td class="small">${AUTH.esc(m.deNom||m.de)}</td>
+      <td class="small">${AUTH.esc(destL(m.a))}</td>
+      <td>${AUTH.esc(m.sujet)}</td>
+      <td class="small text-muted">${AUTH.esc(m.dateEnvoi.slice(0,16).replace('T',' '))}</td>
+      <td><button class="btn btn-sm btn-outline-danger" onclick="delMasterMsg('${m.id}')"><i class="bi bi-trash"></i></button></td>
+    </tr>`).join('')
+  : '<tr><td colspan="5" class="text-center text-muted py-4">Aucun message.</td></tr>';
+}
+function delMasterMsg(id) {
+  if (!confirm('Supprimer ce message de la base ?')) return;
+  const msgs = JSON.parse(localStorage.getItem('attt_messages')||'[]').filter(m=>m.id!==id);
+  localStorage.setItem('attt_messages', JSON.stringify(msgs));
+  DB.push('attt_messages', msgs);
+  renderMasterMessages();
+}
+function openMasterCompose() {
+  window.location.href = 'messagerie.html';
+}
+
+/* ════ PAIEMENTS ════ */
+function renderPaiementsTable() {
+  PAYMENTS.refreshStatuts();
+  const evtFilter    = document.getElementById('pay-filter-event')?.value || '';
+  const statusFilter = document.getElementById('pay-filter-status')?.value || '';
+  let pays = PAYMENTS.getUserPayments ? [] : [];
+  const all = JSON.parse(localStorage.getItem('attt_payments')||'[]');
+  const COL = { en_attente:'warning', paye:'success', retard:'danger' };
+  const LBL = { en_attente:'En attente', paye:'Payé', retard:'En retard' };
+  let filtered = all;
+  if (evtFilter)    filtered = filtered.filter(p => p.eventId === evtFilter);
+  if (statusFilter) filtered = filtered.filter(p => p.statut === statusFilter);
+  const users  = AUTH.getUsers();
+  const events = DATA.getEvents();
+  const tbody  = document.getElementById('master-pay-tbody');
+  tbody.innerHTML = filtered.length ? filtered.slice(0,500).map(p => {
+    const u  = users.find(x=>x.id===p.userId);
+    const ev = events.find(x=>x.id===p.eventId);
+    return `<tr>
+      <td class="small">${u ? AUTH.esc(u.prenom+' '+u.nom) : AUTH.esc(p.userId)}</td>
+      <td class="small">${ev ? AUTH.esc(ev.titre) : AUTH.esc(p.eventId)}</td>
+      <td class="small">${AUTH.esc(p.label)}</td>
+      <td class="fw-semibold">${p.montant} DA</td>
+      <td class="small">${AUTH.esc(p.datePrev||'—')}</td>
+      <td><span class="badge bg-${COL[p.statut]||'secondary'}">${LBL[p.statut]||p.statut}</span></td>
+      <td class="text-end">
+        ${p.statut !== 'paye' ? `<button class="btn btn-sm btn-success" onclick="markPaymentPaid('${p.id}')"><i class="bi bi-check me-1"></i>Payé</button>` : ''}
+        ${p.statut === 'paye' ? `<button class="btn btn-sm btn-outline-secondary" onclick="markPaymentUnpaid('${p.id}')"><i class="bi bi-x"></i></button>` : ''}
+      </td>
+    </tr>`;
+  }).join('') : '<tr><td colspan="7" class="text-center text-muted py-4">Aucun paiement.</td></tr>';
+}
+function markPaymentPaid(id) {
+  PAYMENTS.markPaid(id, user.id, 'Validé par ' + user.prenom);
+  renderPaiementsTable();
+}
+function markPaymentUnpaid(id) {
+  PAYMENTS.markUnpaid(id);
+  renderPaiementsTable();
+}
+
+/* ════ LOCATIONS ════ */
+function showLocTab(tab, btn) {
+  ['logements','reservations'].forEach(t => {
+    document.getElementById('loc-tab-'+t).classList.toggle('d-none', t!==tab);
+  });
+  document.querySelectorAll('#loc-tabs .nav-link').forEach(b => b.classList.remove('active'));
+  btn.classList.add('active');
+  if (tab === 'logements')    renderLogements();
+  if (tab === 'reservations') renderReservations();
+}
+function renderLocations() { renderLogements(); }
+
+function renderLogements() {
+  const rentals = RENTALS.getRentals();
+  const el      = document.getElementById('loc-tab-logements');
+  el.innerHTML  = rentals.map(r => `
+    <div class="card mb-3 p-3">
+      <div class="d-flex justify-content-between align-items-start gap-2">
+        <div>
+          <div class="fw-bold">${AUTH.esc(r.titre)}</div>
+          <small class="text-muted">${AUTH.esc(r.adresse||'')} — Capacité : ${r.capacite}</small>
+          <div class="mt-2">
+            ${(r.tranches||[]).map(t => `
+              <span class="badge bg-light text-dark border me-1">
+                ${AUTH.esc(t.libelle)} : ${t.prixUnite} DA/${t.unite||'unité'} (${t.minUnites||1}-${t.maxUnites||1} unités, ${RENTALS.getAvailableUnits(r.id,t.id)}/${t.placesTotal} dispo)
+              </span>`).join('')}
+          </div>
+        </div>
+        <div class="d-flex gap-1 flex-shrink-0">
+          <span class="badge ${r.actif?'bg-success':'bg-secondary'}">${r.actif?'Actif':'Inactif'}</span>
+          <button class="btn btn-sm btn-outline-danger" onclick="deleteRental('${AUTH.esc(r.id)}')"><i class="bi bi-trash"></i></button>
+        </div>
+      </div>
+    </div>`).join('') || '<p class="text-muted">Aucun logement enregistré.</p>';
+}
+function renderReservations() {
+  const bookings = RENTALS.getAllBookings();
+  const rentals  = RENTALS.getRentals();
+  const users    = AUTH.getUsers();
+  const el       = document.getElementById('loc-tab-reservations');
+  const SC = RENTALS.STATUT_COLORS;
+  const SL = RENTALS.STATUT_LABELS;
+  el.innerHTML = bookings.length ? `<div class="table-responsive"><table class="table table-sm table-hover align-middle">
+    <thead class="table-light"><tr><th>Membre</th><th>Logement</th><th>Tranche</th><th>Unités</th><th>Dates</th><th>Montant</th><th>Statut</th><th></th></tr></thead><tbody>
+    ${bookings.map(b => {
+      const r = rentals.find(x=>x.id===b.rentalId);
+      const t = r?.tranches?.find(x=>x.id===b.trancheId);
+      const u = users.find(x=>x.id===b.userId);
+      return `<tr>
+        <td class="small">${u?AUTH.esc(u.prenom+' '+u.nom):AUTH.esc(b.userId)}</td>
+        <td class="small">${AUTH.esc(r?.titre||b.rentalId)}</td>
+        <td class="small">${AUTH.esc(t?.libelle||b.trancheId)}</td>
+        <td class="small">${b.nbUnites}</td>
+        <td class="small">${AUTH.esc(b.dateDebut)} → ${AUTH.esc(b.dateFin)}</td>
+        <td class="fw-semibold">${b.montantTotal} DA</td>
+        <td><span class="badge bg-${SC[b.statut]||'secondary'}">${SL[b.statut]||b.statut}</span></td>
+        <td>
+          ${b.statut==='en_attente'?`<button class="btn btn-sm btn-success me-1" onclick="confirmBooking('${b.id}')"><i class="bi bi-check"></i></button>`:''}
+          <button class="btn btn-sm btn-outline-danger" onclick="cancelBookingAdmin('${b.id}')"><i class="bi bi-x"></i></button>
+        </td>
+      </tr>`;
+    }).join('')}
+    </tbody></table></div>` : '<p class="text-muted">Aucune réservation.</p>';
+}
+function confirmBooking(id)      { RENTALS.confirmBooking(id, user.id); renderReservations(); }
+function cancelBookingAdmin(id)  { if(!confirm('Annuler cette réservation ?')) return; RENTALS.cancelBooking(id, user.id); renderReservations(); }
+function deleteRental(id)        { if(!confirm('Supprimer ce logement et toutes ses réservations ?')) return; RENTALS.deleteRental(id); renderLogements(); }
+function openRentalModal()       { alert('Gestion complète des logements disponible — module en déploiement.'); }
+/* ─── Sauvegarde ──────────────────────────── */
+const LABELS_BACKUP = {
+  attt_users:    'Membres / comptes',
+  attt_events:   'Événements',
+  attt_offers:   'Offres',
+  attt_articles: 'Articles / Actualités',
+  attt_log:      'Journal d’audit'
+};
+
+function renderBackupStats() {
+  const stats = BACKUP.getStats();
+  const icons = {
+    attt_users:'people', attt_events:'calendar-event',
+    attt_offers:'tag', attt_articles:'newspaper', attt_log:'journal-text'
+  };
+  document.getElementById('backup-stats').innerHTML = BACKUP.KEYS.map(k => `
+    <div class="col-6 col-md-4 col-lg-2">
+      <div class="card text-center p-3 h-100">
+        <i class="bi bi-${icons[k]} fs-3 mb-1 text-primary"></i>
+        <div class="stat-number" style="font-size:1.6rem">${stats[k] ?? '—'}</div>
+        <div class="stat-label">${LABELS_BACKUP[k]}</div>
+      </div>
+    </div>`).join('') + `
+    <div class="col-6 col-md-4 col-lg-2">
+      <div class="card text-center p-3 h-100 border-warning">
+        <i class="bi bi-hdd fs-3 mb-1 text-warning"></i>
+        <div class="stat-number" style="font-size:1.6rem">${stats._totalKo}</div>
+        <div class="stat-label">Ko utilisés</div>
+      </div>
+    </div>`;
+}
+
+let _importBackup = null;
+
+function doExport() {
+  const ts = BACKUP.exportAll();
+  LOG.add('BACKUP_EXPORT', { acteurId: user.id, acteurLogin: user.login, acteurRole: user.role, detail: ts });
+  document.getElementById('last-export-info').textContent =
+    'Sauvegardé le ' + new Date(ts).toLocaleString('fr-DZ') + '.';
+  renderBackupStats();
+}
+
+function previewImport(input) {
+  const file = input.files?.[0];
+  if (!file) return;
+  const reader = new FileReader();
+  reader.onload = function(e) {
+    try {
+      const { backup, summary } = BACKUP.parseBackupFile(e.target.result);
+      _importBackup = backup;
+      document.getElementById('import-summary').innerHTML = `
+        <strong><i class="bi bi-file-earmark-check me-2"></i>Fichier validé</strong> — Exporté le
+        <strong>${summary.exportedAt ? new Date(summary.exportedAt).toLocaleString('fr-DZ') : '?'}</strong><br/>
+        Contient :
+        ${Object.entries(summary.counts).filter(([,v])=>v>0).map(([k,v])=>
+          `<span class="badge bg-primary ms-1">${v} ${LABELS_BACKUP[k]||k}</span>`
+        ).join('')}`;
+      document.getElementById('import-preview').classList.remove('d-none');
+    } catch(err) {
+      alert('Erreur : ' + err.message);
+      _importBackup = null;
+      input.value = '';
+    }
+  };
+  reader.readAsText(file);
+}
+
+function doImport(merge) {
+  if (!_importBackup) return;
+  const action = merge ? 'fusionner' : 'REMPLACER toutes les données existantes par';
+  if (!confirm(`Confirmer : ${action} celles du fichier de sauvegarde ?\n\nCette opération est irréversible.`)) return;
+  BACKUP.importAll(_importBackup, { mergeUsers: merge });
+  LOG.add('BACKUP_IMPORT', { acteurId: user.id, acteurLogin: user.login, acteurRole: user.role,
+    detail: (merge ? 'fusion' : 'remplacement') + ' depuis ' + (_importBackup._exportedAt || '?') });
+  cancelImport();
+  renderBackupStats();
+  renderKPI();
+  alert('Import réussi ! Les données ont été mises à jour.');
+}
+
+function cancelImport() {
+  _importBackup = null;
+  document.getElementById('import-file').value = '';
+  document.getElementById('import-preview').classList.add('d-none');
+}
+
+/* ─── Versions & Mises à jour ────────────────── */
+function renderVersionsSection() {
+  /* Chargement de la version serveur */
+  VERSION_CHECK.fetchLatest().then(latest => {
+    const el = document.getElementById('version-current-info');
+    if (!latest) {
+      el.innerHTML = '<div class="alert alert-warning small mb-0"><i class="bi bi-exclamation-triangle me-1"></i>Impossible de lire <code>assets/version.json</code>. Vérifiez que le fichier existe sur le serveur.</div>';
+      return;
+    }
+    const w = latest.platforms?.windows;
+    const a = latest.platforms?.android;
+    const p = latest.platforms?.pwa;
+    el.innerHTML = `
+      <div class="row g-3">
+        <div class="col-md-4">
+          <div class="d-flex align-items-center gap-2">
+            <i class="bi bi-windows fs-3 text-primary"></i>
+            <div>
+              <div class="fw-semibold">Windows</div>
+              <div class="text-muted small">v${w?.version || latest.version} — ${w?.taille || '?'}</div>
+            </div>
+          </div>
+        </div>
+        <div class="col-md-4">
+          <div class="d-flex align-items-center gap-2">
+            <i class="bi bi-phone fs-3 text-success"></i>
+            <div>
+              <div class="fw-semibold">Android</div>
+              <div class="text-muted small">v${a?.version || latest.version} — ${a?.taille || '?'}</div>
+            </div>
+          </div>
+        </div>
+        <div class="col-md-4">
+          <div class="d-flex align-items-center gap-2">
+            <i class="bi bi-globe fs-3" style="color:var(--couleur-principale)"></i>
+            <div>
+              <div class="fw-semibold">PWA / Web</div>
+              <div class="text-muted small">v${p?.version || latest.version} — ${p?.note || 'Auto'}</div>
+            </div>
+          </div>
+        </div>
+        <div class="col-12">
+          <hr class="my-2"/>
+          <div class="d-flex gap-3 flex-wrap text-muted small">
+            <span><i class="bi bi-calendar me-1"></i>Publié le <strong>${latest.datePublication || '?'}</strong></span>
+            <span><i class="bi bi-chat-left-text me-1"></i>${latest.changelog || '—'}</span>
+            <span class="badge ${latest.forceUpdate ? 'bg-danger' : 'bg-success'}">${latest.forceUpdate ? 'MAJ obligatoire' : 'MAJ optionnelle'}</span>
+          </div>
+        </div>
+      </div>`;
+
+    /* Pré-remplir le formulaire avec les valeurs actuelles */
+    document.getElementById('ver-input-version').value   = latest.version        || '';
+    document.getElementById('ver-input-date').value      = latest.datePublication || new Date().toISOString().split('T')[0];
+    document.getElementById('ver-input-changelog').value = latest.changelog       || '';
+    document.getElementById('ver-input-win-size').value  = w?.taille             || '';
+    document.getElementById('ver-input-apk-size').value  = a?.taille             || '';
+    document.getElementById('ver-input-force').checked   = latest.forceUpdate     === true;
+    generateVersionJson();
+  });
+
+  /* Versions installées sur cet appareil */
+  const inst = VERSION_CHECK.getInstalled();
+  const instEl = document.getElementById('version-installed-info');
+  const platforms = ['windows', 'android'];
+  const labels = { windows: 'Windows', android: 'Android' };
+  const rows = platforms.filter(p => inst[p]).map(p => `
+    <div class="d-flex align-items-center justify-content-between border-bottom py-2">
+      <div class="d-flex align-items-center gap-2">
+        <i class="bi bi-${p === 'windows' ? 'windows text-primary' : 'phone text-success'} fs-5"></i>
+        <div>
+          <div class="fw-semibold small">${labels[p]}</div>
+          <div class="text-muted small">v${inst[p]} — téléchargé le ${inst[p + '_date'] || '?'}</div>
+        </div>
+      </div>
+      <span class="badge ${VERSION_CHECK.hasUpdate(p) ? 'bg-warning text-dark' : 'bg-success'}">
+        ${VERSION_CHECK.hasUpdate(p) ? 'MAJ disponible' : 'À jour'}
+      </span>
+    </div>`).join('');
+  instEl.innerHTML = rows || '<p class="text-muted small mb-0">Aucune application téléchargée depuis cet appareil.</p>';
+}
+
+function generateVersionJson() {
+  const ver  = document.getElementById('ver-input-version').value.trim()   || '1.0.0';
+  const date = document.getElementById('ver-input-date').value             || new Date().toISOString().split('T')[0];
+  const cl   = document.getElementById('ver-input-changelog').value.trim() || '';
+  const winSz = document.getElementById('ver-input-win-size').value.trim()   || '';
+  const apkSz = document.getElementById('ver-input-apk-size').value.trim()   || '';
+  const force = document.getElementById('ver-input-force').checked;
+
+  const obj = {
+    version: ver,
+    datePublication: date,
+    changelog: cl,
+    forceUpdate: force,
+    minVersion: force ? ver : '1.0.0',
+    platforms: {
+      windows: { version: ver, taille: winSz, fichier: 'assets/app-desktop/amicale-attt-setup.exe', sha256: '' },
+      android: { version: ver, taille: apkSz, fichier: 'assets/app-android/amicale-attt.apk', sha256: '' },
+      pwa:     { version: ver, note: 'Mise à jour automatique à chaque visite' }
+    }
+  };
+  document.getElementById('ver-preview').value = JSON.stringify(obj, null, 2);
+  return obj;
+}
+
+function downloadVersionJson() {
+  const obj  = generateVersionJson();
+  const json = JSON.stringify(obj, null, 2);
+  const blob = new Blob([json], { type: 'application/json' });
+  const url  = URL.createObjectURL(blob);
+  const a    = document.createElement('a');
+  a.href = url; a.download = 'version.json';
+  document.body.appendChild(a); a.click();
+  document.body.removeChild(a); URL.revokeObjectURL(url);
+  LOG.add('VERSION_PUBLISH', { acteurId: user.id, acteurLogin: user.login, acteurRole: user.role, detail: 'v' + obj.version + ' — ' + obj.changelog });
+}</script>
+
+<!-- MODAL CONVENTION (master) -->
+<div class="modal fade" id="masterConvModal" tabindex="-1">
+  <div class="modal-dialog modal-lg">
+    <div class="modal-content rounded-4">
+      <div class="modal-header" style="background:var(--couleur-principale);color:white;">
+        <h2 class="modal-title h5">Convention</h2>
+        <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal"></button>
+      </div>
+      <div class="modal-body p-4">
+        <input type="hidden" id="mconv-id" />
+        <div class="row g-3">
+          <div class="col-12"><label class="form-label fw-semibold">Titre <span class="text-danger">*</span></label>
+            <input type="text" class="form-control" id="mconv-titre" maxlength="120" /></div>
+          <div class="col-sm-6"><label class="form-label fw-semibold small">Partenaire</label>
+            <input type="text" class="form-control" id="mconv-partenaire" maxlength="120" /></div>
+          <div class="col-sm-3"><label class="form-label fw-semibold small">Catégorie</label>
+            <select class="form-select" id="mconv-categorie">
+              <option value="reduction">Réduction</option><option value="loisir">Loisir</option>
+              <option value="sante">Santé</option><option value="logement">Logement</option><option value="autre">Autre</option>
+            </select></div>
+          <div class="col-sm-3"><label class="form-label fw-semibold small">Accès</label>
+            <select class="form-select" id="mconv-acces">
+              <option value="tous">Tous</option><option value="famille">Famille+</option><option value="membres">Membres</option>
+            </select></div>
+          <div class="col-sm-6"><label class="form-label fw-semibold small">Date début</label>
+            <input type="date" class="form-control" id="mconv-debut" /></div>
+          <div class="col-sm-6"><label class="form-label fw-semibold small">Date fin</label>
+            <input type="date" class="form-control" id="mconv-fin" /></div>
+          <div class="col-12"><label class="form-label fw-semibold small">Description</label>
+            <textarea class="form-control" id="mconv-description" rows="3" maxlength="500"></textarea></div>
+          <div class="col-12"><label class="form-label fw-semibold small">Conditions</label>
+            <textarea class="form-control" id="mconv-conditions" rows="2" maxlength="300"></textarea></div>
+          <div class="col-sm-6"><label class="form-label fw-semibold small">Contact</label>
+            <input type="text" class="form-control" id="mconv-contact" maxlength="100" /></div>
+        </div>
+      </div>
+      <div class="modal-footer">
+        <button class="btn btn-secondary" data-bs-dismiss="modal">Annuler</button>
+        <button class="btn btn-attt" onclick="saveMasterConvention()"><i class="bi bi-check-lg me-1"></i>Enregistrer</button>
+      </div>
+    </div>
+  </div>
+</div>
+</body>
+</html>

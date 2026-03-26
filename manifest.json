@@ -1,0 +1,39 @@
+{
+  "name": "Amicale de l'ATTT",
+  "short_name": "Amicale ATTT",
+  "description": "Application officielle de l'Amicale du personnel de l'Agence Technique des Transports Terrestres.",
+  "start_url": "./index.html",
+  "scope": "./",
+  "display": "standalone",
+  "orientation": "portrait-primary",
+  "background_color": "#003DA6",
+  "theme_color": "#003DA6",
+  "lang": "fr",
+  "icons": [
+    { "src": "img/icon-192.png", "sizes": "192x192", "type": "image/png", "purpose": "any maskable" },
+    { "src": "img/icon-512.png", "sizes": "512x512", "type": "image/png", "purpose": "any maskable" },
+    { "src": "img/icon.svg",     "sizes": "any",      "type": "image/svg+xml" }
+  ],
+  "screenshots": [],
+  "categories": ["social", "lifestyle"],
+  "shortcuts": [
+    {
+      "name": "Actualités",
+      "short_name": "Actualités",
+      "description": "Voir les dernières actualités et annonces",
+      "url": "./actualites.html"
+    },
+    {
+      "name": "Événements",
+      "short_name": "Événements",
+      "description": "Voir les prochains événements",
+      "url": "./evenements.html"
+    },
+    {
+      "name": "Mon espace",
+      "short_name": "Mon espace",
+      "description": "Accéder à mon espace membre",
+      "url": "./espace-membre.html"
+    }
+  ]
+}
