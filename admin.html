@@ -160,6 +160,32 @@
     </div>
   </div>
 
+  <!-- ════ MODAL RÔLE MEMBRE ════ -->
+  <div class="modal fade" id="roleMembreModal" tabindex="-1" aria-labelledby="roleMembreModalLabel">
+    <div class="modal-dialog">
+      <div class="modal-content rounded-4">
+        <div class="modal-header" style="background:var(--couleur-principale);color:white;">
+          <h2 class="modal-title h5" id="roleMembreModalLabel"><i class="bi bi-person-gear me-2"></i>Modifier le rôle</h2>
+          <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal"></button>
+        </div>
+        <div class="modal-body p-4">
+          <input type="hidden" id="rm-id" />
+          <p class="mb-3">Membre : <strong id="rm-fullname"></strong></p>
+          <label class="form-label fw-semibold">Nouveau rôle</label>
+          <select class="form-select" id="rm-role">
+            <option value="famille">Famille (niveau 0)</option>
+            <option value="membre">Membre (niveau 1)</option>
+          </select>
+          <p class="text-muted small mt-2">En tant que Délégué, vous pouvez attribuer les rôles Famille et Membre uniquement.</p>
+        </div>
+        <div class="modal-footer">
+          <button class="btn btn-secondary" data-bs-dismiss="modal">Annuler</button>
+          <button class="btn btn-primary" onclick="saveRoleMembre()"><i class="bi bi-check-circle me-1"></i>Enregistrer</button>
+        </div>
+      </div>
+    </div>
+  </div>
+
   <!-- ════ MODAL ÉVÉNEMENT ════ -->
   <div class="modal fade" id="eventModal" tabindex="-1" aria-labelledby="eventModalLabel">
     <div class="modal-dialog modal-lg">
@@ -483,7 +509,10 @@ function renderMembres() {
                 <td>${u.statut === 'actif'
                   ? '<span class="badge bg-success">Actif</span>'
                   : '<span class="badge bg-danger">Suspendu</span>'}</td>
-                <td class="text-end">
+                <td class="text-end d-flex gap-1 justify-content-end">
+                  <button class="btn btn-sm btn-outline-secondary" onclick="openRoleMembre('${AUTH.esc(u.id)}')">
+                    <i class="bi bi-person-gear me-1"></i>Rôle
+                  </button>
                   ${u.statut === 'actif'
                     ? `<button class="btn btn-sm btn-outline-warning" onclick="toggleMembre('${AUTH.esc(u.id)}','suspendu')">
                          <i class="bi bi-pause-circle me-1"></i>Suspendre
@@ -501,6 +530,25 @@ function renderMembres() {
 
 function toggleMembre(id, statut) {
   AUTH.updateUser(id, { statut });
+  renderMembres();
+}
+
+const roleMembreModal = new bootstrap.Modal(document.getElementById('roleMembreModal'));
+function openRoleMembre(id) {
+  const u = AUTH.getUsers().find(x => x.id === id);
+  if (!u) return;
+  document.getElementById('rm-id').value = u.id;
+  document.getElementById('rm-fullname').textContent = u.prenom + ' ' + u.nom + ' (@' + u.login + ')';
+  document.getElementById('rm-role').value = u.role;
+  roleMembreModal.show();
+}
+function saveRoleMembre() {
+  const id   = document.getElementById('rm-id').value;
+  const role = document.getElementById('rm-role').value;
+  /* Délégué ne peut attribuer que famille(0) ou membre(1) */
+  if (!['famille','membre'].includes(role)) { alert('Droits insuffisants.'); return; }
+  AUTH.updateUser(id, { role });
+  roleMembreModal.hide();
   renderMembres();
 }
 

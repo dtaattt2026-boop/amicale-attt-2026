@@ -185,9 +185,7 @@
           <div class="mb-3">
             <label class="form-label fw-semibold">Nouveau rôle</label>
             <select class="form-select" id="edit-role">
-              <option value="membre">Membre</option>
-              <option value="admin">Délégué</option>
-              <option value="superviseur">Direction</option>
+              <!-- Options remplies dynamiquement par openRoleModal() -->
             </select>
           </div>
         </div>
@@ -669,17 +667,27 @@ const roleModal = new bootstrap.Modal(document.getElementById('roleModal'));
 function openRoleModal(id) {
   const u = AUTH.getUsers().find(x => x.id === id);
   if (!u) return;
+  /* Niveaux assignables : strictement inférieurs au niveau du compte connecté */
+  const ROLE_LEVELS = { famille:0, membre:1, admin:2, superviseur:3, master:4 };
+  const ROLE_LABELS = { famille:'Famille', membre:'Membre', admin:'Délégué', superviseur:'Direction', master:'Maître' };
+  const myLevel = ROLE_LEVELS[user.role] || 0;
+  const select  = document.getElementById('edit-role');
+  select.innerHTML = Object.entries(ROLE_LEVELS)
+    .filter(([r, lvl]) => lvl < myLevel)          /* seulement inférieurs à mon niveau */
+    .map(([r, lvl]) => `<option value="${r}"${u.role===r?' selected':''}>${ROLE_LABELS[r]} (niv.${lvl})</option>`)
+    .join('');
   document.getElementById('edit-id').value = u.id;
   document.getElementById('edit-fullname').textContent = u.prenom + ' ' + u.nom + ' (@' + u.login + ')';
-  document.getElementById('edit-role').value = u.role;
   roleModal.show();
 }
 
 function saveRole() {
   const id   = document.getElementById('edit-id').value;
   const role = document.getElementById('edit-role').value;
-  /* Direction ne peut pas attribuer le rôle master */
-  if (role === 'master') { alert('Droits insuffisants pour attribuer ce rôle.'); return; }
+  const ROLE_LEVELS = { famille:0, membre:1, admin:2, superviseur:3, master:4 };
+  const myLevel = ROLE_LEVELS[user.role] || 0;
+  /* Vérification : le rôle attribué doit être strictement inférieur au niveau de l'opérateur */
+  if ((ROLE_LEVELS[role] ?? 99) >= myLevel) { alert('Droits insuffisants pour attribuer ce rôle.'); return; }
   AUTH.updateUser(id, { role });
   roleModal.hide();
   renderDashboard();
