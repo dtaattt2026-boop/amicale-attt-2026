@@ -196,22 +196,33 @@
               <div class="card p-4">
                 <h3 class="h6 fw-bold mb-3"><i class="bi bi-share me-1 text-primary"></i>Partage famille</h3>
                 <p class="text-muted small mb-3">
-                  Partagez ce code avec vos proches pour qu'ils puissent s'inscrire et consulter les événements et conventions de l'Amicale.
+                  Partagez ce code ou le QR code avec vos proches pour qu'ils puissent demander un compte famille lié au vôtre.
                 </p>
                 <div id="share-code-block" class="text-center">
                   <div class="p-3 bg-light rounded-3 mb-2">
                     <code id="share-code-val" class="fs-4 fw-bold" style="letter-spacing:.12em">—</code>
                   </div>
+                  <div class="bg-white border rounded-3 p-2 mb-2 d-inline-block">
+                    <img id="share-qr-img" src="" alt="QR code partage famille" style="width:168px;height:168px;display:none;" />
+                    <div id="share-qr-empty" class="text-muted small px-4 py-5">Générez un code pour afficher le QR</div>
+                  </div>
                   <button class="btn btn-outline-secondary btn-sm me-1" onclick="copyShareCode()">
                     <i class="bi bi-clipboard me-1"></i>Copier
+                  </button>
+                  <button class="btn btn-outline-secondary btn-sm me-1" onclick="copyShareLink()">
+                    <i class="bi bi-link-45deg me-1"></i>Copier le lien
                   </button>
                   <button class="btn btn-primary btn-sm" onclick="genShareCode()">
                     <i class="bi bi-arrow-repeat me-1"></i>Régénérer
                   </button>
                 </div>
                 <p class="text-muted small mt-3 mb-0">
-                  <i class="bi bi-info-circle me-1"></i>Vos invités s'inscrivent via la page <a href="inscription.html?mode=famille">inscription famille</a>.
+                  <i class="bi bi-info-circle me-1"></i>Après inscription, le compte reste en attente jusqu'à votre validation.
                 </p>
+              </div>
+              <div class="card p-4 mt-4">
+                <h3 class="h6 fw-bold mb-3"><i class="bi bi-person-check me-1 text-primary"></i>Demandes famille à activer</h3>
+                <div id="family-requests-list"></div>
               </div>
             </div>
           </div>
@@ -421,6 +432,8 @@ function loadPage() {
   /* Code de partage */
   const code = PROFILE.getFamilyShareCode(user.id);
   document.getElementById('share-code-val').textContent = code || '(non généré)';
+  refreshFamilyShareUi();
+  renderFamilyRequests();
 
   /* Historique */
   renderHistorique();
@@ -517,6 +530,30 @@ function renderFamille() {
     </div>`).join('');
 }
 
+function renderFamilyRequests() {
+  const reqs = PROFILE.getPendingFamilyRequests(user.id);
+  const el = document.getElementById('family-requests-list');
+  if (!reqs.length) {
+    el.innerHTML = '<p class="text-muted small mb-0">Aucune demande en attente.</p>';
+    return;
+  }
+  el.innerHTML = reqs.map(r => `
+    <div class="d-flex justify-content-between align-items-center border-bottom py-2 gap-2">
+      <div>
+        <div class="fw-semibold">${AUTH.esc(r.prenom)} ${AUTH.esc(r.nom)}</div>
+        <div class="small text-muted">@${AUTH.esc(r.login)}${r.email ? ' · ' + AUTH.esc(r.email) : ''}</div>
+      </div>
+      <div class="d-flex gap-2">
+        <button class="btn btn-sm btn-outline-success" onclick="approveFamilyRequest('${r.id}')">
+          <i class="bi bi-check-circle me-1"></i>Activer
+        </button>
+        <button class="btn btn-sm btn-outline-danger" onclick="rejectFamilyRequest('${r.id}')">
+          <i class="bi bi-x-circle me-1"></i>Refuser
+        </button>
+      </div>
+    </div>`).join('');
+}
+
 function saveFamilyMember() {
   const alert  = document.getElementById('fm-alert');
   const show   = (t,m) => { alert.className='alert alert-'+t; alert.textContent=m; alert.classList.remove('d-none'); };
@@ -543,10 +580,44 @@ function removeMember(membreId) {
 function genShareCode() {
   const code = PROFILE.generateFamilyShareCode(user.id);
   document.getElementById('share-code-val').textContent = code;
+  refreshFamilyShareUi();
 }
 function copyShareCode() {
   const code = document.getElementById('share-code-val').textContent;
   navigator.clipboard.writeText(code).then(() => alert('Code copié !'));
+}
+function refreshFamilyShareUi() {
+  const link = PROFILE.getFamilyShareLink(user.id);
+  const img = document.getElementById('share-qr-img');
+  const empty = document.getElementById('share-qr-empty');
+  const code = PROFILE.getFamilyShareCode(user.id);
+  document.getElementById('share-code-val').textContent = code || '(non généré)';
+  if (!link) {
+    img.style.display = 'none';
+    img.src = '';
+    empty.style.display = '';
+    return;
+  }
+  img.src = 'https://api.qrserver.com/v1/create-qr-code/?size=168x168&data=' + encodeURIComponent(link);
+  img.style.display = '';
+  empty.style.display = 'none';
+}
+function copyShareLink() {
+  const link = PROFILE.getFamilyShareLink(user.id);
+  if (!link) return alert('Générez d\'abord un code de partage.');
+  navigator.clipboard.writeText(new URL(link, window.location.href).href)
+    .then(() => alert('Lien copié !'));
+}
+function approveFamilyRequest(memberId) {
+  const result = PROFILE.approveFamilyRequest(user.id, memberId);
+  if (!result.ok) return alert(result.msg || 'Activation impossible.');
+  renderFamilyRequests();
+}
+function rejectFamilyRequest(memberId) {
+  if (!confirm('Refuser et supprimer cette demande famille ?')) return;
+  const result = PROFILE.rejectFamilyRequest(user.id, memberId);
+  if (!result.ok) return alert(result.msg || 'Refus impossible.');
+  renderFamilyRequests();
 }
 
 /* ── Historique ──────────────────────────────────────────── */

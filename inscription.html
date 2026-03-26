@@ -157,6 +157,9 @@
     document.getElementById('has-family-code').checked = true;
     document.getElementById('family-code-block').classList.remove('d-none');
   }
+  if (urlParams.get('familyCode')) {
+    document.getElementById('familyCode').value = urlParams.get('familyCode');
+  }
 
   /* Remplir la liste des villes */
   DB_READY.then(() => {
@@ -242,8 +245,8 @@
       if (hasFamCode && familyCode) {
         result = PROFILE.registerViaFamilyCode(familyCode, { nom, prenom, email, login, password, telephone, dateNaissance, lieuTravail, adresse });
         if (result.ok) {
-          show('success', '✓ Inscription famille enregistrée ! Votre compte famille est actif. Vous pouvez maintenant vous connecter.');
-          btn.innerHTML = '<i class="bi bi-check-circle me-2"></i>Compte créé';
+          show('success', '✓ Demande famille enregistrée. Le chef de famille doit maintenant activer votre compte depuis son espace.');
+          btn.innerHTML = '<i class="bi bi-hourglass-split me-2"></i>En attente d\'activation';
         } else {
           show('danger', result.msg || 'Code de partage invalide ou expiré.');
           btn.disabled = false;

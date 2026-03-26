@@ -123,8 +123,8 @@ const AUTH = (() => {
       prenom:       data.prenom.trim(),
       email,
       role:         data.role_override || 'membre',
-      statut:       data.role_override === 'famille' ? 'en_attente' : 'en_attente',
-      validateurId: null,
+      statut:       data.statut_override || 'en_attente',
+      validateurId: data.validateurId || null,
       dateInscription: new Date().toISOString().split('T')[0],
       /* Champs profil étendus (optionnels à l'inscription) */
       telephone:    (data.telephone    || '').trim(),
@@ -141,7 +141,7 @@ const AUTH = (() => {
     if (typeof LOG !== 'undefined') LOG.add('REGISTER', {
       cibleId: user.id, cibleLogin: user.login, detail: user.prenom + ' ' + user.nom
     });
-    return { ok: true };
+    return { ok: true, userId: user.id, user };
   }
 
   /* ── Validation d'une inscription (Délégué ou Maître) ─────── */

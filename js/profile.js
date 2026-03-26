@@ -133,6 +133,15 @@ const PROFILE = (() => {
     return user?.familyShareCode || null;
   }
 
+  function getFamilyShareLink(userId) {
+    const code = getFamilyShareCode(userId);
+    if (!code) return null;
+    return new URL(
+      'inscription.html?mode=famille&familyCode=' + encodeURIComponent(code),
+      window.location.href
+    ).href;
+  }
+
   /**
    * Inscription d'un membre de famille via code de partage
    * Le nouveau compte a le rôle 'famille' (lecture seule événements/conventions)
@@ -141,15 +150,54 @@ const PROFILE = (() => {
     const users = AUTH.getUsers();
     const parent = users.find(u => u.familyShareCode === code && u.statut === 'actif');
     if (!parent) return { ok: false, msg: 'Code de partage invalide ou expiré.' };
-    /* data contient : nom, prenom, email, login, password */
-    const result = AUTH.register({ ...data, role_override: 'famille', linkedTo: parent.id });
-    if (result.ok) {
-      /* Ajouter la référence dans les deux sens */
-      const linkedInvites = parent.linkedInvites || [];
-      linkedInvites.push(result.userId);
-      updateProfile(parent.id, { linkedInvites });
+    return AUTH.register({
+      ...data,
+      role_override: 'famille',
+      statut_override: 'en_attente',
+      linkedTo: parent.id
+    });
+  }
+
+  function getPendingFamilyRequests(parentId) {
+    return AUTH.getUsers().filter(u =>
+      u.linkedTo === parentId &&
+      u.role === 'famille' &&
+      u.statut === 'en_attente'
+    ).sort((a, b) => a.nom.localeCompare(b.nom));
+  }
+
+  function approveFamilyRequest(parentId, memberId) {
+    const member = AUTH.getUsers().find(u => u.id === memberId && u.linkedTo === parentId);
+    if (!member) return { ok: false, msg: 'Demande introuvable.' };
+    const ok = AUTH.updateUser(memberId, { statut: 'actif', validateurId: parentId });
+    if (!ok) return { ok: false, msg: 'Activation impossible.' };
+    const parent = getProfile(parentId);
+    const linkedInvites = Array.from(new Set([...(parent?.linkedInvites || []), memberId]));
+    updateProfile(parentId, { linkedInvites });
+    if (typeof LOG !== 'undefined') {
+      LOG.add('VALIDATE_FAMILY', {
+        acteurId: parentId,
+        cibleId: memberId,
+        cibleLogin: member.login,
+        detail: member.prenom + ' ' + member.nom
+      });
     }
-    return result;
+    return { ok: true };
+  }
+
+  function rejectFamilyRequest(parentId, memberId) {
+    const member = AUTH.getUsers().find(u => u.id === memberId && u.linkedTo === parentId);
+    if (!member) return { ok: false, msg: 'Demande introuvable.' };
+    const ok = AUTH.rejectMember(memberId);
+    if (ok && typeof LOG !== 'undefined') {
+      LOG.add('REJECT_FAMILY', {
+        acteurId: parentId,
+        cibleId: memberId,
+        cibleLogin: member.login,
+        detail: member.prenom + ' ' + member.nom
+      });
+    }
+    return { ok };
   }
 
   /* ── Historique de participation ─────────────────────────── */
@@ -240,7 +288,8 @@ const PROFILE = (() => {
     updateProfile,
     resizeImageToBase64,
     addFamilyMember, removeFamilyMember, updateFamilyMember,
-    generateFamilyShareCode, getFamilyShareCode, registerViaFamilyCode,
+    generateFamilyShareCode, getFamilyShareCode, getFamilyShareLink, registerViaFamilyCode,
+    getPendingFamilyRequests, approveFamilyRequest, rejectFamilyRequest,
     recordParticipation, cancelParticipation, getUserParticipations, getEventParticipants,
     getUpcomingAnniversaries,
     getNotifPrefs, setNotifPrefs, getDefaultNotifPrefs
