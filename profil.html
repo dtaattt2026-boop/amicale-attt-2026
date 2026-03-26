@@ -398,13 +398,18 @@ function loadPage() {
   document.getElementById('f-adresse').value      = user.adresse || '';
   document.getElementById('f-dateNaissance').value= user.dateNaissance || '';
 
-  /* Lista des villes */
+  /* Villes groupées par pays */
   const sel = document.getElementById('f-lieuTravail');
-  PROFILE.VILLES.forEach(v => {
-    const o = document.createElement('option');
-    o.value = v; o.textContent = v;
-    if (v === user.lieuTravail) o.selected = true;
-    sel.appendChild(o);
+  [['🇩🇿 Algérie', PROFILE.VILLES_DZ], ['🇹🇳 Tunisie', PROFILE.VILLES_TN]].forEach(([label, liste]) => {
+    const grp = document.createElement('optgroup');
+    grp.label = label;
+    liste.forEach(v => {
+      const o = document.createElement('option');
+      o.value = v; o.textContent = v;
+      if (v === user.lieuTravail) o.selected = true;
+      grp.appendChild(o);
+    });
+    sel.appendChild(grp);
   });
 
   /* Notifications */

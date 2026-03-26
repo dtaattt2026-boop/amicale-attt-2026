@@ -21,24 +21,24 @@ const PROFILE = (() => {
   const K_HISTORY  = 'attt_participation_history';
   const K_NOTIF    = 'attt_pending_notifs';
 
-  /* Liste prédéfinie des wilayas (Tunisie / DZ selon contexte) */
-  const VILLES = [
-    'Alger','Oran','Constantine','Annaba','Blida','Batna','Djelfa',
-    'Sétif','Sidi Bel Abbès','Biskra','Tébessa','El Oued','Skikda',
-    'Tiaret','Béjaïa','Tlemcen','Ouargla','Jijel','Souk Ahras',
-    'Mostaganem','Médéa','Mascara','Boumerdès','Chlef','Msila',
-    'Guelma','Bejaia','Tizi Ouzou','Khenchela','Tissot','Mila',
-    'Relizane','Saïda','Laghouat','Bouira','Bouikerdane','Adrar',
-    'Ghardaïa','Béchar','Illizi','Tamanrasset','Tindouf',
-    /* Tunisie */
-    'Tunis','Ariana','Ben Arous','La Manouba',
-    'Bizerte','Béja','Jendouba','Le Kef','Siliana','Tabarka',
-    'Sousse','Monastir','Mahdia','Sfax',
-    'Kairouan','Kasserine','Sidi Bouzid',
-    'Gabès','Médenine','Houmt Souk','Zarzis','Tataouine',
-    'Gafsa','Tozeur','Kébili',
-    'Nabeul','Zaghouan'
+  /* Villes par pays */
+  const VILLES_DZ = [
+    'Adrar','Alger','Annaba','Batna','Béchar','Béjaïa','Biskra','Blida','Bouira',
+    'Boumerdès','Chlef','Constantine','Djelfa','El Oued','Ghardaïa','Guelma',
+    'Illizi','Jijel','Khenchela','Laghouat','Mascara','Médéa','Mila','Mostaganem',
+    'Msila','Naâma','Oran','Ouargla','Oum El Bouaghi','Relizane','Saïda','Sétif',
+    'Sidi Bel Abbès','Skikda','Souk Ahras','Tamanrasset','Tébessa','Tiaret',
+    'Tindouf','Tipaza','Tissemsilt','Tizi Ouzou','Tlemcen'
   ].sort();
+
+  const VILLES_TN = [
+    'Ariana','Béja','Ben Arous','Bizerte','Gabès','Gafsa','Houmt Souk',
+    'Jendouba','Kairouan','Kasserine','Kébili','Le Kef','La Manouba',
+    'Mahdia','Médenine','Monastir','Nabeul','Sfax','Sidi Bouzid',
+    'Siliana','Sousse','Tabarka','Tataouine','Tozeur','Tunis','Zaghouan','Zarzis'
+  ].sort();
+
+  const VILLES = [...VILLES_DZ, ...VILLES_TN];
 
   /* ── Helpers stockage participation ──────────────────────── */
   function _getHistory()  { try { return JSON.parse(localStorage.getItem(K_HISTORY) || '[]'); } catch { return []; } }
@@ -244,7 +244,7 @@ const PROFILE = (() => {
 
   /* ── API publique ────────────────────────────────────────── */
   return {
-    VILLES,
+    VILLES, VILLES_DZ, VILLES_TN,
     getProfile,
     updateProfile,
     resizeImageToBase64,
