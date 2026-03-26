@@ -18,6 +18,8 @@
     .expiry-ok  { color:#198754; }
     .expiry-exp { color:#dc3545; }
     .filter-bar { background:#f8f9fa; border-radius:12px; padding:1rem; }
+    .desc-cell  { max-width:260px; white-space:nowrap; overflow:hidden; text-overflow:ellipsis; }
+    .view-btn.active { background:var(--couleur-principale); color:#fff; border-color:var(--couleur-principale); }
   </style>
 </head>
 <body>
@@ -55,34 +57,83 @@
 
       <!-- BARRE DE FILTRES -->
       <div class="filter-bar mb-4">
-        <div class="row g-3 align-items-end">
-          <div class="col-md-4">
-            <label class="form-label small fw-semibold mb-1">Rechercher</label>
-            <div class="input-group">
-              <span class="input-group-text"><i class="bi bi-search"></i></span>
-              <input type="text" class="form-control" id="f-search" placeholder="Titre, partenaire…" oninput="renderConventions()" />
-            </div>
-          </div>
+        <div class="row g-2 align-items-end">
+          <!-- Recherche -->
           <div class="col-md-3">
-            <label class="form-label small fw-semibold mb-1">Catégorie</label>
-            <select class="form-select" id="f-cat" onchange="renderConventions()">
+            <label class="form-label small fw-semibold mb-1"><i class="bi bi-search me-1"></i>Rechercher</label>
+            <input type="text" class="form-control form-control-sm" id="f-search" placeholder="Titre, partenaire, description…" oninput="renderConventions()" />
+          </div>
+          <!-- Catégorie -->
+          <div class="col-md-2">
+            <label class="form-label small fw-semibold mb-1"><i class="bi bi-tag me-1"></i>Catégorie</label>
+            <select class="form-select form-select-sm" id="f-cat" onchange="renderConventions()">
               <option value="">Toutes</option>
             </select>
           </div>
+          <!-- Accès -->
           <div class="col-md-2">
-            <div class="form-check form-switch mt-3">
-              <input class="form-check-input" type="checkbox" id="f-en-cours" checked onchange="renderConventions()" />
-              <label class="form-check-label small" for="f-en-cours">En cours uniquement</label>
-            </div>
+            <label class="form-label small fw-semibold mb-1"><i class="bi bi-people me-1"></i>Accès</label>
+            <select class="form-select form-select-sm" id="f-acces" onchange="renderConventions()">
+              <option value="">Tous</option>
+              <option value="tous">Tous (public)</option>
+              <option value="famille">Famille</option>
+              <option value="membres">Membres</option>
+            </select>
           </div>
-          <div class="col-md-3 text-md-end">
-            <span class="badge bg-primary rounded-pill fs-6" id="conv-count">0 convention(s)</span>
+          <!-- Statut -->
+          <div class="col-md-2">
+            <label class="form-label small fw-semibold mb-1"><i class="bi bi-calendar-check me-1"></i>Statut</label>
+            <select class="form-select form-select-sm" id="f-statut" onchange="renderConventions()">
+              <option value="actives">Actives uniquement</option>
+              <option value="">Toutes</option>
+              <option value="expirees">Échues uniquement</option>
+            </select>
           </div>
+          <!-- Tri -->
+          <div class="col-md-2">
+            <label class="form-label small fw-semibold mb-1"><i class="bi bi-sort-down me-1"></i>Trier par</label>
+            <select class="form-select form-select-sm" id="f-tri" onchange="renderConventions()">
+              <option value="date">Date de début</option>
+              <option value="titre">Titre A→Z</option>
+              <option value="partenaire">Partenaire A→Z</option>
+              <option value="fin">Date de fin</option>
+            </select>
+          </div>
+          <!-- Toggle vue + compteur -->
+          <div class="col-md-1 d-flex gap-1">
+            <button class="btn btn-sm btn-outline-secondary view-btn active" id="btn-cartes" onclick="setVue('cartes')" title="Vue cartes"><i class="bi bi-grid"></i></button>
+            <button class="btn btn-sm btn-outline-secondary view-btn" id="btn-tableau" onclick="setVue('tableau')" title="Vue tableau"><i class="bi bi-table"></i></button>
+          </div>
+        </div>
+        <div class="mt-2">
+          <span class="badge bg-primary rounded-pill" id="conv-count">0 convention(s)</span>
         </div>
       </div>
 
       <!-- GRID DES CONVENTIONS -->
       <div class="row g-4" id="conv-grid"></div>
+
+      <!-- VUE TABLEAU -->
+      <div id="conv-table" class="d-none">
+        <div class="card p-0 overflow-hidden">
+          <div class="table-responsive">
+            <table class="table table-hover align-middle mb-0">
+              <thead class="table-light">
+                <tr>
+                  <th>Titre</th>
+                  <th>Partenaire</th>
+                  <th>Description</th>
+                  <th>Catégorie</th>
+                  <th>Accès</th>
+                  <th>Période</th>
+                  <th>Statut</th>
+                </tr>
+              </thead>
+              <tbody id="conv-tbody"></tbody>
+            </table>
+          </div>
+        </div>
+      </div>
 
       <!-- ÉTAT VIDE -->
       <div id="conv-empty" class="text-center py-5 d-none">
@@ -124,6 +175,17 @@
 <script>
 'use strict';
 
+let _vue = 'cartes';
+
+function setVue(v) {
+  _vue = v;
+  document.getElementById('btn-cartes').classList.toggle('active', v === 'cartes');
+  document.getElementById('btn-tableau').classList.toggle('active', v === 'tableau');
+  document.getElementById('conv-grid').classList.toggle('d-none', v === 'tableau');
+  document.getElementById('conv-table').classList.toggle('d-none', v !== 'tableau');
+  renderConventions();
+}
+
 /* Populate catégories */
 DB_READY.then(() => {
   const sel = document.getElementById('f-cat');
@@ -133,43 +195,90 @@ DB_READY.then(() => {
   renderConventions();
 });
 
-function renderConventions() {
-  const q       = document.getElementById('f-search').value.trim();
-  const cat     = document.getElementById('f-cat').value;
-  const enCours = document.getElementById('f-en-cours').checked;
+function _getFiltered() {
+  const q      = document.getElementById('f-search').value.trim();
+  const cat    = document.getElementById('f-cat').value;
+  const acces  = document.getElementById('f-acces').value;
+  const statut = document.getElementById('f-statut').value;
+  const tri    = document.getElementById('f-tri').value;
 
-  /* ⚠ Filtrage par accès : famille (role 0) peut voir 'tous' + 'famille'; visiteur anonyme → 'tous' seulement */
-  const user  = AUTH.getCurrentUser ? AUTH.getCurrentUser() : null;
-  const role  = user ? (user.role || 0) : -1;
+  const user   = AUTH.getCurrentUser ? AUTH.getCurrentUser() : null;
+  const role   = user ? (user.role || 0) : -1;
+  const today  = new Date().toISOString().slice(0,10);
 
-  const items = CONVENTIONS.getConventions({ q, categorie: cat||undefined, enCours: enCours||undefined });
-  const visibles = items.filter(c => {
-    if (c.acces === 'tous')     return true;
-    if (role < 0)               return false;   /* non connecté */
-    if (c.acces === 'famille')  return role >= 0;
-    if (c.acces === 'membres')  return role >= 1;
+  const enCours = statut === 'actives' ? true : undefined;
+
+  let items = CONVENTIONS.getConventions({ q, categorie: cat||undefined, enCours });
+
+  /* Filtre accès (droit de voir) */
+  items = items.filter(c => {
+    if (c.acces === 'tous')    return true;
+    if (role < 0)              return false;
+    if (c.acces === 'famille') return role >= 0;
+    if (c.acces === 'membres') return role >= 1;
     return false;
   });
 
-  const grid  = document.getElementById('conv-grid');
-  const empty = document.getElementById('conv-empty');
+  /* Filtre accès sélectionné */
+  if (acces) items = items.filter(c => c.acces === acces);
+
+  /* Filtre statut expirees */
+  if (statut === 'expirees') items = items.filter(c => c.dateFin && c.dateFin < today);
+
+  /* Tri */
+  items.sort((a,b) => {
+    if (tri === 'titre')      return (a.titre||'').localeCompare(b.titre||'');
+    if (tri === 'partenaire') return (a.partenaire||'').localeCompare(b.partenaire||'');
+    if (tri === 'fin')        return (a.dateFin||'').localeCompare(b.dateFin||'');
+    return (a.dateDebut||'').localeCompare(b.dateDebut||''); /* date défaut */
+  });
+
+  return { items, today };
+}
+
+function renderConventions() {
+  const { items: visibles, today } = _getFiltered();
   document.getElementById('conv-count').textContent = visibles.length + ' convention(s)';
 
+  const empty = document.getElementById('conv-empty');
+
   if (!visibles.length) {
-    grid.innerHTML = '';
+    document.getElementById('conv-grid').innerHTML = '';
+    document.getElementById('conv-tbody').innerHTML = '';
     empty.classList.remove('d-none');
     return;
   }
   empty.classList.add('d-none');
 
-  const today = new Date().toISOString().slice(0,10);
+  if (_vue === 'tableau') {
+    document.getElementById('conv-tbody').innerHTML = visibles.map(c => {
+      const expired  = c.dateFin && c.dateFin < today;
+      const catLabel = CONVENTIONS.CAT_LABELS[c.categorie] || c.categorie;
+      const catColor = CONVENTIONS.CAT_COLORS[c.categorie] || 'secondary';
+      const accesL   = CONVENTIONS.ACCES_LABELS[c.acces]   || c.acces;
+      return `<tr style="cursor:pointer" onclick="showConvention('${c.id}')">
+        <td class="fw-semibold">${AUTH.esc(c.titre)}</td>
+        <td class="text-muted small">${AUTH.esc(c.partenaire||'—')}</td>
+        <td class="desc-cell small" title="${AUTH.esc(c.description||'')}">${AUTH.esc(c.description||'—')}</td>
+        <td><span class="badge bg-${catColor}">${catLabel}</span></td>
+        <td><span class="badge bg-light text-dark border">${accesL}</span></td>
+        <td class="small text-muted">${AUTH.esc(c.dateDebut||'?')} → ${AUTH.esc(c.dateFin||'?')}</td>
+        <td>${expired
+          ? '<span class="badge bg-danger">Expirée</span>'
+          : '<span class="badge bg-success">Active</span>'}
+        </td>
+      </tr>`;
+    }).join('');
+    return;
+  }
 
+  /* Vue cartes */
+  const grid = document.getElementById('conv-grid');
   grid.innerHTML = visibles.map(c => {
     const catColor = CONVENTIONS.CAT_COLORS[c.categorie] || 'secondary';
     const catLabel = CONVENTIONS.CAT_LABELS[c.categorie] || c.categorie;
     const accesL   = CONVENTIONS.ACCES_LABELS[c.acces]   || c.acces;
     const expired  = c.dateFin && c.dateFin < today;
-
     return `
     <div class="col-md-6 col-lg-4">
       <div class="card conv-card h-100" onclick="showConvention('${c.id}')">
