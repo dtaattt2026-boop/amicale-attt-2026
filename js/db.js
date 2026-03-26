@@ -24,7 +24,7 @@ const DB = (() => {
   /* Clés localStorage synchronisées avec Firestore */
   const KEYS = ['attt_users', 'attt_events', 'attt_offers', 'attt_articles', 'attt_log',
                  'attt_conventions', 'attt_messages', 'attt_payments',
-                 'attt_rentals', 'attt_bookings', 'attt_participation_history', 'attt_galerie'];
+                 'attt_rentals', 'attt_bookings', 'attt_participation_history', 'attt_galerie', 'attt_droits_matrix'];
 
   /* Nom de la collection Firestore */
   const COLL = 'site_data';
