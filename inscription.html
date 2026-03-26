@@ -161,7 +161,7 @@
   /* Remplir la liste des villes */
   DB_READY.then(() => {
     const sel = document.getElementById('lieuTravail');
-    PROFILE.VILLES.forEach(v => {
+    PROFILE.VILLES_TN.forEach(v => {
       const o = document.createElement('option'); o.value=v; o.textContent=v; sel.appendChild(o);
     });
   });

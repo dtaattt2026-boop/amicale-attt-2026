@@ -21,16 +21,7 @@ const PROFILE = (() => {
   const K_HISTORY  = 'attt_participation_history';
   const K_NOTIF    = 'attt_pending_notifs';
 
-  /* Villes par pays */
-  const VILLES_DZ = [
-    'Adrar','Alger','Annaba','Batna','Béchar','Béjaïa','Biskra','Blida','Bouira',
-    'Boumerdès','Chlef','Constantine','Djelfa','El Oued','Ghardaïa','Guelma',
-    'Illizi','Jijel','Khenchela','Laghouat','Mascara','Médéa','Mila','Mostaganem',
-    'Msila','Naâma','Oran','Ouargla','Oum El Bouaghi','Relizane','Saïda','Sétif',
-    'Sidi Bel Abbès','Skikda','Souk Ahras','Tamanrasset','Tébessa','Tiaret',
-    'Tindouf','Tipaza','Tissemsilt','Tizi Ouzou','Tlemcen'
-  ].sort();
-
+  /* Villes de Tunisie */
   const VILLES_TN = [
     'Ariana','Béja','Ben Arous','Bizerte','Gabès','Gafsa','Houmt Souk',
     'Jendouba','Kairouan','Kasserine','Kébili','Le Kef','La Manouba',
@@ -38,7 +29,7 @@ const PROFILE = (() => {
     'Siliana','Sousse','Tabarka','Tataouine','Tozeur','Tunis','Zaghouan','Zarzis'
   ].sort();
 
-  const VILLES = [...VILLES_DZ, ...VILLES_TN];
+  const VILLES = VILLES_TN;
 
   /* ── Helpers stockage participation ──────────────────────── */
   function _getHistory()  { try { return JSON.parse(localStorage.getItem(K_HISTORY) || '[]'); } catch { return []; } }
@@ -244,7 +235,7 @@ const PROFILE = (() => {
 
   /* ── API publique ────────────────────────────────────────── */
   return {
-    VILLES, VILLES_DZ, VILLES_TN,
+    VILLES, VILLES_TN,
     getProfile,
     updateProfile,
     resizeImageToBase64,
