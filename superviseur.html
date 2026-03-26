@@ -431,7 +431,7 @@ function renderDelegues() {
                   <td class="text-muted small">${AUTH.esc(u.email || '—')}</td>
                   <td><span class="badge bg-success">${cnt}</span></td>
                   <td class="text-end">
-                    <button class="btn btn-sm btn-outline-primary" onclick='openRoleModal(${JSON.stringify(u)})'>
+                    <button class="btn btn-sm btn-outline-primary" onclick="openRoleModal('${AUTH.esc(u.id)}')">
                       <i class="bi bi-pencil me-1"></i>Rôle
                     </button>
                   </td>
@@ -471,7 +471,7 @@ function renderMembres() {
                 <td class="text-muted small">${AUTH.esc(u.email || '—')}</td>
                 <td class="text-muted small">${AUTH.esc(u.dateInscription)}</td>
                 <td class="text-end">
-                  <button class="btn btn-sm btn-outline-primary" onclick='openRoleModal(${JSON.stringify(u)})'>
+                  <button class="btn btn-sm btn-outline-primary" onclick="openRoleModal('${AUTH.esc(u.id)}')">
                     <i class="bi bi-arrow-up-circle me-1"></i>Promouvoir
                   </button>
                 </td>
@@ -552,7 +552,7 @@ function renderEventsTable() {
       <td>${e.acces === 'membres' ? '<span class="badge bg-warning text-dark">Membres</span>' : '<span class="badge bg-light text-dark border">Tous</span>'}</td>
       <td><span class="badge bg-info text-dark">${typeof PROFILE !== 'undefined' ? PROFILE.getEventParticipants(e.id).length : 0}${e.nbMaxParticipants > 0 ? ' / '+e.nbMaxParticipants : ''}</span></td>
       <td class="text-end">
-        <button class="btn btn-sm btn-outline-primary me-1" onclick='openEventModal(${JSON.stringify(e)})'>
+        <button class="btn btn-sm btn-outline-primary me-1" onclick="openEventModal('${AUTH.esc(e.id)}')">
           <i class="bi bi-pencil"></i>
         </button>
         <button class="btn btn-sm btn-outline-danger" onclick="delEvent('${AUTH.esc(e.id)}')">
@@ -574,7 +574,7 @@ function renderOffersTable() {
       <td class="small">${AUTH.esc(o.dateExpiration||'—')}</td>
       <td><code>${AUTH.esc(o.code||'—')}</code></td>
       <td class="text-end">
-        <button class="btn btn-sm btn-outline-primary me-1" onclick='openOfferModal(${JSON.stringify(o)})'>
+        <button class="btn btn-sm btn-outline-primary me-1" onclick="openOfferModal('${AUTH.esc(o.id)}')">
           <i class="bi bi-pencil"></i>
         </button>
         <button class="btn btn-sm btn-outline-danger" onclick="delOffer('${AUTH.esc(o.id)}')">
@@ -586,7 +586,8 @@ function renderOffersTable() {
 
 /* ─── Modal événement ───────────────────────────────── */
 const evtModal = new bootstrap.Modal(document.getElementById('eventModal'));
-function openEventModal(evt) {
+function openEventModal(id) {
+  const evt = id ? DATA.getEvents().find(e => e.id === id) : null;
   document.getElementById('eventModalLabel').textContent = evt ? "Modifier l'événement" : 'Nouvel événement';
   document.getElementById('evt-id').value          = evt?.id          || '';
   document.getElementById('evt-titre').value       = evt?.titre       || '';
@@ -626,7 +627,8 @@ function delEvent(id) {
 
 /* ─── Modal offre ───────────────────────────────────── */
 const offModal = new bootstrap.Modal(document.getElementById('offerModal'));
-function openOfferModal(off) {
+function openOfferModal(id) {
+  const off = id ? DATA.getOffers().find(o => o.id === id) : null;
   document.getElementById('offerModalLabel').textContent = off ? "Modifier l'offre" : 'Nouvelle offre';
   document.getElementById('off-id').value          = off?.id          || '';
   document.getElementById('off-titre').value       = off?.titre       || '';
@@ -664,7 +666,9 @@ function delOffer(id) {
 
 /* ─── Modal modification rôle ─────────────────────── */
 const roleModal = new bootstrap.Modal(document.getElementById('roleModal'));
-function openRoleModal(u) {
+function openRoleModal(id) {
+  const u = AUTH.getUsers().find(x => x.id === id);
+  if (!u) return;
   document.getElementById('edit-id').value = u.id;
   document.getElementById('edit-fullname').textContent = u.prenom + ' ' + u.nom + ' (@' + u.login + ')';
   document.getElementById('edit-role').value = u.role;
