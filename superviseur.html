@@ -346,7 +346,7 @@ function updateAttenteBadge() {
 function renderDashboard() {
   updateAttenteBadge();
   const all       = AUTH.getUsers();
-  const actifs    = all.filter(u => u.statut === 'actif').length;
+  const actifs    = all.filter(u => u.role === 'membre' && u.statut === 'actif').length;
   const delegues  = all.filter(u => u.role === 'admin').length;
   const directions= all.filter(u => u.role === 'superviseur').length;
   const pending   = AUTH.getPendingMembers().length;

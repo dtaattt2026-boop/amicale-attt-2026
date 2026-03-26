@@ -31,10 +31,13 @@ const PROFILE = (() => {
     'Relizane','Saïda','Laghouat','Bouira','Bouikerdane','Adrar',
     'Ghardaïa','Béchar','Illizi','Tamanrasset','Tindouf',
     /* Tunisie */
-    'Tunis','Sfax','Sousse','Kairouan','Bizerte','Gabès','Ariana',
-    'Gafsa','Monastir','Ben Arous','Kasserine','Médenine','Nabeul',
-    'Jendouba','Sidi Bouzid','Beja','Mahdia','Tozeur','Siliana',
-    'Kebili','Zaghouan','Tataouine','Le Kef','Manouba'
+    'Tunis','Ariana','Ben Arous','La Manouba','La Marsa','Carthage',
+    'Bizerte','Béja','Jendouba','Le Kef','Siliana','Tabarka',
+    'Sousse','Monastir','Mahdia','Sfax',
+    'Kairouan','Kasserine','Sidi Bouzid',
+    'Gabès','Médenine','Houmt Souk','Zarzis','Tataouine',
+    'Gafsa','Tozeur','Kébili',
+    'Nabeul','Zaghouan'
   ].sort();
 
   /* ── Helpers stockage participation ──────────────────────── */
