@@ -79,12 +79,12 @@
             </button>
           </li>
           <li class="nav-item mt-3 border-top border-secondary pt-3">
-            <a href="droits.html" class="nav-link">
+              <a href="droits.html" class="nav-link" data-perm="Accéder page Droits">
               <i class="bi bi-shield-lock me-2"></i>Droits
             </a>
           </li>
           <li class="nav-item">
-            <a href="contenu-admin.html" class="nav-link">
+              <a href="contenu-admin.html" class="nav-link" data-perm="Accéder page Actualités">
               <i class="bi bi-file-richtext me-2"></i>Actualités
             </a>
           </li>
@@ -131,7 +131,7 @@
         <div id="section-events" class="d-none">
           <div class="d-flex justify-content-between align-items-center mb-4">
             <h1 class="h4 section-titre mb-0">Gestion des événements</h1>
-            <button class="btn btn-attt" data-bs-toggle="modal" data-bs-target="#eventModal" onclick="openEventModal()">
+            <button class="btn btn-attt" data-perm="Voir bouton Ajouter événement" data-bs-toggle="modal" data-bs-target="#eventModal" onclick="openEventModal()">
               <i class="bi bi-plus-lg me-1"></i>Ajouter
             </button>
           </div>
@@ -139,7 +139,7 @@
             <div class="table-responsive">
               <table class="table table-hover align-middle mb-0">
                 <thead class="table-light">
-                  <tr><th>Date</th><th>Titre</th><th>Lieu</th><th>Catégorie</th><th>Accès</th><th>Inscrits</th><th class="text-end">Actions</th></tr>
+                  <tr><th>Date</th><th>Titre</th><th>Lieu</th><th>Catégorie</th><th>Accès</th><th data-perm="Voir colonne Inscrits">Inscrits</th><th class="text-end">Actions</th></tr>
                 </thead>
                 <tbody id="events-tbody"></tbody>
               </table>
@@ -151,7 +151,7 @@
         <div id="section-offers" class="d-none">
           <div class="d-flex justify-content-between align-items-center mb-4">
             <h1 class="h4 section-titre mb-0">Gestion des offres</h1>
-            <button class="btn btn-attt" data-bs-toggle="modal" data-bs-target="#offerModal" onclick="openOfferModal()">
+            <button class="btn btn-attt" data-perm="Voir bouton Ajouter offre" data-bs-toggle="modal" data-bs-target="#offerModal" onclick="openOfferModal()">
               <i class="bi bi-plus-lg me-1"></i>Ajouter
             </button>
           </div>
@@ -417,7 +417,7 @@ function renderDelegues() {
       <div class="table-responsive">
         <table class="table table-hover align-middle mb-0">
           <thead class="table-light">
-            <tr><th>Nom &amp; Prénom</th><th>Login</th><th>E-mail</th><th>Membres validés</th><th class="text-end">Actions</th></tr>
+            <tr><th>Nom &amp; Prénom</th><th>Login</th><th data-perm="Voir colonne E-mail">E-mail</th><th>Membres validés</th><th class="text-end">Actions</th></tr>
           </thead>
           <tbody>
             ${deleg.map(u => {
@@ -426,7 +426,7 @@ function renderDelegues() {
                 <tr>
                   <td class="fw-semibold">${AUTH.esc(u.nom)} ${AUTH.esc(u.prenom)}</td>
                   <td><code>${AUTH.esc(u.login)}</code></td>
-                  <td class="text-muted small">${AUTH.esc(u.email || '—')}</td>
+                  <td class="text-muted small" data-perm="Voir colonne E-mail">${AUTH.esc(u.email || '—')}</td>
                   <td><span class="badge bg-success">${cnt}</span></td>
                   <td class="text-end">
                     <button class="btn btn-sm btn-outline-primary" onclick="openRoleModal('${AUTH.esc(u.id)}')">
@@ -439,6 +439,7 @@ function renderDelegues() {
         </table>
       </div>
     </div>`;
+  AUTH.applyPermissions(container);
 }
 
 /* ─── Section Membres ──────────────────────────────── */
@@ -459,14 +460,14 @@ function renderMembres() {
       <div class="table-responsive">
         <table class="table table-hover align-middle mb-0">
           <thead class="table-light">
-            <tr><th>Nom &amp; Prénom</th><th>Login</th><th>E-mail</th><th>Inscrit le</th><th class="text-end">Promouvoir</th></tr>
+            <tr><th>Nom &amp; Prénom</th><th>Login</th><th data-perm="Voir colonne E-mail">E-mail</th><th>Inscrit le</th><th class="text-end">Promouvoir</th></tr>
           </thead>
           <tbody>
             ${all.map(u => `
               <tr>
                 <td class="fw-semibold">${AUTH.esc(u.nom)} ${AUTH.esc(u.prenom)}</td>
                 <td><code>${AUTH.esc(u.login)}</code></td>
-                <td class="text-muted small">${AUTH.esc(u.email || '—')}</td>
+                <td class="text-muted small" data-perm="Voir colonne E-mail">${AUTH.esc(u.email || '—')}</td>
                 <td class="text-muted small">${AUTH.esc(u.dateInscription)}</td>
                 <td class="text-end">
                   <button class="btn btn-sm btn-outline-primary" onclick="openRoleModal('${AUTH.esc(u.id)}')">
@@ -478,6 +479,7 @@ function renderMembres() {
         </table>
       </div>
     </div>`;
+  AUTH.applyPermissions(container);
 }
 
 /* ─── Section En attente ─────────────────────────── */
@@ -498,14 +500,14 @@ function renderAttente() {
       <div class="table-responsive">
         <table class="table align-middle mb-0">
           <thead class="table-light">
-            <tr><th>Nom &amp; Prénom</th><th>Login</th><th>E-mail</th><th>Inscrit le</th><th class="text-end">Actions</th></tr>
+            <tr><th>Nom &amp; Prénom</th><th>Login</th><th data-perm="Voir colonne E-mail">E-mail</th><th>Inscrit le</th><th class="text-end">Actions</th></tr>
           </thead>
           <tbody>
             ${pending.map(u => `
               <tr>
                 <td class="fw-semibold">${AUTH.esc(u.nom)} ${AUTH.esc(u.prenom)}</td>
                 <td><code>${AUTH.esc(u.login)}</code></td>
-                <td class="text-muted small">${AUTH.esc(u.email || '—')}</td>
+                <td class="text-muted small" data-perm="Voir colonne E-mail">${AUTH.esc(u.email || '—')}</td>
                 <td class="text-muted small">${AUTH.esc(u.dateInscription)}</td>
                 <td class="text-end">
                   <button class="btn btn-sm btn-success me-1" onclick="validateUser('${u.id}')">
@@ -520,6 +522,7 @@ function renderAttente() {
         </table>
       </div>
     </div>`;
+  AUTH.applyPermissions(container);
 }
 
 function validateUser(id) {
@@ -548,16 +551,17 @@ function renderEventsTable() {
       <td class="text-muted small">${AUTH.esc(e.lieu)}</td>
       <td><span class="badge bg-${catBadge[e.categorie]||'secondary'}">${AUTH.esc(e.categorie)}</span></td>
       <td>${e.acces === 'membres' ? '<span class="badge bg-warning text-dark">Membres</span>' : '<span class="badge bg-light text-dark border">Tous</span>'}</td>
-      <td><span class="badge bg-info text-dark">${typeof PROFILE !== 'undefined' ? PROFILE.getEventParticipants(e.id).length : 0}${e.nbMaxParticipants > 0 ? ' / '+e.nbMaxParticipants : ''}</span></td>
+      <td data-perm="Voir colonne Inscrits"><span class="badge bg-info text-dark">${typeof PROFILE !== 'undefined' ? PROFILE.getEventParticipants(e.id).length : 0}${e.nbMaxParticipants > 0 ? ' / '+e.nbMaxParticipants : ''}</span></td>
       <td class="text-end">
         <button class="btn btn-sm btn-outline-primary me-1" onclick="openEventModal('${AUTH.esc(e.id)}')">
           <i class="bi bi-pencil"></i>
         </button>
-        <button class="btn btn-sm btn-outline-danger" onclick="delEvent('${AUTH.esc(e.id)}')">
+        <button class="btn btn-sm btn-outline-danger" data-perm="Voir bouton Supprimer événement" onclick="delEvent('${AUTH.esc(e.id)}')">
           <i class="bi bi-trash"></i>
         </button>
       </td>
     </tr>`).join('') : '<tr><td colspan="7" class="text-center text-muted py-4">Aucun événement.</td></tr>';
+  AUTH.applyPermissions(tbody);
 }
 
 /* ─── Table offres ──────────────────────────────────── */
@@ -575,11 +579,12 @@ function renderOffersTable() {
         <button class="btn btn-sm btn-outline-primary me-1" onclick="openOfferModal('${AUTH.esc(o.id)}')">
           <i class="bi bi-pencil"></i>
         </button>
-        <button class="btn btn-sm btn-outline-danger" onclick="delOffer('${AUTH.esc(o.id)}')">
+        <button class="btn btn-sm btn-outline-danger" data-perm="Voir bouton Supprimer offre" onclick="delOffer('${AUTH.esc(o.id)}')">
           <i class="bi bi-trash"></i>
         </button>
       </td>
     </tr>`).join('') : '<tr><td colspan="6" class="text-center text-muted py-4">Aucune offre.</td></tr>';
+  AUTH.applyPermissions(tbody);
 }
 
 /* ─── Modal événement ───────────────────────────────── */

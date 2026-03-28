@@ -64,19 +64,24 @@
             </a>
           </li>
           <li class="nav-item">
-            <a href="contenu-admin.html" class="nav-link">
+            <a href="contenu-admin.html" class="nav-link" data-perm="Accéder page Actualités">
               <i class="bi bi-file-richtext me-2"></i>Actualités
             </a>
           </li>
             </a>
           </li>
           <li class="nav-item">
-            <a href="journal.html" class="nav-link">
+            <a href="journal.html" class="nav-link" data-perm="Accéder page Journal">
               <i class="bi bi-journal-text me-2"></i>Journal
             </a>
           </li>
+            <li class="nav-item" data-perm="Accéder page Droits">
+              <a href="droits.html" class="nav-link">
+                <i class="bi bi-shield-lock me-2"></i>Droits
+              </a>
+            </li>
           <li class="nav-item">
-            <a href="guide.html" class="nav-link">
+              <a href="guide.html" class="nav-link" data-perm="Accéder page Guide technique">
               <i class="bi bi-book me-2"></i>Guide technique
             </a>
           </li>
@@ -150,7 +155,7 @@
               <table class="table table-hover align-middle mb-0">
                 <thead class="table-light">
                   <tr>
-                    <th>Nom</th><th>Login</th><th>E-mail</th><th>Rôle</th><th>Statut</th><th>Date</th><th class="text-end">Actions</th>
+                    <th>Nom</th><th>Login</th><th data-perm="Voir colonne E-mail">E-mail</th><th>Rôle</th><th>Statut</th><th>Date</th><th class="text-end">Actions</th>
                   </tr>
                 </thead>
                 <tbody id="users-tbody"></tbody>
@@ -644,7 +649,7 @@ function renderUsersTable() {
       <tr>
         <td class="fw-semibold">${AUTH.esc(u.nom)} ${AUTH.esc(u.prenom)}</td>
         <td><code>${AUTH.esc(u.login)}</code></td>
-        <td class="text-muted small">${AUTH.esc(u.email||'—')}</td>
+        <td class="text-muted small" data-perm="Voir colonne E-mail">${AUTH.esc(u.email||'—')}</td>
         <td><span class="badge ${RC[u.role]||'bg-secondary'}">${RL[u.role]||u.role}</span></td>
         <td>${statBadge}</td>
         <td class="small text-muted">${AUTH.esc(u.dateInscription)}</td>
@@ -655,6 +660,7 @@ function renderUsersTable() {
         </td>
       </tr>`;
   }).join('') || '<tr><td colspan="7" class="text-center text-muted py-4">Aucun résultat.</td></tr>';
+  AUTH.applyPermissions(document.getElementById('users-tbody'));
 }
 
 /* ─── Section Demandes ─────────────────────── */

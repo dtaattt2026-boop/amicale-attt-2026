@@ -169,7 +169,7 @@
           <div class="d-flex align-items-center justify-content-between mb-3 flex-wrap gap-2">
             <h1 class="h4 section-titre mb-0">Matrice des droits</h1>
             <div class="d-flex gap-2" id="matrix-actions">
-              <button class="btn btn-sm btn-outline-primary" id="btn-edit-matrix" onclick="startEditMatrix()">
+              <button class="btn btn-sm btn-outline-primary" id="btn-edit-matrix" data-perm="Voir bouton Modifier matrice" onclick="startEditMatrix()">
                 <i class="bi bi-pencil me-1"></i>Modifier
               </button>
               <button class="btn btn-sm btn-success d-none" id="btn-save-matrix" onclick="saveMatrix()">
@@ -178,7 +178,7 @@
               <button class="btn btn-sm btn-secondary d-none" id="btn-cancel-matrix" onclick="cancelEditMatrix()">
                 Annuler
               </button>
-              <button class="btn btn-sm btn-outline-danger" id="btn-reset-matrix" onclick="resetMatrix()" title="Remettre les valeurs par défaut">
+              <button class="btn btn-sm btn-outline-danger" id="btn-reset-matrix" data-perm="Voir bouton Modifier matrice" onclick="resetMatrix()" title="Remettre les valeurs par défaut">
                 <i class="bi bi-arrow-counterclockwise"></i>
               </button>
             </div>
@@ -255,9 +255,14 @@
 <script src="js/log.js"></script>
 <script>
 'use strict';
-/* ─── Accès : Direction ou plus ──────────────────────────── */
-const user = AUTH.requireAuth('superviseur');
+/* ─── Accès : connecté + permission page Droits ──────────── */
+const user = AUTH.requireAuth();
 if (!user) throw new Error();
+if (!AUTH.hasPermission('Accéder page Droits', user)) {
+  alert('Accès refusé à la page Droits.');
+  history.back();
+  throw new Error('Permission refusée');
+}
 document.getElementById('topbar-user').textContent = user.prenom + ' ' + user.nom;
 document.getElementById('back-btn').href = AUTH.dashUrl(user.role);
 
@@ -367,39 +372,16 @@ function userRow(u, color) {
    SECTION : MATRICE DES DROITS
    ═══════════════════════════════════════════════════════════ */
 const K_MATRIX = 'attt_droits_matrix';
-const MATRIX_DEFAULT = [
-  ['Se connecter',                      '✓','✓','✓','✓'],
-  ['Consulter événements (publics)',     '✓','✓','✓','✓'],
-  ['Consulter événements (membres)',     '✓','✓','✓','✓'],
-  ['Consulter offres',                   '✓','✓','✓','✓'],
-  ['Consulter articles / actualités',    '✓','✓','✓','⚠'],
-  ['Ajouter / modifier événement',       '✓','✓','✓','—'],
-  ['Supprimer événement',                '✓','✓','✓','—'],
-  ['Ajouter / modifier offre',           '✓','✓','✓','—'],
-  ['Supprimer offre',                    '✓','✓','✓','—'],
-  ['Publier article avec photo',         '✓','✓','✓','—'],
-  ['Modifier / supprimer article',       '✓','✓','✓','—'],
-  ['Valider inscription (en attente)',   '✓','✓','✓','—'],
-  ['Rejeter inscription',                '✓','✓','✓','—'],
-  ['Suspendre / réactiver membre',       '✓','—','✓','—'],
-  ['Promouvoir → Délégué',               '✓','✓','—','—'],
-  ['Promouvoir → Direction',             '✓','✓','—','—'],
-  ['Promouvoir → Maître',                '✓','—','—','—'],
-  ['Rétrograder un utilisateur',         '✓','⚠','—','—'],
-  ['Supprimer compte utilisateur',       '✓','—','—','—'],
-  ['Voir journal des opérations',        '✓','—','—','—'],
-  ['Effacer journal',                    '✓','—','—','—'],
-];
+const MATRIX_DEFAULT = AUTH.RIGHTS_MATRIX_DEFAULT.map(r => [...r]);
 
 let MATRIX_ROWS = [];
 let _matrixBackup = [];
 
 function _loadMatrix() {
-  try {
-    const saved = JSON.parse(localStorage.getItem(K_MATRIX) || 'null');
-    if (saved && Array.isArray(saved) && saved.length) return saved;
-  } catch {}
-  return MATRIX_DEFAULT.map(r => [...r]);
+  const savedMap = new Map((() => {
+    try { return JSON.parse(localStorage.getItem(K_MATRIX) || '[]'); } catch { return []; }
+  })().map(r => [r[0], r]));
+  return MATRIX_DEFAULT.map(row => savedMap.get(row[0]) || [...row]);
 }
 
 const SYM_MAP = {
@@ -430,7 +412,10 @@ function cycleSym(rowIdx, colIdx) {
 }
 
 function startEditMatrix() {
-  if (!isMaster) { alert('Seul le Maître peut modifier la matrice des droits.'); return; }
+  if (!AUTH.hasPermission('Voir bouton Modifier matrice', user)) {
+    alert('Droits insuffisants pour modifier la matrice des droits.');
+    return;
+  }
   _matrixBackup = _loadMatrix().map(r => [...r]);
   _editMode = true;
   document.getElementById('btn-edit-matrix').classList.add('d-none');
@@ -465,7 +450,10 @@ function cancelEditMatrix() {
 }
 
 function resetMatrix() {
-  if (!isMaster) { alert('Seul le Maître peut réinitialiser la matrice.'); return; }
+  if (!AUTH.hasPermission('Voir bouton Modifier matrice', user)) {
+    alert('Droits insuffisants pour réinitialiser la matrice.');
+    return;
+  }
   if (!confirm('Réinitialiser la matrice avec les valeurs par défaut ?')) return;
   localStorage.removeItem(K_MATRIX);
   _editMode = false;

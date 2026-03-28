@@ -22,6 +22,7 @@ const AUTH = (() => {
   /* ── Constantes ────────────────────────────────────────────── */
   const K_USERS   = 'attt_users';
   const K_SESSION = 'attt_session';
+  const K_RIGHTS  = 'attt_droits_matrix';
   const ROLES     = { famille: 0, membre: 1, admin: 2, superviseur: 3, master: 4 };
 
   const ROLE_LABELS = {
@@ -31,6 +32,42 @@ const AUTH = (() => {
     superviseur: 'Direction',
     master:      'Maître'
   };
+
+  const RIGHTS_MATRIX_DEFAULT = [
+    ['Se connecter',                      '✓','✓','✓','✓'],
+    ['Consulter événements (publics)',   '✓','✓','✓','✓'],
+    ['Consulter événements (membres)',   '✓','✓','✓','✓'],
+    ['Consulter offres',                 '✓','✓','✓','✓'],
+    ['Consulter articles / actualités',  '✓','✓','✓','⚠'],
+    ['Ajouter / modifier événement',     '✓','✓','✓','—'],
+    ['Supprimer événement',              '✓','✓','✓','—'],
+    ['Ajouter / modifier offre',         '✓','✓','✓','—'],
+    ['Supprimer offre',                  '✓','✓','✓','—'],
+    ['Publier article avec photo',       '✓','✓','✓','—'],
+    ['Modifier / supprimer article',     '✓','✓','✓','—'],
+    ['Valider inscription (en attente)', '✓','✓','✓','—'],
+    ['Rejeter inscription',              '✓','✓','✓','—'],
+    ['Suspendre / réactiver membre',     '✓','—','✓','—'],
+    ['Promouvoir → Délégué',             '✓','✓','—','—'],
+    ['Promouvoir → Direction',           '✓','✓','—','—'],
+    ['Promouvoir → Maître',              '✓','—','—','—'],
+    ['Rétrograder un utilisateur',       '✓','⚠','—','—'],
+    ['Supprimer compte utilisateur',     '✓','—','—','—'],
+    ['Voir journal des opérations',      '✓','—','—','—'],
+    ['Effacer journal',                  '✓','—','—','—'],
+    ['Accéder page Droits',              '✓','✓','—','—'],
+    ['Accéder page Journal',             '✓','—','—','—'],
+    ['Accéder page Guide technique',     '✓','—','—','—'],
+    ['Accéder page Actualités',          '✓','✓','✓','—'],
+    ['Voir colonne E-mail',              '✓','✓','✓','—'],
+    ['Voir colonne Inscrits',            '✓','✓','✓','—'],
+    ['Voir bouton Ajouter événement',    '✓','✓','✓','—'],
+    ['Voir bouton Supprimer événement',  '✓','✓','✓','—'],
+    ['Voir bouton Ajouter offre',        '✓','✓','✓','—'],
+    ['Voir bouton Supprimer offre',      '✓','✓','✓','—'],
+    ['Voir bouton Ajouter convention',   '✓','—','✓','—'],
+    ['Voir bouton Modifier matrice',     '✓','✓','—','—']
+  ];
 
   /* ── Hash FNV-1a (non cryptographique — usage démo uniquement) */
   function _hash(str) {
@@ -49,6 +86,42 @@ const AUTH = (() => {
   function _saveUsers(u)     { localStorage.setItem(K_USERS, JSON.stringify(u)); if (typeof DB !== 'undefined') DB.push(K_USERS, u); }
   function _setSession(u)    { sessionStorage.setItem(K_SESSION, JSON.stringify(u)); }
   function getCurrentUser()  { const s = sessionStorage.getItem(K_SESSION); return s ? JSON.parse(s) : null; }
+
+  function _getRightsMatrix() {
+    try {
+      const saved = JSON.parse(localStorage.getItem(K_RIGHTS) || 'null');
+      const savedMap = new Map(Array.isArray(saved) ? saved.map(r => [r[0], r]) : []);
+      return RIGHTS_MATRIX_DEFAULT.map(row => savedMap.get(row[0]) || [...row]);
+    } catch {
+      return RIGHTS_MATRIX_DEFAULT.map(r => [...r]);
+    }
+  }
+
+  function _roleMatrixIndex(role) {
+    const colByRole = { master: 1, superviseur: 2, admin: 3, membre: 4, famille: 4 };
+    return colByRole[role] || 4;
+  }
+
+  function getPermissionSymbol(label, targetUser) {
+    const role = typeof targetUser === 'string'
+      ? targetUser
+      : (targetUser?.role || getCurrentUser()?.role || 'membre');
+    const row = _getRightsMatrix().find(r => r[0] === label);
+    if (!row) return '—';
+    return row[_roleMatrixIndex(role)] || '—';
+  }
+
+  function hasPermission(label, targetUser) {
+    const sym = getPermissionSymbol(label, targetUser);
+    return sym === '✓' || sym === '⚠';
+  }
+
+  function applyPermissions(root = document, targetUser) {
+    root.querySelectorAll('[data-perm]').forEach(el => {
+      const ok = hasPermission(el.getAttribute('data-perm'), targetUser);
+      el.classList.toggle('d-none', !ok);
+    });
+  }
 
   /* ── Sanitisation XSS ─────────────────────────────────────── */
   function esc(v) {
@@ -77,6 +150,7 @@ const AUTH = (() => {
       _saveUsers(users);
     }
     _updateNavbar();
+    applyPermissions(document);
   }
 
   /* ── Connexion ────────────────────────────────────────────── */
@@ -307,8 +381,9 @@ const AUTH = (() => {
     getPendingMembers, getMembersByValidateur,
     validateMember, rejectMember,
     hasRole, requireAuth,
+    getPermissionSymbol, hasPermission, applyPermissions,
     updateUser, deleteUser, dashUrl,
-    ROLE_LABELS, esc
+    ROLE_LABELS, RIGHTS_MATRIX_DEFAULT, esc
   };
 
 })();
