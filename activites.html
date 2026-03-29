@@ -54,167 +54,151 @@
   <main class="py-5">
     <div class="container">
 
-      <!-- FILTRES / ONGLETS -->
-      <ul class="nav nav-pills mb-5 gap-2" id="filtreActivites" role="tablist">
-        <li class="nav-item" role="presentation">
-          <button class="nav-link active" id="tab-all" data-bs-toggle="pill" data-bs-target="#all" type="button" role="tab">
-            Toutes
-          </button>
-        </li>
-        <li class="nav-item" role="presentation">
-          <button class="nav-link" id="tab-sport" data-bs-toggle="pill" data-bs-target="#sport" type="button" role="tab">
-            <i class="bi bi-trophy me-1"></i>Sports
-          </button>
-        </li>
-        <li class="nav-item" role="presentation">
-          <button class="nav-link" id="tab-culture" data-bs-toggle="pill" data-bs-target="#culture" type="button" role="tab">
-            <i class="bi bi-film me-1"></i>Culture
-          </button>
-        </li>
-        <li class="nav-item" role="presentation">
-          <button class="nav-link" id="tab-famille" data-bs-toggle="pill" data-bs-target="#famille" type="button" role="tab">
-            <i class="bi bi-heart me-1"></i>Famille
-          </button>
-        </li>
-      </ul>
+      <!-- FILTRES -->
+      <div class="d-flex flex-wrap gap-2 mb-5" id="filtreActivites">
+        <button class="btn btn-attt active" data-cat="">Toutes</button>
+        <button class="btn btn-outline-attt" data-cat="sport"><i class="bi bi-trophy me-1"></i>Sports</button>
+        <button class="btn btn-outline-attt" data-cat="culture"><i class="bi bi-film me-1"></i>Culture</button>
+        <button class="btn btn-outline-attt" data-cat="famille"><i class="bi bi-heart me-1"></i>Famille</button>
+      </div>
 
-      <div class="tab-content">
+      <!-- GRILLE ACTIVITÉS -->
+      <div class="row g-4" id="activites-grid">
 
-        <!-- TOUTES LES ACTIVITÉS -->
-        <div class="tab-pane fade show active" id="all" role="tabpanel">
-          <div class="row g-4">
-
-            <!-- SPORT -->
-            <div class="col-sm-6 col-lg-4">
-              <div class="card h-100">
-                <div class="img-placeholder rounded-top" style="height:160px;">
-                  <i class="bi bi-trophy-fill fs-1"></i>
-                </div>
-                <div class="card-body p-4">
-                  <span class="badge mb-2" style="background-color: var(--couleur-principale);">Sport</span>
-                  <h3 class="h5 fw-bold">Football</h3>
-                  <p class="text-muted small">Tournois inter-services, entraînements hebdomadaires et matchs amicaux ouverts à tous les agents.</p>
-                </div>
-              </div>
+        <!-- SPORT -->
+        <div class="col-sm-6 col-lg-4 act-item" data-cat="sport">
+          <div class="card h-100">
+            <div class="img-placeholder rounded-top" style="height:160px;">
+              <i class="bi bi-trophy-fill fs-1"></i>
             </div>
-
-            <div class="col-sm-6 col-lg-4">
-              <div class="card h-100">
-                <div class="img-placeholder rounded-top" style="height:160px;">
-                  <i class="bi bi-bicycle fs-1"></i>
-                </div>
-                <div class="card-body p-4">
-                  <span class="badge mb-2" style="background-color: var(--couleur-principale);">Sport</span>
-                  <h3 class="h5 fw-bold">Randonnée</h3>
-                  <p class="text-muted small">Sorties randonnée en plein air plusieurs fois par trimestre pour découvrir les paysages locaux.</p>
-                </div>
-              </div>
+            <div class="card-body p-4 d-flex flex-column">
+              <span class="badge mb-2" style="background-color: var(--couleur-principale);">Sport</span>
+              <h3 class="h5 fw-bold">Football</h3>
+              <p class="text-muted small flex-grow-1">Tournois inter-services, entraînements hebdomadaires et matchs amicaux ouverts à tous les agents.</p>
+              <a href="evenements.html?cat=sport" class="btn btn-attt btn-sm mt-2 w-100"><i class="bi bi-calendar-check me-1"></i>Voir les événements</a>
             </div>
-
-            <div class="col-sm-6 col-lg-4">
-              <div class="card h-100">
-                <div class="img-placeholder rounded-top" style="height:160px;">
-                  <i class="bi bi-controller fs-1"></i>
-                </div>
-                <div class="card-body p-4">
-                  <span class="badge mb-2" style="background-color: var(--couleur-principale);">Sport</span>
-                  <h3 class="h5 fw-bold">Tennis de table</h3>
-                  <p class="text-muted small">Compétitions internes et tournois ouverts, accessibles à tous niveaux.</p>
-                </div>
-              </div>
-            </div>
-
-            <div class="col-sm-6 col-lg-4">
-              <div class="card h-100">
-                <div class="img-placeholder rounded-top" style="height:160px;">
-                  <i class="bi bi-film fs-1"></i>
-                </div>
-                <div class="card-body p-4">
-                  <span class="badge mb-2 bg-warning text-dark">Culture</span>
-                  <h3 class="h5 fw-bold">Sorties cinéma</h3>
-                  <p class="text-muted small">Séances groupées avec tarifs préférentiels pour les membres de l'Amicale.</p>
-                </div>
-              </div>
-            </div>
-
-            <div class="col-sm-6 col-lg-4">
-              <div class="card h-100">
-                <div class="img-placeholder rounded-top" style="height:160px;">
-                  <i class="bi bi-map fs-1"></i>
-                </div>
-                <div class="card-body p-4">
-                  <span class="badge mb-2 bg-warning text-dark">Culture</span>
-                  <h3 class="h5 fw-bold">Voyages & Excursions</h3>
-                  <p class="text-muted small">Séjours organisés en groupe à travers le pays, week-ends culturels et visites touristiques.</p>
-                </div>
-              </div>
-            </div>
-
-            <div class="col-sm-6 col-lg-4">
-              <div class="card h-100">
-                <div class="img-placeholder rounded-top" style="height:160px;">
-                  <i class="bi bi-music-note-beamed fs-1"></i>
-                </div>
-                <div class="card-body p-4">
-                  <span class="badge mb-2 bg-warning text-dark">Culture</span>
-                  <h3 class="h5 fw-bold">Soirées culturelles</h3>
-                  <p class="text-muted small">Concerts, théâtre, expositions et événements artistiques pour découvrir la culture locale.</p>
-                </div>
-              </div>
-            </div>
-
-            <div class="col-sm-6 col-lg-4">
-              <div class="card h-100">
-                <div class="img-placeholder rounded-top" style="height:160px;">
-                  <i class="bi bi-gift fs-1"></i>
-                </div>
-                <div class="card-body p-4">
-                  <span class="badge mb-2 bg-success">Famille</span>
-                  <h3 class="h5 fw-bold">Arbre de Noël</h3>
-                  <p class="text-muted small">Fête annuelle pour les enfants des salariés avec cadeaux, animations et spectacles.</p>
-                </div>
-              </div>
-            </div>
-
-            <div class="col-sm-6 col-lg-4">
-              <div class="card h-100">
-                <div class="img-placeholder rounded-top" style="height:160px;">
-                  <i class="bi bi-balloon-heart fs-1"></i>
-                </div>
-                <div class="card-body p-4">
-                  <span class="badge mb-2 bg-success">Famille</span>
-                  <h3 class="h5 fw-bold">Fête des enfants</h3>
-                  <p class="text-muted small">Journée dédiée aux familles avec jeux, activités et repas partagé en plein air.</p>
-                </div>
-              </div>
-            </div>
-
-            <div class="col-sm-6 col-lg-4">
-              <div class="card h-100">
-                <div class="img-placeholder rounded-top" style="height:160px;">
-                  <i class="bi bi-hand-thumbs-up fs-1"></i>
-                </div>
-                <div class="card-body p-4">
-                  <span class="badge mb-2 bg-success">Famille</span>
-                  <h3 class="h5 fw-bold">Actions solidaires</h3>
-                  <p class="text-muted small">Collectes, aide mutuelle et initiatives solidaires pour renforcer les liens entre collègues.</p>
-                </div>
-              </div>
-            </div>
-
           </div>
         </div>
 
-        <!-- sports, culture, famille — onglets simplifiés (même contenu filtré visuellement) -->
-        <div class="tab-pane fade" id="sport" role="tabpanel">
-          <p class="text-muted">Filtrez en cliquant sur l'onglet sur cette page — implémentez un filtrage JS si besoin.</p>
+        <div class="col-sm-6 col-lg-4 act-item" data-cat="sport">
+          <div class="card h-100">
+            <div class="img-placeholder rounded-top" style="height:160px;">
+              <i class="bi bi-bicycle fs-1"></i>
+            </div>
+            <div class="card-body p-4 d-flex flex-column">
+              <span class="badge mb-2" style="background-color: var(--couleur-principale);">Sport</span>
+              <h3 class="h5 fw-bold">Randonnée</h3>
+              <p class="text-muted small flex-grow-1">Sorties randonnée en plein air plusieurs fois par trimestre pour découvrir les paysages locaux.</p>
+              <a href="evenements.html?cat=sport" class="btn btn-attt btn-sm mt-2 w-100"><i class="bi bi-calendar-check me-1"></i>Voir les événements</a>
+            </div>
+          </div>
         </div>
-        <div class="tab-pane fade" id="culture" role="tabpanel">
-          <p class="text-muted">Filtrez en cliquant sur l'onglet sur cette page — implémentez un filtrage JS si besoin.</p>
+
+        <div class="col-sm-6 col-lg-4 act-item" data-cat="sport">
+          <div class="card h-100">
+            <div class="img-placeholder rounded-top" style="height:160px;">
+              <i class="bi bi-controller fs-1"></i>
+            </div>
+            <div class="card-body p-4 d-flex flex-column">
+              <span class="badge mb-2" style="background-color: var(--couleur-principale);">Sport</span>
+              <h3 class="h5 fw-bold">Tennis de table</h3>
+              <p class="text-muted small flex-grow-1">Compétitions internes et tournois ouverts, accessibles à tous niveaux.</p>
+              <a href="evenements.html?cat=sport" class="btn btn-attt btn-sm mt-2 w-100"><i class="bi bi-calendar-check me-1"></i>Voir les événements</a>
+            </div>
+          </div>
         </div>
-        <div class="tab-pane fade" id="famille" role="tabpanel">
-          <p class="text-muted">Filtrez en cliquant sur l'onglet sur cette page — implémentez un filtrage JS si besoin.</p>
+
+        <!-- CULTURE -->
+        <div class="col-sm-6 col-lg-4 act-item" data-cat="culture">
+          <div class="card h-100">
+            <div class="img-placeholder rounded-top" style="height:160px;">
+              <i class="bi bi-film fs-1"></i>
+            </div>
+            <div class="card-body p-4 d-flex flex-column">
+              <span class="badge mb-2 bg-warning text-dark">Culture</span>
+              <h3 class="h5 fw-bold">Sorties cinéma</h3>
+              <p class="text-muted small flex-grow-1">Séances groupées avec tarifs préférentiels pour les membres de l'Amicale.</p>
+              <a href="evenements.html?cat=culture" class="btn btn-attt btn-sm mt-2 w-100"><i class="bi bi-calendar-check me-1"></i>Voir les événements</a>
+            </div>
+          </div>
         </div>
+
+        <div class="col-sm-6 col-lg-4 act-item" data-cat="culture">
+          <div class="card h-100">
+            <div class="img-placeholder rounded-top" style="height:160px;">
+              <i class="bi bi-map fs-1"></i>
+            </div>
+            <div class="card-body p-4 d-flex flex-column">
+              <span class="badge mb-2 bg-warning text-dark">Culture</span>
+              <h3 class="h5 fw-bold">Voyages & Excursions</h3>
+              <p class="text-muted small flex-grow-1">Séjours organisés en groupe à travers le pays, week-ends culturels et visites touristiques.</p>
+              <a href="voyages.html" class="btn btn-attt btn-sm mt-2 w-100"><i class="bi bi-compass me-1"></i>Voir les voyages</a>
+            </div>
+          </div>
+        </div>
+
+        <div class="col-sm-6 col-lg-4 act-item" data-cat="culture">
+          <div class="card h-100">
+            <div class="img-placeholder rounded-top" style="height:160px;">
+              <i class="bi bi-music-note-beamed fs-1"></i>
+            </div>
+            <div class="card-body p-4 d-flex flex-column">
+              <span class="badge mb-2 bg-warning text-dark">Culture</span>
+              <h3 class="h5 fw-bold">Soirées culturelles</h3>
+              <p class="text-muted small flex-grow-1">Concerts, théâtre, expositions et événements artistiques pour découvrir la culture locale.</p>
+              <a href="evenements.html?cat=culture" class="btn btn-attt btn-sm mt-2 w-100"><i class="bi bi-calendar-check me-1"></i>Voir les événements</a>
+            </div>
+          </div>
+        </div>
+
+        <!-- FAMILLE -->
+        <div class="col-sm-6 col-lg-4 act-item" data-cat="famille">
+          <div class="card h-100">
+            <div class="img-placeholder rounded-top" style="height:160px;">
+              <i class="bi bi-gift fs-1"></i>
+            </div>
+            <div class="card-body p-4 d-flex flex-column">
+              <span class="badge mb-2 bg-success">Famille</span>
+              <h3 class="h5 fw-bold">Arbre de Noël</h3>
+              <p class="text-muted small flex-grow-1">Fête annuelle pour les enfants des salariés avec cadeaux, animations et spectacles.</p>
+              <a href="evenements.html?cat=famille" class="btn btn-attt btn-sm mt-2 w-100"><i class="bi bi-calendar-check me-1"></i>Voir les événements</a>
+            </div>
+          </div>
+        </div>
+
+        <div class="col-sm-6 col-lg-4 act-item" data-cat="famille">
+          <div class="card h-100">
+            <div class="img-placeholder rounded-top" style="height:160px;">
+              <i class="bi bi-balloon-heart fs-1"></i>
+            </div>
+            <div class="card-body p-4 d-flex flex-column">
+              <span class="badge mb-2 bg-success">Famille</span>
+              <h3 class="h5 fw-bold">Fête des enfants</h3>
+              <p class="text-muted small flex-grow-1">Journée dédiée aux familles avec jeux, activités et repas partagé en plein air.</p>
+              <a href="evenements.html?cat=famille" class="btn btn-attt btn-sm mt-2 w-100"><i class="bi bi-calendar-check me-1"></i>Voir les événements</a>
+            </div>
+          </div>
+        </div>
+
+        <div class="col-sm-6 col-lg-4 act-item" data-cat="famille">
+          <div class="card h-100">
+            <div class="img-placeholder rounded-top" style="height:160px;">
+              <i class="bi bi-hand-thumbs-up fs-1"></i>
+            </div>
+            <div class="card-body p-4 d-flex flex-column">
+              <span class="badge mb-2 bg-success">Famille</span>
+              <h3 class="h5 fw-bold">Actions solidaires</h3>
+              <p class="text-muted small flex-grow-1">Collectes, aide mutuelle et initiatives solidaires pour renforcer les liens entre collègues.</p>
+              <a href="evenements.html?cat=famille" class="btn btn-attt btn-sm mt-2 w-100"><i class="bi bi-calendar-check me-1"></i>Voir les événements</a>
+            </div>
+          </div>
+        </div>
+
+      </div>
+
+      <!-- Message aucun résultat -->
+      <div id="act-empty" class="text-center text-muted py-5 d-none">
+        <i class="bi bi-search fs-1 opacity-25 d-block mb-2"></i>Aucune activité dans cette catégorie.
       </div>
 
       <!-- CTA rejoindre -->
@@ -278,19 +262,35 @@
   const _MOIS = ['Jan','Fév','Mar','Avr','Mai','Juin','Juil','Août','Sep','Oct','Nov','Déc'];
   const _catColor = { sport:'primary', culture:'warning', famille:'success', autre:'secondary' };
 
-  /* Liaison filtres onglets ↔ section événements */
+  /* ── Filtres boutons ─────────────────────────────────── */
   document.querySelectorAll('#filtreActivites button').forEach(btn => {
-    btn.addEventListener('shown.bs.tab', () => {
-      const target = btn.dataset.bsTarget || '';
-      const cat = target.replace('#','');
-      renderActiviteEvents(cat === 'all' ? '' : cat);
+    btn.addEventListener('click', () => {
+      document.querySelectorAll('#filtreActivites button').forEach(b => {
+        b.classList.replace('btn-attt', 'btn-outline-attt');
+        b.classList.remove('active');
+      });
+      btn.classList.replace('btn-outline-attt', 'btn-attt');
+      btn.classList.add('active');
+      const cat = btn.dataset.cat;
+      const items = document.querySelectorAll('#activites-grid .act-item');
+      let visible = 0;
+      items.forEach(item => {
+        const match = !cat || item.dataset.cat === cat;
+        item.classList.toggle('d-none', !match);
+        if (match) visible++;
+      });
+      document.getElementById('act-empty').classList.toggle('d-none', visible > 0);
+      renderActiviteEvents(cat);
     });
   });
 
   function renderActiviteEvents(cat) {
     const container = document.getElementById('activites-events');
     const today = new Date().toISOString().split('T')[0];
-    let events = DATA.getEvents().filter(e => e.date >= today);
+    const currentUser = AUTH.getCurrentUser();
+    let events = DATA.getEvents()
+      .filter(e => DATA.canUserAccess(e.acces, currentUser))
+      .filter(e => e.date >= today);
     if (cat) events = events.filter(e => e.categorie === cat);
     events = events.sort((a,b) => a.date.localeCompare(b.date)).slice(0,6);
     if (!events.length) {

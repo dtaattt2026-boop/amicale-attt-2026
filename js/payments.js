@@ -126,6 +126,12 @@ const PAYMENTS = (() => {
     return _load().filter(p => p.userId === userId && p.eventId === eventId);
   }
 
+  function clearUserEventPayments(userId, eventId) {
+    const filtered = _load().filter(p => !(p.userId === userId && p.eventId === eventId));
+    _save(filtered);
+    return true;
+  }
+
   /** Solde restant à payer pour un user/event */
   function getBalance(userId, eventId) {
     const payments = getUserEventPayments(userId, eventId);
@@ -137,7 +143,7 @@ const PAYMENTS = (() => {
   /* ── API publique ─────────────────────────────────────────── */
   return {
     createPaymentSchedule, markPaid, markUnpaid, refreshStatuts,
-    getUserPayments, getEventPayments, getUserEventPayments, getBalance,
+    getUserPayments, getEventPayments, getUserEventPayments, clearUserEventPayments, getBalance,
     KEY
   };
 })();

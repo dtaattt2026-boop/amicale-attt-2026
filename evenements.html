@@ -1,4 +1,4 @@
-<!DOCTYPE html>
+﻿<!DOCTYPE html>
 <html lang="fr">
 <head>
   <meta charset="UTF-8" />
@@ -20,6 +20,11 @@
     .event-date-box     { min-width:68px; }
     .btn-participate    { min-width:160px; }
     .filter-bar .btn.active { box-shadow: 0 0 0 2px var(--couleur-principale); }
+    .special-panel      { border:1px solid rgba(0,61,166,.14); background:linear-gradient(180deg, rgba(0,61,166,.05), rgba(255,255,255,.98)); }
+    .special-badge      { background:#7a1f1f; color:#fff; }
+    .special-summary dt { color:#4b5563; font-weight:600; }
+    .special-summary dd { margin-bottom:.65rem; }
+    .special-doc-link   { word-break:break-all; }
     /* Bouton flottant admin */
     #btn-create-event   {
       position: fixed; bottom: 30px; right: 30px; z-index: 1050;
@@ -99,11 +104,43 @@
         <i class="bi bi-clock-history fs-2 d-block mb-2"></i>Aucun événement passé.
       </div>
 
+      <section id="special-admin-section" class="mt-5 d-none">
+        <div class="d-flex flex-wrap gap-3 justify-content-between align-items-end mb-3">
+          <div>
+            <h2 class="section-titre mb-1">Dossiers Événement Spécial</h2>
+            <p class="text-muted mb-0">Validation des inscriptions, contrôle des pièces et suivi des montants calculés.</p>
+          </div>
+          <div style="min-width:280px;">
+            <label class="form-label small fw-semibold mb-1">Événement suivi</label>
+            <select id="special-admin-event-filter" class="form-select" onchange="renderSpecialAdminTable()"></select>
+          </div>
+        </div>
+        <div id="special-admin-summary" class="row g-3 mb-3"></div>
+        <div class="card border-0 shadow-sm">
+          <div class="table-responsive">
+            <table class="table align-middle mb-0">
+              <thead class="table-light">
+                <tr>
+                  <th>Adhérent</th>
+                  <th>Bénéficiaires</th>
+                  <th>Accompagnateurs</th>
+                  <th>Paiement</th>
+                  <th>Total</th>
+                  <th>Statut</th>
+                  <th class="text-end">Actions</th>
+                </tr>
+              </thead>
+              <tbody id="special-admin-tbody"></tbody>
+            </table>
+          </div>
+        </div>
+      </section>
+
     </div>
   </main>
 
   <!-- BOUTON FLOTTANT CRÉER (admin+) -->
-  <button id="btn-create-event" class="btn btn-attt" onclick="openEvtModal()" title="Créer un événement">
+  <button id="btn-create-event" class="btn btn-attt" data-perm="Voir bouton Ajouter événement" data-perm-mode="action" onclick="openEvtModal()" title="Créer un événement">
     <i class="bi bi-plus-lg me-1"></i>Créer un événement
   </button>
 
@@ -117,6 +154,89 @@
         </div>
         <div class="modal-body p-4" id="detail-body"></div>
         <div class="modal-footer" id="detail-footer"></div>
+      </div>
+    </div>
+  </div>
+
+  <div class="modal fade" id="specialRegistrationModal" tabindex="-1" aria-labelledby="specialRegistrationLabel">
+    <div class="modal-dialog modal-xl modal-dialog-scrollable">
+      <div class="modal-content rounded-4">
+        <div class="modal-header text-white" style="background:var(--couleur-principale);">
+          <div>
+            <h2 class="modal-title h5 mb-1" id="specialRegistrationLabel">Inscription Événement Spécial</h2>
+            <p class="mb-0 small opacity-75" id="special-registration-subtitle"></p>
+          </div>
+          <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal"></button>
+        </div>
+        <div class="modal-body p-4">
+          <input type="hidden" id="special-event-id" />
+          <div id="special-registration-alert" class="alert alert-info py-2 small mb-4"></div>
+          <div class="card special-panel rounded-4 mb-4">
+            <div class="card-body">
+              <div class="row g-3 align-items-center">
+                <div class="col-lg-8">
+                  <div id="special-event-summary" class="small text-muted"></div>
+                </div>
+                <div class="col-lg-4">
+                  <label class="form-label fw-semibold mb-1">Mode de paiement</label>
+                  <select id="special-payment-mode" class="form-select" onchange="refreshSpecialTotals()"></select>
+                </div>
+              </div>
+            </div>
+          </div>
+
+          <div class="row g-4">
+            <div class="col-lg-8">
+              <div class="d-flex justify-content-between align-items-center mb-2">
+                <h3 class="h5 mb-0">Bénéficiaires</h3>
+                <button type="button" class="btn btn-sm btn-outline-primary" onclick="addSpecialBeneficiary()"><i class="bi bi-plus-lg me-1"></i>Ajouter un bénéficiaire</button>
+              </div>
+              <div id="special-beneficiaries-list" class="d-grid gap-3"></div>
+
+              <div class="d-flex justify-content-between align-items-center mt-4 mb-2">
+                <h3 class="h5 mb-0">Accompagnateurs</h3>
+                <button type="button" class="btn btn-sm btn-outline-secondary" onclick="addSpecialCompanion()"><i class="bi bi-person-plus me-1"></i>Ajouter un accompagnateur</button>
+              </div>
+              <div id="special-companions-list" class="d-grid gap-3"></div>
+            </div>
+            <div class="col-lg-4">
+              <div class="card border-0 shadow-sm rounded-4 mb-3">
+                <div class="card-body">
+                  <h3 class="h6 fw-bold mb-3">Présences</h3>
+                  <div class="form-check form-switch mb-3">
+                    <input class="form-check-input" type="checkbox" id="special-applicant-present" onchange="refreshSpecialTotals()" />
+                    <label class="form-check-label" for="special-applicant-present">Présence de l'adhérent</label>
+                  </div>
+                  <label class="form-label fw-semibold small">Remarque adhérent</label>
+                  <textarea id="special-user-note" class="form-control" rows="4" placeholder="Information complémentaire, précision d'organisation..."></textarea>
+                </div>
+              </div>
+              <div class="card border-0 shadow-sm rounded-4">
+                <div class="card-body">
+                  <h3 class="h6 fw-bold mb-3">Calcul automatique</h3>
+                  <div id="special-total-panel" class="small text-muted"></div>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+        <div class="modal-footer">
+          <button class="btn btn-secondary" data-bs-dismiss="modal">Fermer</button>
+          <button class="btn btn-attt" onclick="saveSpecialRegistration()"><i class="bi bi-check-lg me-1"></i>Enregistrer le dossier</button>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <div class="modal fade" id="specialReviewModal" tabindex="-1" aria-labelledby="specialReviewLabel">
+    <div class="modal-dialog modal-lg modal-dialog-scrollable">
+      <div class="modal-content rounded-4">
+        <div class="modal-header text-white" style="background:var(--couleur-principale);">
+          <h2 class="modal-title h5" id="specialReviewLabel">Dossier d'inscription</h2>
+          <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal"></button>
+        </div>
+        <div class="modal-body p-4" id="special-review-body"></div>
+        <div class="modal-footer" id="special-review-footer"></div>
       </div>
     </div>
   </div>
@@ -141,8 +261,19 @@
               <input type="date" class="form-control" id="evt-date" required />
             </div>
             <div class="col-sm-6">
+              <label class="form-label fw-semibold">Date de fin</label>
+              <input type="date" class="form-control" id="evt-dateFin" />
+            </div>
+            <div class="col-sm-6">
               <label class="form-label fw-semibold">Heure</label>
               <input type="time" class="form-control" id="evt-heure" />
+            </div>
+            <div class="col-sm-6">
+              <label class="form-label fw-semibold">Type d'événement</label>
+              <select class="form-select" id="evt-type" onchange="toggleEvtSpecialFields()">
+                <option value="standard">Standard</option>
+                <option value="journee-savoir">Événement spécial · Journée du Savoir</option>
+              </select>
             </div>
             <div class="col-12">
               <label class="form-label fw-semibold">Lieu <span class="text-danger">*</span></label>
@@ -160,7 +291,8 @@
             <div class="col-sm-6">
               <label class="form-label fw-semibold">Accès</label>
               <select class="form-select" id="evt-acces">
-                <option value="tous">Ouvert à tous</option>
+                <option value="tous">Tous</option>
+                <option value="famille">Famille+</option>
                 <option value="membres">Membres uniquement</option>
               </select>
             </div>
@@ -168,36 +300,92 @@
               <label class="form-label fw-semibold">Description</label>
               <textarea class="form-control" id="evt-description" rows="3" maxlength="500"></textarea>
             </div>
-            <div class="col-12"><hr class="my-1" /><p class="fw-semibold small text-muted mb-0">Participation &amp; paiement (optionnel)</p></div>
-            <div class="col-sm-4">
+            <div class="col-12">
+              <label class="form-label fw-semibold">Photo de l'événement</label>
+              <input type="url" class="form-control" id="evt-photo" placeholder="https://... ou lien Google Drive public" />
+              <div class="d-flex gap-2 flex-wrap align-items-center mt-2">
+                <input type="file" class="form-control form-control-sm" id="evt-photo-file" accept="image/*" style="max-width:320px;" />
+                <button type="button" class="btn btn-outline-primary btn-sm" onclick="uploadEventPhoto()"><i class="bi bi-cloud-upload me-1"></i>Téléverser</button>
+                <span class="small text-muted" id="evt-photo-upload-state"></span>
+              </div>
+            </div>
+            <div class="col-12" id="evt-standard-header"><hr class="my-1" /><p class="fw-semibold small text-muted mb-0">Participation standard (optionnel)</p></div>
+            <div class="col-sm-4 evt-standard-field">
               <label class="form-label fw-semibold small">Date limite d'inscription</label>
               <input type="date" class="form-control" id="evt-limitParticipation" />
             </div>
-            <div class="col-sm-4">
+            <div class="col-sm-4 evt-standard-field">
               <label class="form-label fw-semibold small">Participants min</label>
               <input type="number" class="form-control" id="evt-nbMin" min="0" value="0" />
             </div>
-            <div class="col-sm-4">
+            <div class="col-sm-4 evt-standard-field">
               <label class="form-label fw-semibold small">Participants max (0 = illimité)</label>
               <input type="number" class="form-control" id="evt-nbMax" min="0" value="0" />
             </div>
-            <div class="col-sm-4">
+            <div class="col-sm-4 evt-standard-field">
               <label class="form-label fw-semibold small">Quota min / candidat</label>
               <input type="number" class="form-control" id="evt-quotaMin" min="1" value="1" />
             </div>
-            <div class="col-sm-4">
+            <div class="col-sm-4 evt-standard-field">
               <label class="form-label fw-semibold small">Quota max / candidat</label>
               <input type="number" class="form-control" id="evt-quotaMax" min="1" value="1" />
             </div>
-            <div class="col-sm-4">
-              <label class="form-label fw-semibold small">Prix / participant (DA)</label>
+            <div class="col-sm-4 evt-standard-field">
+              <label class="form-label fw-semibold small">Prix / participant (TND)</label>
               <input type="number" class="form-control" id="evt-prix" min="0" value="0" />
+            </div>
+            <div class="col-12 d-none" id="evt-special-fields">
+              <hr class="my-1" />
+              <p class="fw-semibold small text-muted mb-3">Configuration spéciale · Journée du Savoir</p>
+              <div class="row g-3">
+                <div class="col-sm-4">
+                  <label class="form-label fw-semibold small">Date limite de confirmation</label>
+                  <input type="date" class="form-control" id="evt-limitConfirmation" />
+                </div>
+                <div class="col-sm-4">
+                  <label class="form-label fw-semibold small">Date limite de paiement</label>
+                  <input type="date" class="form-control" id="evt-limitPaiement" />
+                </div>
+                <div class="col-sm-4">
+                  <label class="form-label fw-semibold small">Dossier diplôme</label>
+                  <input type="text" class="form-control" id="evt-diploma-folder" value="diplome" />
+                </div>
+                <div class="col-sm-4">
+                  <label class="form-label fw-semibold small">Prix bénéficiaire</label>
+                  <input type="number" class="form-control" id="evt-price-beneficiary" min="0" value="0" />
+                </div>
+                <div class="col-sm-4">
+                  <label class="form-label fw-semibold small">Prix adhérent</label>
+                  <input type="number" class="form-control" id="evt-price-adherent" min="0" value="0" />
+                </div>
+                <div class="col-sm-4">
+                  <label class="form-label fw-semibold small">Prix famille</label>
+                  <input type="number" class="form-control" id="evt-price-family" min="0" value="0" />
+                </div>
+                <div class="col-sm-4">
+                  <label class="form-label fw-semibold small">Prix non-adhérent</label>
+                  <input type="number" class="form-control" id="evt-price-nonadherent" min="0" value="0" />
+                </div>
+                <div class="col-sm-4">
+                  <label class="form-label fw-semibold small">Prix direction</label>
+                  <input type="number" class="form-control" id="evt-price-direction" min="0" value="0" />
+                </div>
+                <div class="col-sm-4">
+                  <label class="form-label fw-semibold small">Prix délégué</label>
+                  <input type="number" class="form-control" id="evt-price-delegate" min="0" value="0" />
+                </div>
+                <div class="col-12">
+                  <label class="form-label fw-semibold small">Modes de paiement</label>
+                  <textarea class="form-control" id="evt-payment-modes" rows="2" placeholder="Retenue sur salaire, Espèces, Virement"></textarea>
+                  <div class="form-text">Séparez les modes par virgule, point-virgule ou retour à la ligne.</div>
+                </div>
+              </div>
             </div>
           </div>
         </div>
         <div class="modal-footer">
           <button class="btn btn-secondary" data-bs-dismiss="modal">Annuler</button>
-          <button class="btn btn-attt" onclick="saveEvt()"><i class="bi bi-check-lg me-1"></i>Enregistrer</button>
+          <button class="btn btn-attt" data-perm="Ajouter / modifier événement" data-perm-mode="action" onclick="saveEvt()"><i class="bi bi-check-lg me-1"></i>Enregistrer</button>
         </div>
       </div>
     </div>
@@ -228,12 +416,16 @@
   <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js"></script>
   <script src="https://www.gstatic.com/firebasejs/10.14.1/firebase-app-compat.js"></script>
   <script src="https://www.gstatic.com/firebasejs/10.14.1/firebase-firestore-compat.js"></script>
+  <script src="https://www.gstatic.com/firebasejs/10.14.1/firebase-storage-compat.js"></script>
   <script src="js/firebase-config.js"></script>
   <script src="js/db.js"></script>
   <script src="js/auth.js"></script>
   <script src="js/data.js"></script>
   <script src="js/profile.js"></script>
+  <script src="js/payments.js"></script>
+  <script src="js/special-events.js"></script>
   <script src="js/log.js"></script>
+  <script src="js/media-upload.js"></script>
   <script src="js/version-check.js"></script>
   <script src="js/main.js"></script>
   <script>
@@ -270,30 +462,54 @@
 
   function fmtDate(dateStr) {
     const d = new Date(dateStr + 'T00:00:00');
-    return d.toLocaleDateString('fr-DZ', { weekday:'long', day:'numeric', month:'long', year:'numeric' });
+    return d.toLocaleDateString('fr-TN', { weekday:'long', day:'numeric', month:'long', year:'numeric' });
   }
 
-  /* ── État de participation pour un événement ─────────── */
+  function formatMoney(amount) {
+    return `${(Number(amount) || 0).toLocaleString('fr-FR', { minimumFractionDigits: 0, maximumFractionDigits: 2 })} TND`;
+  }
+
+  function _esc(s) {
+    return String(s || '').replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;');
+  }
+
+  let _specialAdminEventId = '';
+  let _specialFormState = { eventId: '', beneficiaries: [], companions: [] };
+
+  function getEventDeadline(evt) {
+    if (typeof SPECIAL_EVENT !== 'undefined' && SPECIAL_EVENT.isSpecialEvent(evt)) {
+      return evt.dateLimitConfirmation || evt.dateLimitParticipation || '';
+    }
+    return evt.dateLimitParticipation || '';
+  }
+
+  function getEventRegistrationCount(evt) {
+    if (typeof SPECIAL_EVENT !== 'undefined' && SPECIAL_EVENT.isSpecialEvent(evt)) {
+      return SPECIAL_EVENT.getEventRegistrations(evt.id)
+        .filter(item => item.status !== SPECIAL_EVENT.STATUS.rejected).length;
+    }
+    return (typeof PROFILE !== 'undefined') ? PROFILE.getEventParticipants(evt.id).length : 0;
+  }
+
   function getParticipationState(evt) {
-    const user = AUTH.getUser();
+    const user = AUTH.getCurrentUser();
     const today = new Date().toISOString().split('T')[0];
-    const participants = (typeof PROFILE !== 'undefined') ? PROFILE.getEventParticipants(evt.id) : [];
-    const count = participants.length;
+    const isSpecial = typeof SPECIAL_EVENT !== 'undefined' && SPECIAL_EVENT.isSpecialEvent(evt);
+    const registration = isSpecial && user ? SPECIAL_EVENT.getUserRegistration(evt.id, user.id) : null;
+    const count = getEventRegistrationCount(evt);
     const max   = Number(evt.nbMaxParticipants) || 0;
-    const isInscrit = user ? participants.some(p => p.userId === user.id) : false;
-    const limitDep  = evt.dateLimitParticipation && today > evt.dateLimitParticipation;
+    const isInscrit = isSpecial
+      ? !!registration && registration.status !== SPECIAL_EVENT.STATUS.rejected
+      : user ? ((typeof PROFILE !== 'undefined') ? PROFILE.getEventParticipants(evt.id).some(p => p.userId === user.id) : false) : false;
+    const limitDep  = getEventDeadline(evt) && today > getEventDeadline(evt);
     const complet   = max > 0 && count >= max && !isInscrit;
+    const hasAcces = DATA.canUserAccess(evt.acces, user);
 
-    /* Accès réservé aux membres */
-    const needsMembre = evt.acces === 'membres';
-    const hasAcces = !needsMembre || (user && AUTH.hasRole(user, 'membre'));
-
-    return { user, count, max, isInscrit, limitDep, complet, hasAcces };
+    return { user, count, max, isInscrit, limitDep, complet, hasAcces, isSpecial, registration };
   }
 
-  /* ── Bouton participation ──────────────────────────────── */
-  function buildParticipateBtn(evt, full) {
-    const { user, count, max, isInscrit, limitDep, complet, hasAcces } = getParticipationState(evt);
+  function buildParticipateBtn(evt) {
+    const { user, count, max, isInscrit, limitDep, complet, hasAcces, isSpecial, registration } = getParticipationState(evt);
     const pastEvent = evt.date < new Date().toISOString().split('T')[0];
 
     let countHtml = '';
@@ -312,7 +528,30 @@
               </a>${countHtml}`;
     }
     if (!hasAcces) {
-      return `<span class="badge bg-warning text-dark"><i class="bi bi-lock me-1"></i>Réservé aux membres</span>${countHtml}`;
+      return `<span class="badge bg-warning text-dark"><i class="bi bi-lock me-1"></i>Réservé ${DATA.getAccessLabel(evt.acces)}</span>${countHtml}`;
+    }
+    if (isSpecial) {
+      if (registration) {
+        const meta = SPECIAL_EVENT.getStatusMeta(registration.status);
+        const btnClass = registration.status === SPECIAL_EVENT.STATUS.approved ? 'btn-outline-success' : registration.status === SPECIAL_EVENT.STATUS.rejected ? 'btn-outline-danger' : 'btn-outline-warning';
+        const label = registration.status === SPECIAL_EVENT.STATUS.approved
+          ? 'Dossier validé'
+          : registration.status === SPECIAL_EVENT.STATUS.rejected
+            ? 'Corriger mon dossier'
+            : 'Dossier en attente';
+        return `<button class="btn btn-sm ${btnClass} btn-participate" onclick="openSpecialRegistrationModal('${evt.id}')">
+                  <i class="bi bi-stars me-1"></i>${label}
+                </button><span class="badge ${meta.badge}">${meta.label}</span>${countHtml}`;
+      }
+      if (limitDep) {
+        return `<span class="badge bg-secondary"><i class="bi bi-calendar-x me-1"></i>Confirmations fermées</span>${countHtml}`;
+      }
+      if (complet) {
+        return `<span class="badge bg-danger"><i class="bi bi-x-circle me-1"></i>Complet</span>${countHtml}`;
+      }
+      return `<button class="btn btn-sm btn-attt btn-participate" onclick="openSpecialRegistrationModal('${evt.id}')">
+                <i class="bi bi-stars me-1"></i>Inscrire ma famille
+              </button>${countHtml}`;
     }
     if (isInscrit) {
       return `<button class="btn btn-sm btn-outline-success btn-participate"
@@ -326,38 +565,37 @@
     if (complet) {
       return `<span class="badge bg-danger"><i class="bi bi-x-circle me-1"></i>Complet</span>${countHtml}`;
     }
-    const prixHtml = evt.prixParticipant > 0 ? ` · ${Number(evt.prixParticipant).toLocaleString('fr')} DA` : '';
+    const prixHtml = evt.prixParticipant > 0 ? ` · ${Number(evt.prixParticipant).toLocaleString('fr')} TND` : '';
     return `<button class="btn btn-sm btn-attt btn-participate"
               onclick="participerEvent('${evt.id}',event)">
               <i class="bi bi-calendar-check me-1"></i>Participer${prixHtml}
             </button>${countHtml}`;
   }
 
-  /* ── Rendu liste ───────────────────────────────────────── */
   function renderEvents() {
     const search  = (document.getElementById('searchEvt')?.value || '').toLowerCase().trim();
     const today   = new Date().toISOString().split('T')[0];
     const events  = DATA.getEvents();
-    const user    = AUTH.getUser();
+    const user    = AUTH.getCurrentUser();
 
-    let avenir = [], passes = [];
+    const avenir = [];
+    const passes = [];
     events.forEach(evt => {
+      if (!DATA.canUserAccess(evt.acces, user)) return;
       if (_filterCat && evt.categorie !== _filterCat) return;
-      if (search && !evt.titre.toLowerCase().includes(search) &&
-          !evt.lieu.toLowerCase().includes(search) &&
-          !(evt.description||'').toLowerCase().includes(search)) return;
+      if (search && !evt.titre.toLowerCase().includes(search) && !evt.lieu.toLowerCase().includes(search) && !(evt.description || '').toLowerCase().includes(search)) return;
       if (evt.date >= today) avenir.push(evt);
       else passes.push(evt);
     });
     avenir.sort((a,b) => a.date.localeCompare(b.date));
     passes.sort((a,b) => b.date.localeCompare(a.date));
 
-    /* Affiche admin (role >= admin) */
-    const isAdmin = user && AUTH.hasRole(user, 'admin');
-    document.getElementById('btn-create-event').style.display = isAdmin ? 'block' : 'none';
+    const canCreate = user && AUTH.hasPermission('Voir bouton Ajouter événement', user, null, 'action');
+    document.getElementById('btn-create-event').style.display = canCreate ? 'block' : 'none';
 
-    _renderList('list-avenir',  'empty-avenir',  avenir, false);
-    _renderList('list-passes',  'empty-passes',  passes, true);
+    _renderList('list-avenir', 'empty-avenir', avenir, false);
+    _renderList('list-passes', 'empty-passes', passes, true);
+    renderSpecialAdminPanel();
   }
 
   function _renderList(listId, emptyId, events, past) {
@@ -369,18 +607,20 @@
       return;
     }
     emptyEl.classList.add('d-none');
-    const cat = CAT;
     container.innerHTML = events.map(evt => {
-      const c = cat[evt.categorie] || cat.autre;
-      const accesBadge = evt.acces === 'membres'
-        ? `<span class="badge bg-light text-dark border"><i class="bi bi-shield-check me-1"></i>Membres</span>`
-        : `<span class="badge bg-light text-dark border">Ouvert à tous</span>`;
+      const c = CAT[evt.categorie] || CAT.autre;
+      const accesBadge = `<span class="badge bg-light text-dark border"><i class="bi bi-shield-check me-1"></i>${DATA.getAccessLabel(evt.acces)}</span>`;
+      const specialBadge = typeof SPECIAL_EVENT !== 'undefined' && SPECIAL_EVENT.isSpecialEvent(evt)
+        ? `<span class="badge special-badge"><i class="bi bi-stars me-1"></i>Journée du Savoir</span>`
+        : '';
       const heure = evt.heure ? ` &nbsp;|&nbsp; <i class="bi bi-clock me-1"></i>${evt.heure}` : '';
+      const dateFinHtml = evt.dateFin && evt.dateFin !== evt.date ? ` &nbsp;|&nbsp; <i class="bi bi-calendar-range me-1"></i>jusqu'au ${fmtDate(evt.dateFin)}` : '';
       const opacity = past ? ' opacity-75' : '';
       return `
         <div class="col-12">
           <div class="card p-4 event-card${opacity}">
             <div class="row align-items-center g-3">
+              ${evt.photo ? `<div class="col-12 col-lg-4"><img src="${_esc(evt.photo)}" alt="${_esc(evt.titre)}" class="w-100 rounded-4" style="max-height:220px;object-fit:cover;" /></div>` : ''}
               <div class="col-auto">
                 ${fmtDateBox(evt.date, past)}
               </div>
@@ -388,10 +628,11 @@
                 <div class="d-flex flex-wrap gap-2 mb-1">
                   <span class="badge ${c.cls}"><i class="bi ${c.icon} me-1"></i>${c.label}</span>
                   ${accesBadge}
+                  ${specialBadge}
                 </div>
                 <h3 class="h5 fw-bold mb-1">${_esc(evt.titre)}</h3>
                 <p class="text-muted small mb-2">
-                  <i class="bi bi-geo-alt me-1"></i>${_esc(evt.lieu)}${heure}
+                  <i class="bi bi-geo-alt me-1"></i>${_esc(evt.lieu)}${heure}${dateFinHtml}
                 </p>
                 <p class="mb-3 text-muted small">${_esc(evt.description || '')}</p>
                 <div class="d-flex align-items-center gap-2 flex-wrap">
@@ -399,9 +640,9 @@
                   <button class="btn btn-sm btn-outline-secondary" onclick="openDetail('${evt.id}')">
                     <i class="bi bi-info-circle me-1"></i>Détails
                   </button>
-                  ${AUTH.getUser() && AUTH.hasRole(AUTH.getUser(),'admin')
-                    ? `<button class="btn btn-sm btn-outline-primary" onclick="openEvtModal('${evt.id}')"><i class="bi bi-pencil"></i></button>
-                       <button class="btn btn-sm btn-outline-danger" onclick="deleteEvt('${evt.id}')"><i class="bi bi-trash"></i></button>`
+                  ${AUTH.getCurrentUser() && AUTH.hasPermission('Ajouter / modifier événement', AUTH.getCurrentUser(), null, 'action')
+                    ? `<button class="btn btn-sm btn-outline-primary" data-perm="Ajouter / modifier événement" data-perm-mode="action" onclick="openEvtModal('${evt.id}')"><i class="bi bi-pencil"></i></button>
+                       <button class="btn btn-sm btn-outline-danger" data-perm="Supprimer événement" data-perm-mode="action" onclick="deleteEvt('${evt.id}')"><i class="bi bi-trash"></i></button>`
                     : ''}
                 </div>
               </div>
@@ -409,28 +650,23 @@
           </div>
         </div>`;
     }).join('');
+    AUTH.applyPermissions(container);
   }
 
-  function _esc(s) {
-    return String(s || '').replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;');
-  }
-
-  /* ── Participer / Annuler ─────────────────────────────── */
   function participerEvent(eventId, e) {
     if (e) e.stopPropagation();
-    const user = AUTH.getUser();
+    const user = AUTH.getCurrentUser();
     if (!user) { window.location.href = 'login.html?redirect=evenements.html'; return; }
     PROFILE.recordParticipation(user.id, eventId);
     if (typeof LOG !== 'undefined') LOG.add(user.id, `Participation enregistrée : ${eventId}`);
     renderEvents();
-    /* Mettre à jour le modal détail s'il est ouvert */
     const openEvt = DATA.getEvents().find(ev => ev.id === eventId);
     if (openEvt) _refreshDetailFooter(openEvt);
   }
 
   function annulerParticipation(eventId, e) {
     if (e) e.stopPropagation();
-    const user = AUTH.getUser();
+    const user = AUTH.getCurrentUser();
     if (!user) return;
     if (!confirm('Annuler votre participation à cet événement ?')) return;
     PROFILE.cancelParticipation(user.id, eventId);
@@ -440,38 +676,67 @@
     if (openEvt) _refreshDetailFooter(openEvt);
   }
 
-  /* ── Modal détail ─────────────────────────────────────── */
+  function renderSpecialPriceList(evt) {
+    if (!(typeof SPECIAL_EVENT !== 'undefined' && SPECIAL_EVENT.isSpecialEvent(evt))) return '';
+    const config = SPECIAL_EVENT.normalizeConfig(evt.specialConfig || {});
+    return `
+      <div class="card special-panel border-0 rounded-4 mt-3">
+        <div class="card-body">
+          <h3 class="h6 fw-bold mb-3"><i class="bi bi-calculator me-2"></i>Grille tarifaire</h3>
+          <div class="row g-2 small">
+            <div class="col-6 col-md-4"><div class="p-2 border rounded bg-white">Bénéficiaire<br><strong>${formatMoney(config.beneficiaryPrice)}</strong></div></div>
+            <div class="col-6 col-md-4"><div class="p-2 border rounded bg-white">Adhérent<br><strong>${formatMoney(config.adherentPrice)}</strong></div></div>
+            <div class="col-6 col-md-4"><div class="p-2 border rounded bg-white">Famille<br><strong>${formatMoney(config.familyPrice)}</strong></div></div>
+            <div class="col-6 col-md-4"><div class="p-2 border rounded bg-white">Non-adhérent<br><strong>${formatMoney(config.nonAdherentPrice)}</strong></div></div>
+            <div class="col-6 col-md-4"><div class="p-2 border rounded bg-white">Direction<br><strong>${formatMoney(config.directionPrice)}</strong></div></div>
+            <div class="col-6 col-md-4"><div class="p-2 border rounded bg-white">Délégué<br><strong>${formatMoney(config.delegatePrice)}</strong></div></div>
+          </div>
+          <p class="small text-muted mb-0 mt-3"><strong>Modes de paiement :</strong> ${config.paymentModes.map(_esc).join(', ')}</p>
+        </div>
+      </div>`;
+  }
+
   function openDetail(eventId) {
     const evt = DATA.getEvents().find(e => e.id === eventId);
     if (!evt) return;
     const c = CAT[evt.categorie] || CAT.autre;
-    const { count, max } = getParticipationState(evt);
-    const placesHtml = max > 0
-      ? `<div class="progress mt-1" style="height:6px;">
-           <div class="progress-bar bg-primary" style="width:${Math.min(100,Math.round(count/max*100))}%"></div>
-         </div>
-         <small class="text-muted">${count} / ${max} places</small>`
-      : count > 0 ? `<small class="text-muted">${count} inscrit${count>1?'s':''}</small>` : '';
+    const state = getParticipationState(evt);
+    const placesHtml = state.max > 0
+      ? `<div class="progress mt-1" style="height:6px;"><div class="progress-bar bg-primary" style="width:${Math.min(100,Math.round(state.count/state.max*100))}%"></div></div><small class="text-muted">${state.count} / ${state.max} places</small>`
+      : state.count > 0 ? `<small class="text-muted">${state.count} inscrit${state.count>1?'s':''}</small>` : '';
+    const specialInfo = typeof SPECIAL_EVENT !== 'undefined' && SPECIAL_EVENT.isSpecialEvent(evt)
+      ? `<div class="col-sm-6">
+           <p class="mb-1"><i class="bi bi-calendar-check text-warning me-2"></i><strong>Limite confirmation :</strong> ${evt.dateLimitConfirmation ? fmtDate(evt.dateLimitConfirmation) : 'Non définie'}</p>
+           ${evt.dateLimitPaiement ? `<p class="mb-1"><i class="bi bi-wallet2 text-success me-2"></i><strong>Limite paiement :</strong> ${fmtDate(evt.dateLimitPaiement)}</p>` : ''}
+           <p class="mb-1"><i class="bi bi-mortarboard text-primary me-2"></i><strong>Pièces :</strong> Diplôme ou relevé de notes obligatoire</p>
+           <p class="mb-0"><i class="bi bi-stars text-danger me-2"></i><strong>Formule :</strong> Total = bénéficiaires présents + adhérent présent + accompagnateurs</p>
+         </div>`
+      : `<div class="col-sm-6">
+           ${evt.dateLimitParticipation ? `<p class="mb-1"><i class="bi bi-calendar-check text-warning me-2"></i><strong>Limite inscription :</strong> ${fmtDate(evt.dateLimitParticipation)}</p>` : ''}
+           ${evt.prixParticipant > 0 ? `<p class="mb-1"><i class="bi bi-cash text-success me-2"></i><strong>Prix :</strong> ${formatMoney(evt.prixParticipant)} / participant</p>` : ''}
+           <div class="mt-2">${placesHtml}</div>
+         </div>`;
 
     document.getElementById('detailModalLabel').textContent = evt.titre;
     document.getElementById('detail-body').innerHTML = `
+      ${evt.photo ? `<img src="${_esc(evt.photo)}" alt="${_esc(evt.titre)}" class="img-fluid rounded-4 mb-3 w-100" style="max-height:260px;object-fit:cover;" />` : ''}
       <div class="d-flex flex-wrap gap-2 mb-3">
         <span class="badge ${c.cls}"><i class="bi ${c.icon} me-1"></i>${c.label}</span>
-        <span class="badge bg-light text-dark border">${evt.acces === 'membres' ? 'Membres uniquement' : 'Ouvert à tous'}</span>
+        <span class="badge bg-light text-dark border">${DATA.getAccessLabel(evt.acces)}</span>
+        ${typeof SPECIAL_EVENT !== 'undefined' && SPECIAL_EVENT.isSpecialEvent(evt) ? '<span class="badge special-badge"><i class="bi bi-stars me-1"></i>Événement spécial</span>' : ''}
       </div>
       <div class="row g-3">
         <div class="col-sm-6">
-          <p class="mb-1"><i class="bi bi-calendar-event text-primary me-2"></i><strong>Date :</strong> ${fmtDate(evt.date)}</p>
+          <p class="mb-1"><i class="bi bi-calendar-event text-primary me-2"></i><strong>Début :</strong> ${fmtDate(evt.date)}</p>
+          ${evt.dateFin ? `<p class="mb-1"><i class="bi bi-calendar-range text-primary me-2"></i><strong>Fin :</strong> ${fmtDate(evt.dateFin)}</p>` : ''}
           ${evt.heure ? `<p class="mb-1"><i class="bi bi-clock text-primary me-2"></i><strong>Heure :</strong> ${evt.heure}</p>` : ''}
           <p class="mb-1"><i class="bi bi-geo-alt text-primary me-2"></i><strong>Lieu :</strong> ${_esc(evt.lieu)}</p>
-        </div>
-        <div class="col-sm-6">
-          ${evt.dateLimitParticipation ? `<p class="mb-1"><i class="bi bi-calendar-check text-warning me-2"></i><strong>Limite inscription :</strong> ${fmtDate(evt.dateLimitParticipation)}</p>` : ''}
-          ${evt.prixParticipant > 0 ? `<p class="mb-1"><i class="bi bi-cash text-success me-2"></i><strong>Prix :</strong> ${Number(evt.prixParticipant).toLocaleString('fr')} DA / participant</p>` : ''}
           <div class="mt-2">${placesHtml}</div>
         </div>
+        ${specialInfo}
       </div>
-      ${evt.description ? `<hr/><p class="text-muted">${_esc(evt.description)}</p>` : ''}
+      ${evt.description ? `<hr/><p class="text-muted mb-0">${_esc(evt.description)}</p>` : ''}
+      ${renderSpecialPriceList(evt)}
     `;
     _refreshDetailFooter(evt);
     new bootstrap.Modal(document.getElementById('detailModal')).show();
@@ -481,73 +746,141 @@
     const footer = document.getElementById('detail-footer');
     if (!footer) return;
     footer.innerHTML = `<div class="d-flex align-items-center gap-2 flex-wrap">
-      ${buildParticipateBtn(evt, true)}
+      ${buildParticipateBtn(evt)}
       <button class="btn btn-outline-secondary" data-bs-dismiss="modal">Fermer</button>
     </div>`;
   }
 
-  /* ── Créer / Modifier événement (admin+) ──────────────── */
+  function toggleEvtSpecialFields() {
+    const type = document.getElementById('evt-type')?.value || 'standard';
+    const special = document.getElementById('evt-special-fields');
+    const standardFields = document.querySelectorAll('.evt-standard-field');
+    const standardHeader = document.getElementById('evt-standard-header');
+    if (special) special.classList.toggle('d-none', type !== 'journee-savoir');
+    standardFields.forEach(el => el.classList.toggle('d-none', type === 'journee-savoir'));
+    if (standardHeader) standardHeader.classList.toggle('d-none', type === 'journee-savoir');
+  }
+
   function openEvtModal(eventId) {
+    if (!AUTH.hasPermission('Ajouter / modifier événement', AUTH.getCurrentUser(), null, 'action')) {
+      alert('Droits insuffisants pour gérer les événements.');
+      return;
+    }
     const modal = document.getElementById('evtModal');
-    document.getElementById('evt-id').value           = '';
-    document.getElementById('evt-titre').value        = '';
-    document.getElementById('evt-date').value         = '';
-    document.getElementById('evt-heure').value        = '';
-    document.getElementById('evt-lieu').value         = '';
-    document.getElementById('evt-categorie').value    = 'sport';
-    document.getElementById('evt-acces').value        = 'tous';
-    document.getElementById('evt-description').value  = '';
-    document.getElementById('evt-limitParticipation').value = '';
-    document.getElementById('evt-nbMin').value = 0;
-    document.getElementById('evt-nbMax').value = 0;
-    document.getElementById('evt-quotaMin').value = 1;
-    document.getElementById('evt-quotaMax').value = 1;
-    document.getElementById('evt-prix').value = 0;
+    const setValue = (id, value) => { const el = document.getElementById(id); if (el) el.value = value; };
+    setValue('evt-id', '');
+    setValue('evt-titre', '');
+    setValue('evt-date', '');
+    setValue('evt-dateFin', '');
+    setValue('evt-heure', '');
+    setValue('evt-lieu', '');
+    setValue('evt-categorie', 'sport');
+    setValue('evt-acces', 'tous');
+    setValue('evt-type', 'standard');
+    setValue('evt-description', '');
+    setValue('evt-photo', '');
+    setValue('evt-limitParticipation', '');
+    setValue('evt-limitConfirmation', '');
+    setValue('evt-limitPaiement', '');
+    setValue('evt-nbMin', 0);
+    setValue('evt-nbMax', 0);
+    setValue('evt-quotaMin', 1);
+    setValue('evt-quotaMax', 1);
+    setValue('evt-prix', 0);
+    setValue('evt-diploma-folder', 'diplome');
+    setValue('evt-price-beneficiary', 0);
+    setValue('evt-price-adherent', 0);
+    setValue('evt-price-family', 0);
+    setValue('evt-price-nonadherent', 0);
+    setValue('evt-price-direction', 0);
+    setValue('evt-price-delegate', 0);
+    setValue('evt-payment-modes', 'Retenue sur salaire, Espèces, Virement');
     document.getElementById('evtModalLabel').textContent = 'Créer un événement';
 
     if (eventId) {
       const evt = DATA.getEvents().find(e => e.id === eventId);
       if (evt) {
-        document.getElementById('evt-id').value          = evt.id;
-        document.getElementById('evt-titre').value       = evt.titre;
-        document.getElementById('evt-date').value        = evt.date;
-        document.getElementById('evt-heure').value       = evt.heure || '';
-        document.getElementById('evt-lieu').value        = evt.lieu;
-        document.getElementById('evt-categorie').value   = evt.categorie || 'sport';
-        document.getElementById('evt-acces').value       = evt.acces || 'tous';
-        document.getElementById('evt-description').value = evt.description || '';
-        document.getElementById('evt-limitParticipation').value = evt.dateLimitParticipation || '';
-        document.getElementById('evt-nbMin').value  = evt.nbMinParticipants || 0;
-        document.getElementById('evt-nbMax').value  = evt.nbMaxParticipants || 0;
-        document.getElementById('evt-quotaMin').value = evt.quotaMin || 1;
-        document.getElementById('evt-quotaMax').value = evt.quotaMax || 1;
-        document.getElementById('evt-prix').value   = evt.prixParticipant || 0;
+        const config = (typeof SPECIAL_EVENT !== 'undefined' ? SPECIAL_EVENT.normalizeConfig(evt.specialConfig || {}) : evt.specialConfig || {});
+        setValue('evt-id', evt.id);
+        setValue('evt-titre', evt.titre);
+        setValue('evt-date', evt.date);
+        setValue('evt-dateFin', evt.dateFin || evt.date || '');
+        setValue('evt-heure', evt.heure || '');
+        setValue('evt-lieu', evt.lieu);
+        setValue('evt-categorie', evt.categorie || 'sport');
+        setValue('evt-acces', evt.acces || 'tous');
+        setValue('evt-type', evt.eventType || 'standard');
+        setValue('evt-description', evt.description || '');
+        setValue('evt-photo', evt.photo || '');
+        setValue('evt-limitParticipation', evt.dateLimitParticipation || '');
+        setValue('evt-limitConfirmation', evt.dateLimitConfirmation || evt.dateLimitParticipation || '');
+        setValue('evt-limitPaiement', evt.dateLimitPaiement || '');
+        setValue('evt-nbMin', evt.nbMinParticipants || 0);
+        setValue('evt-nbMax', evt.nbMaxParticipants || 0);
+        setValue('evt-quotaMin', evt.quotaMin || 1);
+        setValue('evt-quotaMax', evt.quotaMax || 1);
+        setValue('evt-prix', evt.prixParticipant || 0);
+        setValue('evt-diploma-folder', config.diplomaFolder || 'diplome');
+        setValue('evt-price-beneficiary', config.beneficiaryPrice || 0);
+        setValue('evt-price-adherent', config.adherentPrice || 0);
+        setValue('evt-price-family', config.familyPrice || 0);
+        setValue('evt-price-nonadherent', config.nonAdherentPrice || 0);
+        setValue('evt-price-direction', config.directionPrice || 0);
+        setValue('evt-price-delegate', config.delegatePrice || 0);
+        setValue('evt-payment-modes', (config.paymentModes || []).join(', '));
         document.getElementById('evtModalLabel').textContent = 'Modifier l\'événement';
       }
     }
+    toggleEvtSpecialFields();
     new bootstrap.Modal(modal).show();
   }
 
   function saveEvt() {
+    if (!AUTH.hasPermission('Ajouter / modifier événement', AUTH.getCurrentUser(), null, 'action')) {
+      alert('Droits insuffisants pour enregistrer cet événement.');
+      return;
+    }
     const titre = document.getElementById('evt-titre').value.trim();
     const date  = document.getElementById('evt-date').value;
     const lieu  = document.getElementById('evt-lieu').value.trim();
+    const eventType = document.getElementById('evt-type').value;
     if (!titre || !date || !lieu) { alert('Titre, date et lieu sont obligatoires.'); return; }
 
-    const user = AUTH.getUser();
+    const user = AUTH.getCurrentUser();
+    const confirmationDate = document.getElementById('evt-limitConfirmation').value;
     const evtData = {
-      titre, date, lieu,
-      heure       : document.getElementById('evt-heure').value,
-      categorie   : document.getElementById('evt-categorie').value,
-      acces       : document.getElementById('evt-acces').value,
-      description : document.getElementById('evt-description').value.trim(),
-      dateLimitParticipation: document.getElementById('evt-limitParticipation').value,
+      titre,
+      date,
+      dateFin: document.getElementById('evt-dateFin').value || date,
+      lieu,
+      heure: document.getElementById('evt-heure').value,
+      categorie: document.getElementById('evt-categorie').value,
+      acces: document.getElementById('evt-acces').value,
+      eventType,
+      description: document.getElementById('evt-description').value.trim(),
+      photo: document.getElementById('evt-photo').value.trim(),
+      dateLimitParticipation: eventType === 'journee-savoir' ? confirmationDate : document.getElementById('evt-limitParticipation').value,
+      dateLimitConfirmation: eventType === 'journee-savoir' ? confirmationDate : document.getElementById('evt-limitParticipation').value,
       nbMinParticipants: Number(document.getElementById('evt-nbMin').value) || 0,
       nbMaxParticipants: Number(document.getElementById('evt-nbMax').value) || 0,
-      quotaMin    : Number(document.getElementById('evt-quotaMin').value) || 1,
-      quotaMax    : Number(document.getElementById('evt-quotaMax').value) || 1,
-      prixParticipant: Number(document.getElementById('evt-prix').value) || 0,
-      modalitesPaiement: [], dateLimitPaiement: '', locationConfig: null
+      quotaMin: Number(document.getElementById('evt-quotaMin').value) || 1,
+      quotaMax: Number(document.getElementById('evt-quotaMax').value) || 1,
+      prixParticipant: eventType === 'journee-savoir' ? 0 : (Number(document.getElementById('evt-prix').value) || 0),
+      modalitesPaiement: [],
+      dateLimitPaiement: document.getElementById('evt-limitPaiement').value,
+      locationConfig: null,
+      specialConfig: eventType === 'journee-savoir'
+        ? {
+            beneficiaryPrice: Number(document.getElementById('evt-price-beneficiary').value) || 0,
+            adherentPrice: Number(document.getElementById('evt-price-adherent').value) || 0,
+            familyPrice: Number(document.getElementById('evt-price-family').value) || 0,
+            nonAdherentPrice: Number(document.getElementById('evt-price-nonadherent').value) || 0,
+            directionPrice: Number(document.getElementById('evt-price-direction').value) || 0,
+            delegatePrice: Number(document.getElementById('evt-price-delegate').value) || 0,
+            paymentModes: document.getElementById('evt-payment-modes').value,
+            diplomaFolder: document.getElementById('evt-diploma-folder').value.trim() || 'diplome'
+          }
+        : {}
     };
 
     const id = document.getElementById('evt-id').value;
@@ -563,12 +896,398 @@
     renderEvents();
   }
 
+  function defaultSpecialBeneficiary() {
+    return { id: 'ben_' + Date.now() + '_' + Math.random().toString(36).slice(2, 5), nom: '', prenom: '', studyLevel: 'primaire6', success: true, average: '', present: true, documentUrl: '', documentPath: '', documentProvider: '', documentName: '' };
+  }
+
+  function defaultSpecialCompanion() {
+    return { id: 'acc_' + Date.now() + '_' + Math.random().toString(36).slice(2, 5), category: 'externe', linkedUserId: '', linkedFamilyId: '', nom: '', prenom: '', present: true };
+  }
+
+  function currentSpecialEvent() {
+    return DATA.getEvents().find(item => item.id === _specialFormState.eventId) || null;
+  }
+
+  function currentSpecialUser() {
+    return AUTH.getCurrentUser();
+  }
+
+  function getFamilyMemberOptions(user) {
+    const profile = typeof PROFILE !== 'undefined' ? PROFILE.getProfile(user.id) : user;
+    const ownFamily = (profile?.famille || []).map(item => ({
+      id: item.id,
+      nom: item.nom,
+      prenom: item.prenom,
+      label: `${item.prenom} ${item.nom} (${item.relation || 'famille'})`
+    }));
+    const linkedFamily = typeof PROFILE !== 'undefined' && typeof PROFILE.getLinkedFamilyMembers === 'function'
+      ? PROFILE.getLinkedFamilyMembers(user.id).map(item => ({ id: item.id, nom: item.nom, prenom: item.prenom, label: `${item.prenom} ${item.nom} (compte famille)` }))
+      : [];
+    return [...ownFamily, ...linkedFamily];
+  }
+
+  function getColleagueOptions(user) {
+    return AUTH.getUsers()
+      .filter(item => item.statut === 'actif' && item.id !== user.id)
+      .map(item => ({ id: item.id, nom: item.nom, prenom: item.prenom, label: `${item.prenom} ${item.nom} (@${item.login})`, pricingCategory: SPECIAL_EVENT.getRolePricingCategory(item) }));
+  }
+
+  function updateSpecialBeneficiary(id, field, value) {
+    _specialFormState.beneficiaries = _specialFormState.beneficiaries.map(item => item.id === id ? { ...item, [field]: value } : item);
+    renderSpecialBeneficiaries();
+    refreshSpecialTotals();
+  }
+
+  function removeSpecialBeneficiary(id) {
+    _specialFormState.beneficiaries = _specialFormState.beneficiaries.filter(item => item.id !== id);
+    renderSpecialBeneficiaries();
+    refreshSpecialTotals();
+  }
+
+  function addSpecialBeneficiary() {
+    _specialFormState.beneficiaries.push(defaultSpecialBeneficiary());
+    renderSpecialBeneficiaries();
+    refreshSpecialTotals();
+  }
+
+  function renderSpecialBeneficiaries() {
+    const container = document.getElementById('special-beneficiaries-list');
+    if (!container) return;
+    const options = SPECIAL_EVENT.getStudyLevels().map(item => `<option value="${item.value}">${_esc(item.label)}</option>`).join('');
+    container.innerHTML = _specialFormState.beneficiaries.length ? _specialFormState.beneficiaries.map((item, index) => {
+      const review = SPECIAL_EVENT.evaluateBeneficiary(item);
+      const averageRequired = review.rule?.minAverage !== null;
+      const badge = review.eligible ? '<span class="badge bg-success">Éligible</span>' : '<span class="badge bg-danger">À corriger</span>';
+      const link = item.documentUrl ? `<a class="special-doc-link small" href="${_esc(item.documentUrl)}" target="_blank" rel="noopener">${_esc(item.documentName || 'Document')}</a>` : '<span class="text-muted small">Aucun document téléversé</span>';
+      return `
+        <div class="card border-0 shadow-sm rounded-4">
+          <div class="card-body">
+            <div class="d-flex justify-content-between align-items-center mb-3">
+              <h4 class="h6 mb-0">Bénéficiaire ${index + 1}</h4>
+              <div class="d-flex align-items-center gap-2">${badge}<button type="button" class="btn btn-sm btn-outline-danger" onclick="removeSpecialBeneficiary('${item.id}')"><i class="bi bi-trash"></i></button></div>
+            </div>
+            <div class="row g-3">
+              <div class="col-md-4"><label class="form-label small fw-semibold">Nom</label><input class="form-control" value="${_esc(item.nom)}" oninput="updateSpecialBeneficiary('${item.id}','nom',this.value.toUpperCase())"></div>
+              <div class="col-md-4"><label class="form-label small fw-semibold">Prénom</label><input class="form-control" value="${_esc(item.prenom)}" oninput="updateSpecialBeneficiary('${item.id}','prenom',this.value)"></div>
+              <div class="col-md-4"><label class="form-label small fw-semibold">Niveau d'études</label><select class="form-select" onchange="updateSpecialBeneficiary('${item.id}','studyLevel',this.value)">${options.replace(`value="${item.studyLevel}"`, `value="${item.studyLevel}" selected`)}</select></div>
+              <div class="col-md-4"><label class="form-label small fw-semibold">Moyenne /20</label><input type="number" step="0.01" min="0" max="20" class="form-control" value="${item.average ?? ''}" placeholder="${averageRequired ? 'Requise' : 'Non exigée'}" oninput="updateSpecialBeneficiary('${item.id}','average',this.value)"></div>
+              <div class="col-md-4 d-flex align-items-end"><div class="form-check form-switch mb-2"><input class="form-check-input" type="checkbox" ${item.success ? 'checked' : ''} onchange="updateSpecialBeneficiary('${item.id}','success',this.checked)"><label class="form-check-label">Succès</label></div></div>
+              <div class="col-md-4 d-flex align-items-end"><div class="form-check form-switch mb-2"><input class="form-check-input" type="checkbox" ${item.present !== false ? 'checked' : ''} onchange="updateSpecialBeneficiary('${item.id}','present',this.checked)"><label class="form-check-label">Présence du bénéficiaire</label></div></div>
+              <div class="col-md-8"><label class="form-label small fw-semibold">Diplôme / relevé</label><input type="file" class="form-control" accept=".pdf,.jpg,.jpeg,.png,.webp,.doc,.docx" onchange="handleSpecialDocumentUpload('${item.id}', this)"><div class="mt-2">${link}</div></div>
+              <div class="col-md-4"><label class="form-label small fw-semibold">Contrôle</label><div class="form-control-plaintext small ${review.eligible ? 'text-success' : 'text-danger'}">${review.eligible ? 'Éligible selon la grille académique' : _esc(review.reason || 'À vérifier')}</div></div>
+            </div>
+          </div>
+        </div>`;
+    }).join('') : '<div class="text-muted small">Aucun bénéficiaire ajouté.</div>';
+  }
+
+  function updateSpecialCompanion(id, field, value) {
+    _specialFormState.companions = _specialFormState.companions.map(item => item.id === id ? { ...item, [field]: value } : item);
+    if (field === 'category') {
+      _specialFormState.companions = _specialFormState.companions.map(item => item.id === id ? { ...item, linkedUserId: '', linkedFamilyId: '', nom: '', prenom: '' } : item);
+    }
+    renderSpecialCompanions();
+    refreshSpecialTotals();
+  }
+
+  function syncSpecialCompanionSource(id, field, value) {
+    const user = currentSpecialUser();
+    const colleagues = getColleagueOptions(user);
+    const family = getFamilyMemberOptions(user);
+    _specialFormState.companions = _specialFormState.companions.map(item => {
+      if (item.id !== id) return item;
+      if (field === 'linkedUserId') {
+        const selected = colleagues.find(entry => entry.id === value);
+        return { ...item, linkedUserId: value, pricingCategory: selected?.pricingCategory || 'adherent', nom: selected?.nom || '', prenom: selected?.prenom || '' };
+      }
+      if (field === 'linkedFamilyId') {
+        const selected = family.find(entry => entry.id === value);
+        return { ...item, linkedFamilyId: value, pricingCategory: 'famille', nom: selected?.nom || '', prenom: selected?.prenom || '' };
+      }
+      return item;
+    });
+    renderSpecialCompanions();
+    refreshSpecialTotals();
+  }
+
+  function removeSpecialCompanion(id) {
+    _specialFormState.companions = _specialFormState.companions.filter(item => item.id !== id);
+    renderSpecialCompanions();
+    refreshSpecialTotals();
+  }
+
+  function addSpecialCompanion() {
+    _specialFormState.companions.push(defaultSpecialCompanion());
+    renderSpecialCompanions();
+    refreshSpecialTotals();
+  }
+
+  function renderSpecialCompanions() {
+    const container = document.getElementById('special-companions-list');
+    if (!container) return;
+    const user = currentSpecialUser();
+    const colleagues = getColleagueOptions(user);
+    const family = getFamilyMemberOptions(user);
+    container.innerHTML = _specialFormState.companions.length ? _specialFormState.companions.map((item, index) => {
+      const category = item.category || 'externe';
+      const colleagueOptions = colleagues.map(entry => `<option value="${entry.id}" ${entry.id === item.linkedUserId ? 'selected' : ''}>${_esc(entry.label)}</option>`).join('');
+      const familyOptions = family.map(entry => `<option value="${entry.id}" ${entry.id === item.linkedFamilyId ? 'selected' : ''}>${_esc(entry.label)}</option>`).join('');
+      const manualFields = category === 'externe'
+        ? `<div class="col-md-3"><label class="form-label small fw-semibold">Nom</label><input class="form-control" value="${_esc(item.nom)}" oninput="updateSpecialCompanion('${item.id}','nom',this.value.toUpperCase())"></div>
+           <div class="col-md-3"><label class="form-label small fw-semibold">Prénom</label><input class="form-control" value="${_esc(item.prenom)}" oninput="updateSpecialCompanion('${item.id}','prenom',this.value)"></div>`
+        : category === 'adherent'
+          ? `<div class="col-md-6"><label class="form-label small fw-semibold">Collègue</label><select class="form-select" onchange="syncSpecialCompanionSource('${item.id}','linkedUserId',this.value)"><option value="">Sélectionner</option>${colleagueOptions}</select></div>`
+          : `<div class="col-md-6"><label class="form-label small fw-semibold">Famille liée</label><select class="form-select" onchange="syncSpecialCompanionSource('${item.id}','linkedFamilyId',this.value)"><option value="">Sélectionner</option>${familyOptions}</select></div>`;
+      return `
+        <div class="card border-0 shadow-sm rounded-4">
+          <div class="card-body">
+            <div class="d-flex justify-content-between align-items-center mb-3">
+              <h4 class="h6 mb-0">Accompagnateur ${index + 1}</h4>
+              <button type="button" class="btn btn-sm btn-outline-danger" onclick="removeSpecialCompanion('${item.id}')"><i class="bi bi-trash"></i></button>
+            </div>
+            <div class="row g-3 align-items-end">
+              <div class="col-md-3"><label class="form-label small fw-semibold">Profil</label><select class="form-select" onchange="updateSpecialCompanion('${item.id}','category',this.value)"><option value="adherent" ${category === 'adherent' ? 'selected' : ''}>Adhérent</option><option value="famille" ${category === 'famille' ? 'selected' : ''}>Famille</option><option value="externe" ${category === 'externe' ? 'selected' : ''}>Externe</option></select></div>
+              ${manualFields}
+              <div class="col-md-3"><div class="form-check form-switch mb-2"><input class="form-check-input" type="checkbox" ${item.present !== false ? 'checked' : ''} onchange="updateSpecialCompanion('${item.id}','present',this.checked)"><label class="form-check-label">Présence</label></div></div>
+              <div class="col-12"><div class="small text-muted">Tarif appliqué automatiquement selon le profil sélectionné.</div></div>
+            </div>
+          </div>
+        </div>`;
+    }).join('') : '<div class="text-muted small">Aucun accompagnateur ajouté.</div>';
+  }
+
+  async function handleSpecialDocumentUpload(id, input) {
+    const file = input?.files?.[0];
+    const evt = currentSpecialEvent();
+    if (!file || !evt) return;
+    if (typeof MEDIA_UPLOAD === 'undefined' || !MEDIA_UPLOAD.isAvailable()) {
+      alert('Le stockage distant est requis pour téléverser le diplôme.');
+      input.value = '';
+      return;
+    }
+    try {
+      const folder = (evt.specialConfig && evt.specialConfig.diplomaFolder) || 'diplome';
+      const result = await MEDIA_UPLOAD.uploadFile(file, folder);
+      _specialFormState.beneficiaries = _specialFormState.beneficiaries.map(item => item.id === id ? {
+        ...item,
+        documentUrl: result.url,
+        documentPath: result.path,
+        documentProvider: result.provider,
+        documentName: result.name || file.name
+      } : item);
+      renderSpecialBeneficiaries();
+      refreshSpecialTotals();
+    } catch (error) {
+      alert('Téléversement du diplôme impossible : ' + error.message);
+    } finally {
+      input.value = '';
+    }
+  }
+
+  function refreshSpecialTotals() {
+    const panel = document.getElementById('special-total-panel');
+    const evt = currentSpecialEvent();
+    const user = currentSpecialUser();
+    if (!panel || !evt || !user || typeof SPECIAL_EVENT === 'undefined') return;
+    const totals = SPECIAL_EVENT.calculateTotals(evt, user, {
+      applicantPresent: document.getElementById('special-applicant-present')?.checked === true,
+      beneficiaries: _specialFormState.beneficiaries,
+      companions: _specialFormState.companions
+    });
+    panel.innerHTML = `
+      <dl class="special-summary mb-0">
+        <dt>Présence adhérent</dt><dd>${totals.applicantPresent ? 'Oui' : 'Non'}${totals.applicantPresent ? ` · ${formatMoney(totals.applicantAmount)}` : ''}</dd>
+        <dt>Bénéficiaires présents</dt><dd>${totals.beneficiariesPresent} · ${formatMoney(totals.beneficiariesAmount)}</dd>
+        <dt>Accompagnateurs</dt><dd>${totals.companions.filter(item => item.present !== false).length} · ${formatMoney(totals.companionsAmount)}</dd>
+        <dt class="fs-6 text-dark">Total</dt><dd class="fs-5 fw-bold text-primary">${formatMoney(totals.total)}</dd>
+      </dl>`;
+  }
+
+  function openSpecialRegistrationModal(eventId) {
+    const user = AUTH.getCurrentUser();
+    if (!user) { window.location.href = 'login.html?redirect=evenements.html'; return; }
+    const evt = DATA.getEvents().find(item => item.id === eventId);
+    if (!evt || !(typeof SPECIAL_EVENT !== 'undefined' && SPECIAL_EVENT.isSpecialEvent(evt))) return;
+    const existing = SPECIAL_EVENT.getUserRegistration(evt.id, user.id);
+    _specialFormState = {
+      eventId: evt.id,
+      beneficiaries: existing?.beneficiaries?.length ? existing.beneficiaries.map(item => ({ ...item, average: item.average ?? '' })) : [defaultSpecialBeneficiary()],
+      companions: existing?.companions?.length ? existing.companions.map(item => ({ ...item })) : []
+    };
+    const config = SPECIAL_EVENT.normalizeConfig(evt.specialConfig || {});
+    document.getElementById('special-event-id').value = evt.id;
+    document.getElementById('specialRegistrationLabel').textContent = existing ? 'Mettre à jour le dossier' : 'Inscription Événement Spécial';
+    document.getElementById('special-registration-subtitle').textContent = evt.titre;
+    document.getElementById('special-registration-alert').className = `alert ${existing?.status === SPECIAL_EVENT.STATUS.approved ? 'alert-success' : existing?.status === SPECIAL_EVENT.STATUS.rejected ? 'alert-danger' : 'alert-info'} py-2 small mb-4`;
+    document.getElementById('special-registration-alert').textContent = existing
+      ? `Statut actuel : ${SPECIAL_EVENT.getStatusMeta(existing.status).label}. Vous pouvez revoir votre dossier et le mettre à jour si nécessaire.`
+      : 'Les règles académiques sont vérifiées automatiquement avant enregistrement.';
+    document.getElementById('special-event-summary').innerHTML = `
+      <div><strong>${_esc(evt.lieu)}</strong> · ${fmtDate(evt.date)}${evt.dateFin && evt.dateFin !== evt.date ? ` au ${fmtDate(evt.dateFin)}` : ''}</div>
+      <div class="mt-1">Limite confirmation : <strong>${evt.dateLimitConfirmation ? fmtDate(evt.dateLimitConfirmation) : 'Non définie'}</strong>${evt.dateLimitPaiement ? ` · Limite paiement : <strong>${fmtDate(evt.dateLimitPaiement)}</strong>` : ''}</div>`;
+    document.getElementById('special-payment-mode').innerHTML = config.paymentModes.map(mode => `<option value="${_esc(mode)}">${_esc(mode)}</option>`).join('');
+    document.getElementById('special-payment-mode').value = existing?.paymentMode || config.defaultPaymentMode;
+    document.getElementById('special-applicant-present').checked = existing?.applicantPresent === true;
+    document.getElementById('special-user-note').value = existing?.notes || '';
+    renderSpecialBeneficiaries();
+    renderSpecialCompanions();
+    refreshSpecialTotals();
+    new bootstrap.Modal(document.getElementById('specialRegistrationModal')).show();
+  }
+
+  function saveSpecialRegistration() {
+    const user = AUTH.getCurrentUser();
+    const evt = currentSpecialEvent();
+    if (!user || !evt || typeof SPECIAL_EVENT === 'undefined') return;
+    const deadline = getEventDeadline(evt);
+    const existing = SPECIAL_EVENT.getUserRegistration(evt.id, user.id);
+    if (deadline && new Date().toISOString().split('T')[0] > deadline && !existing) {
+      alert('Le délai de confirmation est dépassé pour cet événement.');
+      return;
+    }
+    try {
+      const record = SPECIAL_EVENT.saveRegistration(evt, user, {
+        paymentMode: document.getElementById('special-payment-mode').value,
+        applicantPresent: document.getElementById('special-applicant-present').checked,
+        beneficiaries: _specialFormState.beneficiaries,
+        companions: _specialFormState.companions,
+        notes: document.getElementById('special-user-note').value.trim()
+      });
+      if (typeof LOG !== 'undefined') LOG.add(user.id, `Dossier événement spécial enregistré : ${evt.titre} (${record.id})`);
+      bootstrap.Modal.getInstance(document.getElementById('specialRegistrationModal'))?.hide();
+      renderEvents();
+      alert('Le dossier a été enregistré.');
+    } catch (error) {
+      alert(error.message || 'Enregistrement impossible.');
+    }
+  }
+
+  function renderSpecialAdminPanel() {
+    const section = document.getElementById('special-admin-section');
+    if (!section || typeof SPECIAL_EVENT === 'undefined') return;
+    const user = AUTH.getCurrentUser();
+    const canReview = !!user && (AUTH.hasPermission('Valider inscription (en attente)', user, null, 'action') || AUTH.hasPermission('Rejeter inscription', user, null, 'action') || AUTH.hasPermission('Ajouter / modifier événement', user, null, 'action'));
+    const specialEvents = DATA.getEvents().filter(evt => SPECIAL_EVENT.isSpecialEvent(evt));
+    if (!canReview || !specialEvents.length) {
+      section.classList.add('d-none');
+      return;
+    }
+    section.classList.remove('d-none');
+    const select = document.getElementById('special-admin-event-filter');
+    const previous = _specialAdminEventId || select.value;
+    select.innerHTML = specialEvents.map(evt => `<option value="${evt.id}">${_esc(evt.titre)}</option>`).join('');
+    _specialAdminEventId = specialEvents.some(evt => evt.id === previous) ? previous : specialEvents[0].id;
+    select.value = _specialAdminEventId;
+    renderSpecialAdminTable();
+  }
+
+  function renderSpecialAdminTable() {
+    const eventId = document.getElementById('special-admin-event-filter')?.value;
+    if (!eventId || typeof SPECIAL_EVENT === 'undefined') return;
+    _specialAdminEventId = eventId;
+    const registrations = SPECIAL_EVENT.getEventRegistrations(eventId);
+    const tbody = document.getElementById('special-admin-tbody');
+    const summary = document.getElementById('special-admin-summary');
+    const counts = {
+      total: registrations.length,
+      pending: registrations.filter(item => item.status === SPECIAL_EVENT.STATUS.pending).length,
+      approved: registrations.filter(item => item.status === SPECIAL_EVENT.STATUS.approved).length,
+      rejected: registrations.filter(item => item.status === SPECIAL_EVENT.STATUS.rejected).length
+    };
+    summary.innerHTML = [
+      { label: 'Dossiers', value: counts.total, cls: 'primary' },
+      { label: 'En attente', value: counts.pending, cls: 'warning text-dark' },
+      { label: 'Validés', value: counts.approved, cls: 'success' },
+      { label: 'Rejetés', value: counts.rejected, cls: 'danger' }
+    ].map(card => `<div class="col-sm-6 col-xl-3"><div class="card border-0 shadow-sm"><div class="card-body"><div class="small text-muted">${card.label}</div><div class="display-6 fw-bold text-${card.cls.split(' ')[0]}">${card.value}</div></div></div></div>`).join('');
+    tbody.innerHTML = registrations.length ? registrations.map(reg => {
+      const meta = SPECIAL_EVENT.getStatusMeta(reg.status);
+      return `
+        <tr>
+          <td><div class="fw-semibold">${_esc(reg.userName)}</div><div class="small text-muted">@${_esc(reg.userLogin || '')}</div></td>
+          <td><span class="fw-semibold">${reg.beneficiaries.length}</span><div class="small text-muted">${reg.totals?.beneficiariesPresent || 0} présents</div></td>
+          <td><span class="fw-semibold">${reg.companions?.length || 0}</span><div class="small text-muted">${(reg.companions || []).filter(item => item.present !== false).length} présents</div></td>
+          <td><div>${_esc(reg.paymentMode || '—')}</div><div class="small text-muted">${reg.updatedAt ? new Date(reg.updatedAt).toLocaleDateString('fr-FR') : ''}</div></td>
+          <td class="fw-semibold">${formatMoney(reg.totals?.total || 0)}</td>
+          <td><span class="badge ${meta.badge}">${meta.label}</span></td>
+          <td class="text-end"><button class="btn btn-sm btn-outline-secondary me-1" onclick="openSpecialReviewModal('${reg.id}')"><i class="bi bi-eye"></i></button><button class="btn btn-sm btn-outline-success me-1" onclick="approveSpecialRegistration('${reg.id}')"><i class="bi bi-check-lg"></i></button><button class="btn btn-sm btn-outline-danger" onclick="rejectSpecialRegistration('${reg.id}')"><i class="bi bi-x-lg"></i></button></td>
+        </tr>`;
+    }).join('') : '<tr><td colspan="7" class="text-center text-muted py-4">Aucun dossier pour cet événement.</td></tr>';
+  }
+
+  function openSpecialReviewModal(registrationId) {
+    if (typeof SPECIAL_EVENT === 'undefined') return;
+    const reg = SPECIAL_EVENT.getRegistrations().find(item => item.id === registrationId);
+    if (!reg) return;
+    const event = DATA.getEvents().find(item => item.id === reg.eventId);
+    const meta = SPECIAL_EVENT.getStatusMeta(reg.status);
+    document.getElementById('specialReviewLabel').textContent = reg.eventTitle || event?.titre || 'Dossier d\'inscription';
+    document.getElementById('special-review-body').innerHTML = `
+      <div class="d-flex justify-content-between align-items-start mb-3">
+        <div>
+          <p class="mb-1 fw-semibold">${_esc(reg.userName)}</p>
+          <p class="small text-muted mb-0">Mode de paiement : ${_esc(reg.paymentMode || '—')} · Total : ${formatMoney(reg.totals?.total || 0)}</p>
+        </div>
+        <span class="badge ${meta.badge}">${meta.label}</span>
+      </div>
+      <h3 class="h6 fw-bold mt-3">Bénéficiaires</h3>
+      ${(reg.beneficiaries || []).map(item => `<div class="border rounded p-3 mb-2"><div class="fw-semibold">${_esc(item.prenom)} ${_esc(item.nom)}</div><div class="small text-muted">${_esc((SPECIAL_EVENT.getRules()[item.studyLevel] || {}).label || item.studyLevel)} · ${item.present ? 'Présent' : 'Absent'} · ${item.qualifies ? 'Éligible' : 'Non éligible'}</div><div class="small">Document : ${item.documentUrl ? `<a href="${_esc(item.documentUrl)}" target="_blank" rel="noopener">${_esc(item.documentName || 'Ouvrir')}</a>` : 'Non fourni'}</div></div>`).join('') || '<p class="text-muted small">Aucun bénéficiaire.</p>'}
+      <h3 class="h6 fw-bold mt-4">Accompagnateurs</h3>
+      ${(reg.companions || []).map(item => `<div class="border rounded p-3 mb-2"><div class="fw-semibold">${_esc(item.prenom)} ${_esc(item.nom)}</div><div class="small text-muted">${_esc(item.category)} · ${item.present ? 'Présent' : 'Absent'} · ${formatMoney(item.amount || 0)}</div></div>`).join('') || '<p class="text-muted small">Aucun accompagnateur.</p>'}
+      ${reg.adminNote ? `<div class="alert alert-light border mt-3 mb-0"><strong>Note admin :</strong> ${_esc(reg.adminNote)}</div>` : ''}`;
+    document.getElementById('special-review-footer').innerHTML = `<button class="btn btn-secondary" data-bs-dismiss="modal">Fermer</button><button class="btn btn-outline-success" onclick="approveSpecialRegistration('${reg.id}')">Valider</button><button class="btn btn-outline-danger" onclick="rejectSpecialRegistration('${reg.id}')">Rejeter</button>`;
+    new bootstrap.Modal(document.getElementById('specialReviewModal')).show();
+  }
+
+  function approveSpecialRegistration(registrationId) {
+    if (typeof SPECIAL_EVENT === 'undefined') return;
+    const actor = AUTH.getCurrentUser();
+    SPECIAL_EVENT.setRegistrationStatus(registrationId, SPECIAL_EVENT.STATUS.approved, actor, '');
+    renderEvents();
+    bootstrap.Modal.getInstance(document.getElementById('specialReviewModal'))?.hide();
+  }
+
+  function rejectSpecialRegistration(registrationId) {
+    if (typeof SPECIAL_EVENT === 'undefined') return;
+    const actor = AUTH.getCurrentUser();
+    const note = prompt('Motif du rejet (optionnel) :', '') || '';
+    SPECIAL_EVENT.setRegistrationStatus(registrationId, SPECIAL_EVENT.STATUS.rejected, actor, note);
+    renderEvents();
+    bootstrap.Modal.getInstance(document.getElementById('specialReviewModal'))?.hide();
+  }
+
+  async function uploadEventPhoto() {
+    const file = document.getElementById('evt-photo-file')?.files?.[0];
+    const status = document.getElementById('evt-photo-upload-state');
+    if (!file) {
+      if (status) status.textContent = 'Choisissez un fichier.';
+      return;
+    }
+    if (!MEDIA_UPLOAD.isAvailable()) {
+      if (status) status.textContent = 'Stockage distant indisponible.';
+      return;
+    }
+    if (status) status.textContent = 'Téléversement en cours…';
+    try {
+      const result = await MEDIA_UPLOAD.uploadFile(file, 'events');
+      document.getElementById('evt-photo').value = result.url;
+      if (status) status.textContent = 'Fichier téléversé.';
+    } catch (error) {
+      if (status) status.textContent = 'Échec du téléversement.';
+      alert('Téléversement impossible : ' + error.message);
+    }
+  }
+
   function deleteEvt(eventId) {
     const evt = DATA.getEvents().find(e => e.id === eventId);
     if (!evt) return;
+    if (!AUTH.hasPermission('Supprimer événement', AUTH.getCurrentUser(), null, 'action')) {
+      alert('Droits insuffisants pour supprimer cet événement.');
+      return;
+    }
     if (!confirm(`Supprimer l'événement "${evt.titre}" ?`)) return;
     DATA.deleteEvent(eventId);
-    const user = AUTH.getUser();
+    const user = AUTH.getCurrentUser();
     if (typeof LOG !== 'undefined') LOG.add(user?.id, `Événement supprimé : ${evt.titre}`);
     renderEvents();
   }
@@ -576,7 +1295,14 @@
   /* ── Init ─────────────────────────────────────────────── */
   document.addEventListener('DB_READY', renderEvents);
   document.addEventListener('DOMContentLoaded', () => {
+    /* Pré-filtrage via ?cat= (depuis activites.html) */
+    const urlCat = new URLSearchParams(location.search).get('cat') || '';
+    if (urlCat) {
+      const btn = document.querySelector(`.filter-bar .btn[data-cat="${urlCat}"]`);
+      if (btn) { _filterCat = urlCat; document.querySelectorAll('.filter-bar .btn').forEach(b => b.classList.remove('active')); btn.classList.add('active'); }
+    }
     if (typeof DATA !== 'undefined') renderEvents();
+    if (typeof MEDIA_UPLOAD !== 'undefined') MEDIA_UPLOAD.prewarmDriveToken();
   });
   </script>
 </body>

@@ -143,7 +143,7 @@
   <script src="js/contenu.js"></script>
   <script>
     /* ─── État ─────────────────────────────────────── */
-    const connectedUser = AUTH.getUser ? AUTH.getUser() : null;
+    const connectedUser = AUTH.getCurrentUser ? AUTH.getCurrentUser() : null;
     let currentCat = 'tous';
 
     /* ─── Badges catégories ─────────────────────────── */

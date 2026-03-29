@@ -1,4 +1,4 @@
-/**
+﻿/**
  * conventions.js — Module Conventions de l'Amicale
  *
  * Structure d'une convention :
@@ -24,7 +24,7 @@ const CONVENTIONS = (() => {
       description: 'Accès illimité à la salle de musculation et piscine pour les membres de l\'Amicale et leurs familles.',
       dateDebut: '2026-01-01', dateFin: '2026-12-31',
       acces: 'famille', categorie: 'loisir',
-      conditions: 'Présenter la carte d\'adhésion Amicale ATTT. Tarif : 1500 DA/mois au lieu de 3000 DA.',
+      conditions: 'Présenter la carte d\'adhésion Amicale ATTT. Tarif : 1500 TND/mois au lieu de 3000 TND.',
       contact: 'Tel: 023 XX XX XX', photo: null, actif: true
     },
     {
@@ -48,6 +48,18 @@ const CONVENTIONS = (() => {
     localStorage.setItem(KEY, JSON.stringify(list));
     if (typeof DB !== 'undefined') DB.push(KEY, list);
   }
+  function _directDriveUrl(url) {
+    const value = String(url || '').trim();
+    const match = value.match(/\/d\/([a-zA-Z0-9_-]+)/) || value.match(/[?&]id=([a-zA-Z0-9_-]+)/);
+    if (!match) return value;
+    return 'https://drive.google.com/uc?export=download&id=' + match[1];
+  }
+  function normalizePhotoUrl(url) {
+    const value = String(url || '').trim();
+    if (!value) return '';
+    if (!/drive\.google\.com/.test(value)) return value;
+    return _directDriveUrl(value);
+  }
   function _bootstrap() {
     if (!_load()) _save(DEFAULTS);
   }
@@ -56,6 +68,7 @@ const CONVENTIONS = (() => {
   function getConventions(filters = {}) {
     _bootstrap();
     let list = _load();
+    list = list.map(c => ({ ...c, photo: normalizePhotoUrl(c.photo) }));
     const now = new Date().toISOString().split('T')[0];
 
     if (filters.actif !== undefined) list = list.filter(c => c.actif === filters.actif);
@@ -95,7 +108,7 @@ const CONVENTIONS = (() => {
       categorie:   data.categorie || 'autre',
       conditions:  (data.conditions || '').trim(),
       contact:     (data.contact   || '').trim(),
-      photo:       data.photo      || null,
+      photo:       normalizePhotoUrl(data.photo) || null,
       actif:       data.actif !== false
     };
     list.push(conv);
@@ -108,7 +121,7 @@ const CONVENTIONS = (() => {
     if (!list) return false;
     const idx = list.findIndex(c => c.id === id);
     if (idx === -1) return false;
-    Object.assign(list[idx], changes);
+    Object.assign(list[idx], { ...changes, photo: normalizePhotoUrl(changes.photo ?? list[idx].photo) || null });
     _save(list);
     return true;
   }
@@ -129,7 +142,7 @@ const CONVENTIONS = (() => {
     reduction: 'warning', loisir: 'primary', sante: 'success',
     logement: 'info', autre: 'secondary'
   };
-  const ACCES_LABELS = { tous: 'Tous', membres: 'Membres', famille: 'Membres & Famille' };
+  const ACCES_LABELS = { tous: 'Tous', famille: 'Famille+', membres: 'Membres uniquement' };
 
   /* ── API publique ─────────────────────────────────────────── */
   return {

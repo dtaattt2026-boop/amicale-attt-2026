@@ -24,13 +24,31 @@ const DB = (() => {
   /* Clés localStorage synchronisées avec Firestore */
   const KEYS = ['attt_users', 'attt_events', 'attt_offers', 'attt_articles', 'attt_log',
                  'attt_conventions', 'attt_messages', 'attt_payments',
-                 'attt_rentals', 'attt_bookings', 'attt_participation_history', 'attt_galerie', 'attt_droits_matrix'];
+                 'attt_rentals', 'attt_bookings', 'attt_participation_history', 'attt_galerie',
+                 'attt_special_event_registrations', 'attt_droits_matrix', 'attt_role_defs', 'attt_permission_catalog', 'attt_site_settings', 'attt_home_ads'];
 
   /* Nom de la collection Firestore */
   const COLL = 'site_data';
 
   let _enabled = false;
   let _db      = null;
+
+  function _normalizeRightsMatrixValue(value) {
+    if (!Array.isArray(value) || !value.some(Array.isArray)) return value;
+    const roleIds = ['superviseur', 'admin', 'membre', 'famille'];
+    return value
+      .filter(row => Array.isArray(row) && row[0])
+      .map(row => {
+        const values = {};
+        roleIds.forEach((roleId, index) => { values[roleId] = row[index + 1] || '—'; });
+        return { label: row[0], values };
+      });
+  }
+
+  function _sanitizeForKey(key, value) {
+    if (key === 'attt_droits_matrix') return _normalizeRightsMatrixValue(value);
+    return value;
+  }
 
   /* ── Initialisation ────────────────────────────────────────── */
   async function init() {
@@ -64,7 +82,7 @@ const DB = (() => {
     const snapshot = await _db.collection(COLL).get();
     snapshot.forEach(doc => {
       if (KEYS.includes(doc.id)) {
-        const val = doc.data().value;
+        const val = _sanitizeForKey(doc.id, doc.data().value);
         if (val !== undefined && val !== null) {
           localStorage.setItem(doc.id, JSON.stringify(val));
         }
@@ -75,8 +93,9 @@ const DB = (() => {
   /* ── Push localStorage → Firestore (fire-and-forget) ──────── */
   function push(key, data) {
     if (!_db || !_enabled) return;
+    const safeData = _sanitizeForKey(key, data);
     _db.collection(COLL).doc(key)
-      .set({ value: data, updatedAt: new Date().toISOString() })
+      .set({ value: safeData, updatedAt: new Date().toISOString() })
       .catch(err => console.warn('[DB] Erreur push Firestore :', err.message));
   }
 

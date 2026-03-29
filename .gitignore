@@ -2,6 +2,11 @@
 node_modules/
 npm-debug.log*
 
+# Fichiers sensibles (clés OAuth / secrets)
+client_secret_*.json
+firebase-debug.log
+.firebase/
+
 # Scripts de vérification (usage local uniquement)
 check.js
 check-links.js

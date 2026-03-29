@@ -1,0 +1,897 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Amicale ATTT — Voyages &amp; sorties</title>
+  <meta name="description" content="Voyages organisés et sorties culturelles réservés aux membres de l'Amicale de l'ATTT." />
+  <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css" rel="stylesheet" />
+  <link href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.3/font/bootstrap-islands.css" rel="stylesheet" integrity="sha384-QWTKZyjpPEjISv5WaRU9OFeRpok6YctnYmDr5pNlyT2bRjXh0JMhjY6hW+ALEwIH" crossorigin="anonymous">
+  <link href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.3/font/bootstrap-icons.css" rel="stylesheet" />
+  <link href="css/style.css" rel="stylesheet" />
+  <link rel="manifest" href="manifest.json" />
+  <meta name="theme-color" content="#003DA6" />
+  <style>
+    .voyage-card          { transition: box-shadow .2s, transform .2s; }
+    .voyage-card:hover    { box-shadow: 0 6px 28px rgba(0,61,166,.15); transform: translateY(-2px); }
+    .voyage-photo         { height: 200px; object-fit: cover; border-radius: 8px 8px 0 0; }
+    .voyage-photo-ph      { height: 200px; background: linear-gradient(135deg, #e8edf7 0%, #c8d8f0 100%);
+                            display:flex; align-items:center; justify-content:center;
+                            border-radius:8px 8px 0 0; }
+    .type-badge-interne   { background:#17a2b8; color:#fff; }
+    .type-badge-etranger  { background:#6f42c1; color:#fff; }
+    .type-badge-culturel  { background:#fd7e14; color:#fff; }
+    .type-badge-detente   { background:#28a745; color:#fff; }
+    .prix-table th, .prix-table td { padding:.3rem .6rem; font-size:.85rem; }
+    .places-badge         { font-size:.78rem; }
+    .filter-bar .btn.active { box-shadow: 0 0 0 2px var(--couleur-principale); }
+    .stat-card            { border-left: 4px solid var(--couleur-principale); text-align:center; padding:1.2rem; }
+    .stat-card .stat-val  { font-size:2rem; font-weight:700; color:var(--couleur-principale); }
+    .stat-card .stat-lbl  { font-size:.82rem; color:#6c757d; text-transform:uppercase; letter-spacing:.04em; }
+    .section-admin        { border-top:2px dashed #dee2e6; margin-top:4rem; padding-top:2rem; }
+    /* Bouton flottant */
+    #btn-create-voyage {
+      position:fixed; bottom:30px; right:30px; z-index:1050;
+      border-radius:50px; padding:12px 22px;
+      box-shadow:0 4px 18px rgba(0,61,166,.35);
+      display:none;
+    }
+    .empty-state { padding:4rem 0; }
+    .status-en_attente { color:#856404; background:#fff3cd; }
+    .status-valide     { color:#0f5132; background:#d1e7dd; }
+    .status-rejete     { color:#842029; background:#f8d7da; }
+  </style>
+</head>
+<body>
+
+  <!-- NAVBAR -->
+  <nav class="navbar navbar-expand-lg navbar-dark">
+    <div class="container">
+      <a class="navbar-brand fw-bold d-flex align-items-center gap-2" href="index.html">
+        <i class="bi bi-people-fill fs-4"></i>Amicale ATTT
+      </a>
+      <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navMenu"
+              aria-controls="navMenu" aria-expanded="false" aria-label="Menu de navigation">
+        <span class="navbar-toggler-icon"></span>
+      </button>
+      <div class="collapse navbar-collapse" id="navMenu">
+        <ul class="navbar-nav ms-auto gap-1">
+          <li class="nav-item"><a class="nav-link" href="index.html">Accueil</a></li>
+          <li class="nav-item"><a class="nav-link" href="a-propos.html">L'association</a></li>
+          <li class="nav-item"><a class="nav-link active" href="activites.html">Activités</a></li>
+          <li class="nav-item"><a class="nav-link" href="evenements.html">Événements</a></li>
+          <li class="nav-item"><a class="nav-link" href="actualites.html">Actualités</a></li>
+          <li class="nav-item"><a class="nav-link" href="galerie.html">Galerie</a></li>
+          <li class="nav-item"><a class="nav-link" href="telechargements.html">Téléchargements</a></li>
+          <li class="nav-item"><a class="nav-link" href="contact.html">Contact</a></li>
+        </ul>
+      </div>
+    </div>
+  </nav>
+
+  <!-- EN-TÊTE PAGE -->
+  <div class="py-4" style="background:linear-gradient(135deg,var(--couleur-principale),#0056cc);color:white;">
+    <div class="container">
+      <nav aria-label="breadcrumb">
+        <ol class="breadcrumb mb-1">
+          <li class="breadcrumb-item"><a href="index.html" class="text-white-50">Accueil</a></li>
+          <li class="breadcrumb-item"><a href="activites.html" class="text-white-50">Activités</a></li>
+          <li class="breadcrumb-item active text-white">Voyages &amp; sorties</li>
+        </ol>
+      </nav>
+      <div class="d-flex align-items-center gap-3 flex-wrap">
+        <div>
+          <h1 class="fw-bold mb-1"><i class="bi bi-compass me-2"></i>Voyages &amp; sorties</h1>
+          <p class="mb-0 opacity-75">Voyages organisés et sorties culturelles pour les membres et leurs familles.</p>
+        </div>
+        <!-- Compteurs globaux admin -->
+        <div id="hdr-stats" class="ms-auto text-white d-none d-md-flex gap-3" style="opacity:.9;" data-perm="Gérer inscriptions voyage"></div>
+      </div>
+    </div>
+  </div>
+
+  <!-- CONTENU PRINCIPAL -->
+  <main class="py-5">
+    <div class="container">
+
+      <!-- BARRE DE FILTRES -->
+      <div class="filter-bar d-flex flex-wrap gap-2 align-items-center mb-4">
+        <span class="fw-semibold text-muted small me-1">Filtrer :</span>
+        <button class="btn btn-sm btn-outline-secondary active" data-type="" onclick="setFilter(this,'')">Tous</button>
+        <button class="btn btn-sm btn-outline-info"      data-type="interne"  onclick="setFilter(this,'interne')"><i class="bi bi-map me-1"></i>Intérieur</button>
+        <button class="btn btn-sm btn-outline-purple"    data-type="etranger" onclick="setFilter(this,'etranger')"><i class="bi bi-globe2 me-1"></i>Étranger</button>
+        <button class="btn btn-sm btn-outline-warning"   data-type="culturel" onclick="setFilter(this,'culturel')"><i class="bi bi-building me-1"></i>Culturel</button>
+        <button class="btn btn-sm btn-outline-success"   data-type="detente"  onclick="setFilter(this,'detente')"><i class="bi bi-sun me-1"></i>Détente</button>
+        <div class="ms-auto">
+          <input type="search" class="form-control form-control-sm" id="search-voyage"
+                 placeholder="Rechercher…" oninput="renderVoyages()" style="min-width:180px;" />
+        </div>
+      </div>
+
+      <!-- STATISTIQUES ADMIN -->
+      <div id="section-stats" class="row g-3 mb-5 d-none" data-perm="Gérer inscriptions voyage">
+        <div class="col-6 col-md-3">
+          <div class="stat-card card shadow-sm h-100">
+            <div class="stat-val" id="stat-voyages">—</div>
+            <div class="stat-lbl">Voyages actifs</div>
+          </div>
+        </div>
+        <div class="col-6 col-md-3">
+          <div class="stat-card card shadow-sm h-100">
+            <div class="stat-val" id="stat-inscrits">—</div>
+            <div class="stat-lbl">Personnes inscrites</div>
+          </div>
+        </div>
+        <div class="col-6 col-md-3">
+          <div class="stat-card card shadow-sm h-100">
+            <div class="stat-val" id="stat-attente">—</div>
+            <div class="stat-lbl">En attente</div>
+          </div>
+        </div>
+        <div class="col-6 col-md-3">
+          <div class="stat-card card shadow-sm h-100">
+            <div class="stat-val" id="stat-montant">—</div>
+            <div class="stat-lbl">Montant validé (TND)</div>
+          </div>
+        </div>
+      </div>
+
+      <!-- GRILLE DES VOYAGES -->
+      <div id="voyage-grid" class="row g-4 mb-5"></div>
+      <div id="voyage-empty" class="empty-state text-center text-muted d-none">
+        <i class="bi bi-compass fs-2 d-block mb-2"></i>
+        <p>Aucun voyage disponible pour le moment.</p>
+      </div>
+
+      <!-- ──────────────────────────────────────────────────── -->
+      <!-- SECTION ADMINISTRATION (masquée pour membres seuls) -->
+      <!-- ──────────────────────────────────────────────────── -->
+      <section id="section-admin" class="section-admin d-none" data-perm="Gérer inscriptions voyage">
+        <h2 class="fw-bold mb-4"><i class="bi bi-gear me-2"></i>Administration — Inscriptions</h2>
+
+        <div class="mb-3 d-flex flex-wrap gap-2 align-items-center">
+          <select id="admin-filter-voyage" class="form-select form-select-sm" style="max-width:280px;"
+                  onchange="renderAdminRegs()">
+            <option value="">Tous les voyages</option>
+          </select>
+          <select id="admin-filter-status" class="form-select form-select-sm" style="max-width:180px;"
+                  onchange="renderAdminRegs()">
+            <option value="">Tous les statuts</option>
+            <option value="en_attente">En attente</option>
+            <option value="valide">Validés</option>
+            <option value="rejete">Rejetés</option>
+          </select>
+          <span id="admin-reg-count" class="text-muted small ms-auto"></span>
+        </div>
+
+        <div class="table-responsive">
+          <table class="table table-hover align-middle small">
+            <thead class="table-light">
+              <tr>
+                <th>Membre</th>
+                <th>Voyage</th>
+                <th class="text-center">Personnes</th>
+                <th class="text-end">Montant</th>
+                <th>Mode paiement</th>
+                <th class="text-center">Statut</th>
+                <th>Date</th>
+                <th class="text-center">Actions</th>
+              </tr>
+            </thead>
+            <tbody id="admin-regs-body"></tbody>
+          </table>
+        </div>
+        <div id="admin-regs-empty" class="text-muted text-center py-3 d-none">
+          <i class="bi bi-inbox fs-4 d-block mb-1"></i>Aucune inscription trouvée.
+        </div>
+      </section>
+
+    </div>
+  </main>
+
+  <!-- BOUTON FLOTTANT CREER -->
+  <button id="btn-create-voyage" class="btn btn-attt"
+          data-perm="Voir bouton Ajouter voyage"
+          onclick="openVoyageForm(null)">
+    <i class="bi bi-plus-lg me-1"></i>Nouveau voyage
+  </button>
+
+  <!-- ═══════════════════════════════════════ -->
+  <!-- MODAL INSCRIPTION                       -->
+  <!-- ═══════════════════════════════════════ -->
+  <div class="modal fade" id="modalInscription" tabindex="-1" aria-labelledby="lblInscription" aria-hidden="true">
+    <div class="modal-dialog modal-lg modal-dialog-centered modal-dialog-scrollable">
+      <div class="modal-content">
+        <div class="modal-header">
+          <h5 class="modal-title" id="lblInscription">
+            <i class="bi bi-person-plus me-2"></i>S'inscrire au voyage
+          </h5>
+          <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+        </div>
+        <div class="modal-body">
+          <div id="insc-voyage-info" class="alert alert-info mb-4 d-none">
+            <strong id="insc-titre"></strong><br>
+            <small id="insc-dates"></small>
+          </div>
+
+          <form id="form-inscription" novalidate>
+            <input type="hidden" id="insc-voyage-id" />
+
+            <div class="mb-3">
+              <label class="form-label fw-semibold">Nombre de personnes <span class="text-danger">*</span></label>
+              <input type="number" id="insc-nb" class="form-control" min="1" max="10" value="1"
+                     oninput="calcMontant()" />
+            </div>
+
+            <!-- Accompagnateurs -->
+            <div class="mb-3">
+              <label class="form-label fw-semibold">Accompagnateurs (optionnel)</label>
+              <div id="companions-list" class="d-flex flex-column gap-2"></div>
+              <button type="button" class="btn btn-outline-secondary btn-sm mt-2" onclick="addCompanion()">
+                <i class="bi bi-person-plus me-1"></i>Ajouter un accompagnateur
+              </button>
+            </div>
+
+            <div class="row g-3 mb-3">
+              <div class="col-md-6">
+                <label class="form-label fw-semibold">Mode de paiement <span class="text-danger">*</span></label>
+                <select id="insc-payment" class="form-select"></select>
+              </div>
+              <div class="col-md-6">
+                <label class="form-label fw-semibold">Montant calculé</label>
+                <div class="input-group">
+                  <input type="number" id="insc-montant" class="form-control" readonly />
+                  <span class="input-group-text">TND</span>
+                </div>
+              </div>
+            </div>
+
+            <div class="mb-3">
+              <label class="form-label">Note / demande particulière</label>
+              <textarea id="insc-note" class="form-control" rows="2"
+                        placeholder="Allergie, besoin spécifique…"></textarea>
+            </div>
+          </form>
+
+          <!-- Statut si déjà inscrit -->
+          <div id="insc-existing" class="d-none">
+            <div class="alert" id="insc-existing-alert"></div>
+          </div>
+        </div>
+        <div class="modal-footer">
+          <button type="button" class="btn btn-outline-secondary" data-bs-dismiss="modal">Annuler</button>
+          <button type="button" class="btn btn-attt" id="btn-confirm-inscr" onclick="submitInscription()">
+            <i class="bi bi-check2 me-1"></i>Confirmer l'inscription
+          </button>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- ═══════════════════════════════════════ -->
+  <!-- MODAL CREATION / MODIFICATION VOYAGE    -->
+  <!-- ═══════════════════════════════════════ -->
+  <div class="modal fade" id="modalVoyage" tabindex="-1" aria-labelledby="lblVoyage" aria-hidden="true">
+    <div class="modal-dialog modal-xl modal-dialog-centered modal-dialog-scrollable">
+      <div class="modal-content">
+        <div class="modal-header">
+          <h5 class="modal-title" id="lblVoyage">
+            <i class="bi bi-compass me-2"></i>Voyage
+          </h5>
+          <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+        </div>
+        <div class="modal-body">
+          <form id="form-voyage" novalidate>
+            <input type="hidden" id="form-id" />
+            <div class="row g-3">
+              <div class="col-md-8">
+                <label class="form-label fw-semibold">Titre <span class="text-danger">*</span></label>
+                <input type="text" id="form-titre" class="form-control" maxlength="100" required />
+              </div>
+              <div class="col-md-4">
+                <label class="form-label fw-semibold">Type</label>
+                <select id="form-type" class="form-select">
+                  <option value="interne">Voyage intérieur</option>
+                  <option value="etranger">Voyage à l'étranger</option>
+                  <option value="culturel">Sortie culturelle</option>
+                  <option value="detente">Détente &amp; loisirs</option>
+                </select>
+              </div>
+              <div class="col-md-6">
+                <label class="form-label fw-semibold">Destination <span class="text-danger">*</span></label>
+                <input type="text" id="form-dest" class="form-control" maxlength="120" required />
+              </div>
+              <div class="col-md-3">
+                <label class="form-label fw-semibold">Date départ <span class="text-danger">*</span></label>
+                <input type="date" id="form-depart" class="form-control" required />
+              </div>
+              <div class="col-md-3">
+                <label class="form-label fw-semibold">Date retour <span class="text-danger">*</span></label>
+                <input type="date" id="form-retour" class="form-control" required />
+              </div>
+
+              <!-- Tarifs -->
+              <div class="col-12"><hr class="my-1" /><h6 class="text-muted">Tarifs (TND)</h6></div>
+              <div class="col-6 col-md-2">
+                <label class="form-label small">Adhérent</label>
+                <input type="number" id="form-prix-adh" class="form-control form-control-sm" min="0" step="0.5" />
+              </div>
+              <div class="col-6 col-md-2">
+                <label class="form-label small">Non adhérent</label>
+                <input type="number" id="form-prix-nonadh" class="form-control form-control-sm" min="0" step="0.5" />
+              </div>
+              <div class="col-6 col-md-2">
+                <label class="form-label small">Famille</label>
+                <input type="number" id="form-prix-fam" class="form-control form-control-sm" min="0" step="0.5" />
+              </div>
+              <div class="col-6 col-md-2">
+                <label class="form-label small">Direction</label>
+                <input type="number" id="form-prix-dir" class="form-control form-control-sm" min="0" step="0.5" />
+              </div>
+              <div class="col-6 col-md-2">
+                <label class="form-label small">Délégué</label>
+                <input type="number" id="form-prix-del" class="form-control form-control-sm" min="0" step="0.5" />
+              </div>
+              <div class="col-6 col-md-2">
+                <label class="form-label small">Nb places</label>
+                <input type="number" id="form-places" class="form-control form-control-sm" min="0"
+                       placeholder="0=illimité" />
+              </div>
+
+              <div class="col-12"><hr class="my-1" /></div>
+              <div class="col-md-6">
+                <label class="form-label fw-semibold">Responsable</label>
+                <input type="text" id="form-resp" class="form-control" maxlength="80" />
+              </div>
+              <div class="col-md-6">
+                <label class="form-label fw-semibold">Contact</label>
+                <input type="text" id="form-contact" class="form-control" maxlength="80" />
+              </div>
+              <div class="col-md-6">
+                <label class="form-label fw-semibold">Accès</label>
+                <select id="form-acces" class="form-select">
+                  <option value="membres">Membres uniquement</option>
+                  <option value="tous">Tous (avec familles)</option>
+                  <option value="famille">Familles uniquement</option>
+                </select>
+              </div>
+              <div class="col-md-6">
+                <label class="form-label fw-semibold">Statut</label>
+                <select id="form-statut" class="form-select">
+                  <option value="actif">Ouvert aux inscriptions</option>
+                  <option value="complet">Complet</option>
+                  <option value="annule">Annulé</option>
+                  <option value="archive">Archivé</option>
+                </select>
+              </div>
+              <div class="col-md-6">
+                <label class="form-label fw-semibold">URL Photo (optionnel)</label>
+                <input type="url" id="form-photo" class="form-control" placeholder="https://…" />
+              </div>
+              <div class="col-12">
+                <label class="form-label fw-semibold">Description</label>
+                <textarea id="form-desc" class="form-control" rows="3"
+                          placeholder="Programme, informations pratiques…"></textarea>
+              </div>
+            </div>
+          </form>
+        </div>
+        <div class="modal-footer">
+          <button type="button" class="btn btn-outline-secondary" data-bs-dismiss="modal">Annuler</button>
+          <button type="button" class="btn btn-attt" onclick="saveVoyage()">
+            <i class="bi bi-floppy me-1"></i>Enregistrer
+          </button>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- ═══════════════════════════════════════ -->
+  <!-- MODAL NOTE ADMIN (rejeter/note)         -->
+  <!-- ═══════════════════════════════════════ -->
+  <div class="modal fade" id="modalNote" tabindex="-1" aria-hidden="true">
+    <div class="modal-dialog modal-dialog-centered">
+      <div class="modal-content">
+        <div class="modal-header">
+          <h5 class="modal-title" id="lblNote">Note administrative</h5>
+          <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+        </div>
+        <div class="modal-body">
+          <label class="form-label">Motif / remarque (optionnel)</label>
+          <textarea id="note-text" class="form-control" rows="3"></textarea>
+          <input type="hidden" id="note-reg-id" />
+          <input type="hidden" id="note-action" />
+        </div>
+        <div class="modal-footer">
+          <button type="button" class="btn btn-outline-secondary" data-bs-dismiss="modal">Annuler</button>
+          <button type="button" class="btn btn-attt" onclick="confirmNote()">
+            <i class="bi bi-check2 me-1"></i>Confirmer
+          </button>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- SCRIPTS -->
+  <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js"></script>
+  <script src="js/db.js"></script>
+  <script src="js/auth.js"></script>
+  <script src="js/log.js"></script>
+  <script src="js/voyages.js"></script>
+
+  <script>
+  'use strict';
+
+  let _currentFilter = '';
+  let _currentVoyages = [];
+
+  /* ─── Init ─── */
+  document.addEventListener('DOMContentLoaded', async () => {
+    await DB_READY;
+    const user = AUTH.currentUser();
+
+    // Permissions
+    AUTH.applyPermissions();
+
+    // Bouton flottant
+    if (AUTH.can('Voir bouton Ajouter voyage')) {
+      document.getElementById('btn-create-voyage').style.display = '';
+    }
+
+    // Stats admin
+    if (AUTH.can('Gérer inscriptions voyage')) {
+      document.querySelectorAll('[data-perm="Gérer inscriptions voyage"]')
+        .forEach(el => el.classList.remove('d-none'));
+      renderStats();
+      renderAdminRegs();
+    }
+
+    renderVoyages();
+  });
+
+  /* ─── Filtres ─── */
+  function setFilter(btn, type) {
+    document.querySelectorAll('.filter-bar [data-type]').forEach(b => b.classList.remove('active'));
+    btn.classList.add('active');
+    _currentFilter = type;
+    renderVoyages();
+  }
+
+  /* ─── Rendu grille voyages ─── */
+  function renderVoyages() {
+    const q = (document.getElementById('search-voyage')?.value || '').toLowerCase();
+    const voyages = VOYAGES.getVoyages().filter(v => {
+      if (v.statut === 'archive') return AUTH.can('Gérer inscriptions voyage');
+      if (_currentFilter && v.type !== _currentFilter) return false;
+      if (q && ![v.titre, v.destination, v.description].some(s => s.toLowerCase().includes(q))) return false;
+      return true;
+    });
+    _currentVoyages = voyages;
+
+    const grid  = document.getElementById('voyage-grid');
+    const empty = document.getElementById('voyage-empty');
+
+    if (!voyages.length) {
+      grid.innerHTML = '';
+      empty.classList.remove('d-none');
+      return;
+    }
+    empty.classList.add('d-none');
+    grid.innerHTML = voyages.map(v => cardHtml(v)).join('');
+  }
+
+  function cardHtml(v) {
+    const types = VOYAGES.getTypes();
+    const t = types[v.type] || types.interne;
+    const places = VOYAGES.getPlacesRestantes(v.id);
+    const statMeta = VOYAGES.getStatutMeta(v.statut);
+    const user = AUTH.currentUser();
+    const myReg = user ? VOYAGES.getUserRegistration(v.id, user.id || user.login) : null;
+
+    // Dates
+    const dD   = v.dateDepart ? new Date(v.dateDepart + 'T00:00:00') : null;
+    const dR   = v.dateRetour ? new Date(v.dateRetour + 'T00:00:00') : null;
+    const fmtD = d => d ? d.toLocaleDateString('fr-TN', {day:'2-digit',month:'short',year:'numeric'}) : '—';
+
+    // Photo
+    const photoEl = v.photo
+      ? `<img src="${v.photo}" class="voyage-photo w-100" alt="${escHtml(v.titre)}" loading="lazy" />`
+      : `<div class="voyage-photo-ph w-100"><i class="${t.icon} fs-1 text-muted opacity-50"></i></div>`;
+
+    // Badge places
+    const placesHtml = v.nbPlaces > 0
+      ? `<span class="badge places-badge ${places === 0 ? 'bg-danger' : places <= 5 ? 'bg-warning text-dark' : 'bg-success'}">
+           ${places === 0 ? 'Complet' : places + ' place' + (places > 1 ? 's':'')}</span>`
+      : `<span class="badge bg-success places-badge">Places disponibles</span>`;
+
+    // Bouton inscription
+    let btnInscr = '';
+    if (!user) {
+      btnInscr = `<a href="login.html" class="btn btn-sm btn-attt w-100"><i class="bi bi-box-arrow-in-right me-1"></i>Se connecter pour s'inscrire</a>`;
+    } else if (myReg) {
+      const sm = VOYAGES.getStatusMeta(myReg.status);
+      btnInscr = `<button class="btn btn-sm btn-outline-secondary w-100" onclick="openMyReg('${v.id}')">
+                    <i class="bi ${sm.icon} me-1"></i>Mon inscription : ${sm.label}</button>`;
+    } else if (!VOYAGES.isAvailable(v.id)) {
+      btnInscr = `<button class="btn btn-sm btn-secondary w-100" disabled>
+                    <i class="bi bi-lock me-1"></i>${statMeta.label}</button>`;
+    } else {
+      btnInscr = `<button class="btn btn-sm btn-attt w-100" onclick="openInscription('${v.id}')">
+                    <i class="bi bi-person-plus me-1"></i>S'inscrire</button>`;
+    }
+
+    // Admin actions
+    const isAdmin = AUTH.can('Créer / modifier voyage');
+    const adminBtns = isAdmin
+      ? `<div class="d-flex gap-1 mt-2">
+           <button class="btn btn-xs btn-outline-secondary flex-fill" onclick="openVoyageForm('${v.id}')">
+             <i class="bi bi-pencil"></i> Modifier</button>
+           <button class="btn btn-xs btn-outline-danger flex-fill" onclick="deleteVoyageConfirm('${v.id}')">
+             <i class="bi bi-trash"></i> Supprimer</button>
+         </div>`
+      : '';
+
+    return `
+    <div class="col-12 col-md-6 col-xl-4">
+      <div class="card voyage-card h-100 shadow-sm overflow-hidden">
+        ${photoEl}
+        <div class="card-body d-flex flex-column">
+          <div class="d-flex align-items-start gap-2 mb-2">
+            <span class="badge type-badge-${v.type} rounded-pill">${t.label}</span>
+            ${placesHtml}
+            ${v.statut !== 'actif' ? `<span class="badge bg-${statMeta.cls} ms-auto">${statMeta.label}</span>` : ''}
+          </div>
+          <h5 class="card-title fw-bold mb-1">${escHtml(v.titre)}</h5>
+          <p class="text-muted small mb-2"><i class="bi bi-geo-alt me-1"></i>${escHtml(v.destination)}</p>
+          ${v.description ? `<p class="card-text small flex-grow-1">${escHtml(v.description).substring(0,150)}${v.description.length > 150 ? '…' : ''}</p>` : '<div class="flex-grow-1"></div>'}
+          
+          <!-- Dates et prix -->
+          <div class="mt-2 mb-3">
+            <div class="small text-muted mb-1">
+              <i class="bi bi-calendar3 me-1"></i>
+              ${fmtD(dD)}
+              ${dR ? ' → ' + fmtD(dR) : ''}
+            </div>
+            ${buildPrixHtml(v)}
+          </div>
+
+          ${btnInscr}
+          ${adminBtns}
+        </div>
+      </div>
+    </div>`;
+  }
+
+  function buildPrixHtml(v) {
+    const rows = [];
+    if (v.prixAdherent > 0)    rows.push(['Adhérent', v.prixAdherent]);
+    if (v.prixNonAdherent > 0) rows.push(['Non adhérent', v.prixNonAdherent]);
+    if (v.prixFamille > 0)     rows.push(['Famille', v.prixFamille]);
+    if (!rows.length) return '';
+    return `<table class="table table-sm prix-table mb-0 border-0">
+      <tbody>${rows.map(([l,p]) => `<tr><td class="text-muted">${l}</td><td class="fw-semibold text-end">${p.toLocaleString('fr-TN')} TND</td></tr>`).join('')}</tbody>
+    </table>`;
+  }
+
+  /* ─── Inscription ─── */
+  let _inscVoyage = null;
+
+  function openInscription(voyageId) {
+    const user = AUTH.currentUser();
+    if (!user) { window.location.href = 'login.html'; return; }
+
+    _inscVoyage = VOYAGES.getVoyage(voyageId);
+    if (!_inscVoyage) return;
+
+    // Remplir info voyage
+    const infoEl = document.getElementById('insc-voyage-info');
+    document.getElementById('insc-titre').textContent = _inscVoyage.titre;
+    document.getElementById('insc-dates').textContent =
+      (_inscVoyage.dateDepart ? new Date(_inscVoyage.dateDepart + 'T00:00:00').toLocaleDateString('fr-TN', {day:'2-digit',month:'long',year:'numeric'}) : '') +
+      (_inscVoyage.dateRetour ? ' → ' + new Date(_inscVoyage.dateRetour + 'T00:00:00').toLocaleDateString('fr-TN', {day:'2-digit',month:'long',year:'numeric'}) : '') +
+      (' · ' + escHtml(_inscVoyage.destination));
+    infoEl.classList.remove('d-none');
+
+    document.getElementById('insc-voyage-id').value = voyageId;
+    document.getElementById('insc-nb').value = 1;
+    document.getElementById('companions-list').innerHTML = '';
+
+    // Modes paiement
+    const sel = document.getElementById('insc-payment');
+    sel.innerHTML = (_inscVoyage.paymentModes || VOYAGES.getPaymentModes())
+      .map(m => `<option value="${escHtml(m)}">${escHtml(m)}</option>`).join('');
+
+    // Vérifier inscription existante
+    const existing = VOYAGES.getUserRegistration(voyageId, user.id || user.login);
+    const exEl  = document.getElementById('insc-existing');
+    const form  = document.getElementById('form-inscription');
+    const btnC  = document.getElementById('btn-confirm-inscr');
+    if (existing) {
+      const sm = VOYAGES.getStatusMeta(existing.status);
+      document.getElementById('insc-existing-alert').className = `alert alert-${sm.cls}`;
+      document.getElementById('insc-existing-alert').innerHTML =
+        `<i class="bi ${sm.icon} me-2"></i>Vous êtes déjà inscrit(e) à ce voyage — statut : <strong>${sm.label}</strong>`;
+      exEl.classList.remove('d-none');
+      form.classList.add('d-none');
+      btnC.classList.add('d-none');
+    } else {
+      exEl.classList.add('d-none');
+      form.classList.remove('d-none');
+      btnC.classList.remove('d-none');
+      calcMontant();
+    }
+
+    new bootstrap.Modal(document.getElementById('modalInscription')).show();
+  }
+
+  function openMyReg(voyageId) {
+    openInscription(voyageId);
+  }
+
+  function addCompanion() {
+    const nb = document.getElementById('companions-list').children.length + 1;
+    const div = document.createElement('div');
+    div.className = 'input-group input-group-sm companion-row';
+    div.innerHTML = `
+      <input type="text" class="form-control" placeholder="Prénom NOM" />
+      <input type="text" class="form-control" placeholder="Relation (conjoint, enfant…)" style="max-width:160px;" />
+      <button type="button" class="btn btn-outline-danger" onclick="this.closest('.companion-row').remove(); calcMontant();">
+        <i class="bi bi-x"></i></button>`;
+    document.getElementById('companions-list').appendChild(div);
+    calcMontant();
+  }
+
+  function calcMontant() {
+    if (!_inscVoyage) return;
+    const nb = parseInt(document.getElementById('insc-nb')?.value) || 1;
+    const user = AUTH.currentUser();
+    let prixUnit = _inscVoyage.prixAdherent || 0;
+    if (user) {
+      const role = user.role || '';
+      if (role === 'master' || role === 'superviseur') prixUnit = _inscVoyage.prixDirection || prixUnit;
+      else if (role === 'admin') prixUnit = _inscVoyage.prixDelegue || prixUnit;
+    }
+    const total = prixUnit * nb;
+    const inp = document.getElementById('insc-montant');
+    if (inp) inp.value = total;
+  }
+
+  function submitInscription() {
+    const user = AUTH.currentUser();
+    if (!user || !_inscVoyage) return;
+
+    const voyageId  = document.getElementById('insc-voyage-id').value;
+    const nb        = parseInt(document.getElementById('insc-nb').value) || 1;
+    const montant   = parseFloat(document.getElementById('insc-montant').value) || 0;
+    const payment   = document.getElementById('insc-payment').value;
+    const note      = document.getElementById('insc-note').value.trim();
+
+    const companions = Array.from(document.querySelectorAll('.companion-row')).map(row => {
+      const inputs = row.querySelectorAll('input');
+      return { nom: inputs[0]?.value.trim() || '', relation: inputs[1]?.value.trim() || '' };
+    }).filter(c => c.nom);
+
+    const reg = VOYAGES.saveRegistration({
+      voyageId, userId: user.id || user.login,
+      userName:  user.prenom && user.nom
+                   ? `${user.prenom} ${user.nom}`.trim()
+                   : (user.nom || user.login || ''),
+      userLogin: user.login || user.email || '',
+      nbPersonnes: nb, companions, montant,
+      paymentMode: payment, note
+    });
+
+    bootstrap.Modal.getInstance(document.getElementById('modalInscription'))?.hide();
+
+    if (typeof LOG !== 'undefined') {
+      LOG.add('Inscription voyage', `${reg.userName} → ${_inscVoyage.titre} (${nb} personne(s)) — ${montant} TND`);
+    }
+
+    renderVoyages();
+    if (AUTH.can('Gérer inscriptions voyage')) { renderStats(); renderAdminRegs(); }
+
+    showToast(`Inscription enregistrée pour «&nbsp;${escHtml(_inscVoyage.titre)}&nbsp;». En attente de validation.`, 'success');
+  }
+
+  /* ─── Formulaire Admin voyage ─── */
+  function openVoyageForm(id) {
+    const v = id ? VOYAGES.getVoyage(id) : null;
+    document.getElementById('form-id').value      = id || '';
+    document.getElementById('form-titre').value   = v?.titre || '';
+    document.getElementById('form-type').value    = v?.type || 'interne';
+    document.getElementById('form-dest').value    = v?.destination || '';
+    document.getElementById('form-depart').value  = v?.dateDepart || '';
+    document.getElementById('form-retour').value  = v?.dateRetour || '';
+    document.getElementById('form-prix-adh').value    = v?.prixAdherent || '';
+    document.getElementById('form-prix-nonadh').value = v?.prixNonAdherent || '';
+    document.getElementById('form-prix-fam').value    = v?.prixFamille || '';
+    document.getElementById('form-prix-dir').value    = v?.prixDirection || '';
+    document.getElementById('form-prix-del').value    = v?.prixDelegue || '';
+    document.getElementById('form-places').value   = v?.nbPlaces || '';
+    document.getElementById('form-resp').value     = v?.responsable || '';
+    document.getElementById('form-contact').value  = v?.contact || '';
+    document.getElementById('form-acces').value    = v?.acces || 'membres';
+    document.getElementById('form-statut').value   = v?.statut || 'actif';
+    document.getElementById('form-photo').value    = v?.photo || '';
+    document.getElementById('form-desc').value     = v?.description || '';
+    document.getElementById('lblVoyage').textContent = id ? 'Modifier le voyage' : 'Nouveau voyage';
+    new bootstrap.Modal(document.getElementById('modalVoyage')).show();
+  }
+
+  function saveVoyage() {
+    const id    = document.getElementById('form-id').value || null;
+    const titre = document.getElementById('form-titre').value.trim();
+    const dest  = document.getElementById('form-dest').value.trim();
+    if (!titre) { document.getElementById('form-titre').focus(); return; }
+    if (!dest)  { document.getElementById('form-dest').focus();  return; }
+
+    const data = {
+      titre, destination: dest,
+      type:           document.getElementById('form-type').value,
+      dateDepart:     document.getElementById('form-depart').value,
+      dateRetour:     document.getElementById('form-retour').value,
+      prixAdherent:   document.getElementById('form-prix-adh').value,
+      prixNonAdherent:document.getElementById('form-prix-nonadh').value,
+      prixFamille:    document.getElementById('form-prix-fam').value,
+      prixDirection:  document.getElementById('form-prix-dir').value,
+      prixDelegue:    document.getElementById('form-prix-del').value,
+      nbPlaces:       document.getElementById('form-places').value,
+      responsable:    document.getElementById('form-resp').value,
+      contact:        document.getElementById('form-contact').value,
+      acces:          document.getElementById('form-acces').value,
+      statut:         document.getElementById('form-statut').value,
+      photo:          document.getElementById('form-photo').value,
+      description:    document.getElementById('form-desc').value
+    };
+
+    const result = id ? VOYAGES.updateVoyage(id, data) : VOYAGES.addVoyage(data);
+    bootstrap.Modal.getInstance(document.getElementById('modalVoyage'))?.hide();
+
+    if (typeof LOG !== 'undefined') {
+      LOG.add(id ? 'Modification voyage' : 'Création voyage', result.titre);
+    }
+    renderVoyages();
+    if (AUTH.can('Gérer inscriptions voyage')) { renderStats(); renderAdminRegs(); }
+    showToast(id ? 'Voyage modifié.' : 'Voyage créé avec succès.', 'success');
+  }
+
+  function deleteVoyageConfirm(id) {
+    const v = VOYAGES.getVoyage(id);
+    if (!v) return;
+    if (!confirm(`Supprimer le voyage «&nbsp;${v.titre}&nbsp;» et toutes les inscriptions associées ? Cette action est irréversible.`)) return;
+    VOYAGES.deleteVoyage(id);
+    if (typeof LOG !== 'undefined') LOG.add('Suppression voyage', v.titre);
+    renderVoyages();
+    if (AUTH.can('Gérer inscriptions voyage')) { renderStats(); renderAdminRegs(); }
+    showToast('Voyage supprimé.', 'warning');
+  }
+
+  /* ─── Admin : inscriptions ─── */
+  function renderAdminRegs() {
+    const voyages = VOYAGES.getVoyages();
+
+    // Peupler le select voyage
+    const selV = document.getElementById('admin-filter-voyage');
+    const curV = selV.value;
+    selV.innerHTML = '<option value="">Tous les voyages</option>' +
+      voyages.map(v => `<option value="${v.id}"${v.id===curV?' selected':''}>${escHtml(v.titre)}</option>`).join('');
+
+    const filterVoyage = selV.value;
+    const filterStatus = document.getElementById('admin-filter-status').value;
+
+    let regs = VOYAGES.getRegistrations(filterVoyage || undefined);
+    if (filterStatus) regs = regs.filter(r => r.status === filterStatus);
+
+    const body  = document.getElementById('admin-regs-body');
+    const empty = document.getElementById('admin-regs-empty');
+    document.getElementById('admin-reg-count').textContent = `${regs.length} inscription(s)`;
+
+    if (!regs.length) {
+      body.innerHTML = '';
+      empty.classList.remove('d-none');
+      return;
+    }
+    empty.classList.add('d-none');
+
+    body.innerHTML = regs.sort((a,b) => b.createdAt - a.createdAt).map(r => {
+      const voyage = VOYAGES.getVoyage(r.voyageId);
+      const sm = VOYAGES.getStatusMeta(r.status);
+      const date = new Date(r.createdAt).toLocaleDateString('fr-TN', {day:'2-digit',month:'2-digit',year:'numeric'});
+      return `<tr>
+        <td>
+          <div class="fw-semibold">${escHtml(r.userName)}</div>
+          <div class="text-muted" style="font-size:.75rem;">${escHtml(r.userLogin)}</div>
+        </td>
+        <td>${voyage ? escHtml(voyage.titre) : '<span class="text-muted">—</span>'}</td>
+        <td class="text-center">${r.nbPersonnes}</td>
+        <td class="text-end fw-semibold">${r.montant.toLocaleString('fr-TN')} TND</td>
+        <td>${escHtml(r.paymentMode)}</td>
+        <td class="text-center">
+          <span class="badge rounded-pill status-${r.status} px-2">${sm.label}</span>
+          ${r.adminNote ? `<div class="text-muted mt-1" style="font-size:.72rem;">${escHtml(r.adminNote)}</div>` : ''}
+        </td>
+        <td><small class="text-muted">${date}</small></td>
+        <td class="text-center">
+          <div class="btn-group btn-group-sm">
+            ${r.status !== VOYAGES.STATUS.approved
+              ? `<button class="btn btn-outline-success" title="Valider"
+                   onclick="adminAction('${r.id}','${VOYAGES.STATUS.approved}')">
+                   <i class="bi bi-check-lg"></i></button>` : ''}
+            ${r.status !== VOYAGES.STATUS.rejected
+              ? `<button class="btn btn-outline-danger" title="Rejeter"
+                   onclick="openNoteModal('${r.id}','${VOYAGES.STATUS.rejected}')">
+                   <i class="bi bi-x-lg"></i></button>` : ''}
+            ${r.status !== VOYAGES.STATUS.pending
+              ? `<button class="btn btn-outline-warning" title="Remettre en attente"
+                   onclick="adminAction('${r.id}','${VOYAGES.STATUS.pending}')">
+                   <i class="bi bi-clock"></i></button>` : ''}
+          </div>
+        </td>
+      </tr>`;
+    }).join('');
+  }
+
+  function adminAction(regId, status, note = '') {
+    VOYAGES.setRegistrationStatus(regId, status, note);
+    renderAdminRegs();
+    renderStats();
+    renderVoyages();
+    showToast('Statut mis à jour.', status === VOYAGES.STATUS.approved ? 'success' : 'warning');
+  }
+
+  function openNoteModal(regId, action) {
+    document.getElementById('note-reg-id').value = regId;
+    document.getElementById('note-action').value  = action;
+    document.getElementById('note-text').value    = '';
+    new bootstrap.Modal(document.getElementById('modalNote')).show();
+  }
+
+  function confirmNote() {
+    const regId  = document.getElementById('note-reg-id').value;
+    const action = document.getElementById('note-action').value;
+    const note   = document.getElementById('note-text').value.trim();
+    bootstrap.Modal.getInstance(document.getElementById('modalNote'))?.hide();
+    adminAction(regId, action, note);
+  }
+
+  /* ─── Stats ─── */
+  function renderStats() {
+    const gs   = VOYAGES.getGlobalStats();
+    const regs = VOYAGES.getRegistrations();
+    const att  = regs.filter(r => r.status === VOYAGES.STATUS.pending).length;
+
+    const el = id => document.getElementById(id);
+    if (el('stat-voyages')) el('stat-voyages').textContent  = gs.nbActifs;
+    if (el('stat-inscrits')) el('stat-inscrits').textContent = gs.nbInscrits;
+    if (el('stat-attente'))  el('stat-attente').textContent  = att;
+    if (el('stat-montant'))  el('stat-montant').textContent  = gs.montantTotal.toLocaleString('fr-TN');
+
+    const hdr = document.getElementById('hdr-stats');
+    if (hdr) {
+      hdr.innerHTML = `
+        <div class="text-center"><div class="fw-bold fs-5">${gs.nbVoyages}</div><div style="font-size:.75rem;opacity:.8;">Voyages</div></div>
+        <div class="text-center"><div class="fw-bold fs-5">${gs.nbInscrits}</div><div style="font-size:.75rem;opacity:.8;">Inscrits</div></div>
+        <div class="text-center"><div class="fw-bold fs-5">${att}</div><div style="font-size:.75rem;opacity:.8;">En attente</div></div>`;
+    }
+  }
+
+  /* ─── Toast ─── */
+  function showToast(msg, variant) {
+    const t = document.createElement('div');
+    t.className = `toast align-items-center text-bg-${variant || 'primary'} border-0 show`;
+    t.setAttribute('role','alert');
+    t.style.cssText = 'position:fixed;bottom:80px;right:20px;z-index:9999;min-width:240px;';
+    t.innerHTML = `<div class="d-flex"><div class="toast-body">${msg}</div>
+      <button type="button" class="btn-close btn-close-white me-2 m-auto" onclick="this.closest('.toast').remove()"></button></div>`;
+    document.body.appendChild(t);
+    setTimeout(() => t.remove(), 4000);
+  }
+
+  /* ─── Utilitaires ─── */
+  function escHtml(s) {
+    return String(s || '').replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;')
+                          .replace(/"/g,'&quot;').replace(/'/g,'&#39;');
+  }
+  </script>
+</body>
+</html>

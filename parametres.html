@@ -1,0 +1,264 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Amicale ATTT - Coordonnees du site</title>
+  <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css" rel="stylesheet" />
+  <link href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.3/font/bootstrap-icons.css" rel="stylesheet" />
+  <link href="css/style.css" rel="stylesheet" />
+  <style>
+    .preview-frame { width: 100%; min-height: 320px; border: 0; border-radius: 16px; }
+  </style>
+</head>
+<body>
+  <nav class="navbar navbar-dark py-2" style="background:var(--couleur-principale);">
+    <div class="container-fluid px-3 d-flex justify-content-between">
+      <a class="navbar-brand fw-bold d-flex align-items-center gap-2 fs-6" href="index.html">
+        <i class="bi bi-people-fill"></i>Amicale ATTT
+        <span class="badge bg-light text-dark">Coordonnees</span>
+      </a>
+      <div class="d-flex align-items-center gap-2">
+        <span class="text-white-50 small d-none d-md-block" id="topbar-user"></span>
+        <a href="#" id="back-btn" class="btn btn-outline-light btn-sm">
+          <i class="bi bi-arrow-left me-1"></i>Retour
+        </a>
+      </div>
+    </div>
+  </nav>
+
+  <main class="py-4">
+    <div class="container">
+      <div class="d-flex flex-wrap justify-content-between align-items-center gap-3 mb-4">
+        <div>
+          <h1 class="h4 section-titre mb-1">Coordonnees du site</h1>
+          <p class="text-muted mb-0">Cette page permet de modifier l'adresse, l'e-mail, le telephone, les horaires et la carte affiches sur la page Contact.</p>
+        </div>
+        <div class="d-flex gap-2">
+          <a href="contact.html" class="btn btn-outline-attt btn-sm">
+            <i class="bi bi-box-arrow-up-right me-1"></i>Voir la page Contact
+          </a>
+        </div>
+      </div>
+
+      <div class="row g-4">
+        <div class="col-lg-7">
+          <div class="card shadow-sm border-0 rounded-4">
+            <div class="card-body p-4">
+              <div class="row g-3">
+                <div class="col-12">
+                  <label class="form-label fw-semibold" for="organisation">Organisation</label>
+                  <input class="form-control" id="organisation" />
+                </div>
+                <div class="col-md-6">
+                  <label class="form-label fw-semibold" for="address-line-1">Adresse - ligne 1</label>
+                  <input class="form-control" id="address-line-1" />
+                </div>
+                <div class="col-md-6">
+                  <label class="form-label fw-semibold" for="address-line-2">Adresse - ligne 2</label>
+                  <input class="form-control" id="address-line-2" />
+                </div>
+                <div class="col-md-6">
+                  <label class="form-label fw-semibold" for="site-email">E-mail</label>
+                  <input class="form-control" id="site-email" type="email" />
+                </div>
+                <div class="col-md-6">
+                  <label class="form-label fw-semibold" for="site-phone">Telephone</label>
+                  <input class="form-control" id="site-phone" />
+                </div>
+                <div class="col-md-6">
+                  <label class="form-label fw-semibold" for="hours-week">Horaires semaine</label>
+                  <input class="form-control" id="hours-week" />
+                </div>
+                <div class="col-md-6">
+                  <label class="form-label fw-semibold" for="hours-weekend">Horaires week-end</label>
+                  <input class="form-control" id="hours-weekend" />
+                </div>
+                <div class="col-12">
+                  <label class="form-label fw-semibold" for="form-action">URL Formspree</label>
+                  <input class="form-control" id="form-action" />
+                </div>
+                <div class="col-12">
+                  <label class="form-label fw-semibold" for="map-url">URL Google Maps embed</label>
+                  <textarea class="form-control" id="map-url" rows="3"></textarea>
+                </div>
+                <div class="col-md-4">
+                  <label class="form-label fw-semibold" for="facebook-url">Facebook</label>
+                  <input class="form-control" id="facebook-url" placeholder="https://..." />
+                </div>
+                <div class="col-md-4">
+                  <label class="form-label fw-semibold" for="instagram-url">Instagram</label>
+                  <input class="form-control" id="instagram-url" placeholder="https://..." />
+                </div>
+                <div class="col-md-4">
+                  <label class="form-label fw-semibold" for="whatsapp-url">WhatsApp</label>
+                  <input class="form-control" id="whatsapp-url" placeholder="https://..." />
+                </div>
+              </div>
+
+              <div class="d-flex flex-wrap gap-2 mt-4">
+                <button class="btn btn-attt" data-perm="Modifier paramètres site" data-perm-mode="action" id="save-btn" onclick="saveSettings()">
+                  <i class="bi bi-check-lg me-1"></i>Enregistrer
+                </button>
+                <button class="btn btn-outline-danger" data-perm="Modifier paramètres site" data-perm-mode="action" id="reset-btn" onclick="resetSettings()">
+                  <i class="bi bi-arrow-counterclockwise me-1"></i>Reinitialiser
+                </button>
+              </div>
+              <p class="text-muted small mt-3 mb-0" id="save-state"></p>
+            </div>
+          </div>
+        </div>
+
+        <div class="col-lg-5">
+          <div class="card shadow-sm border-0 rounded-4">
+            <div class="card-body p-4">
+              <h2 class="h5 fw-bold mb-3">Apercu des coordonnees</h2>
+              <div class="rounded-4 border bg-light p-3 mb-3">
+                <div class="d-flex gap-3 align-items-start mb-3">
+                  <i class="bi bi-geo-alt-fill fs-4 flex-shrink-0" style="color:var(--couleur-principale);"></i>
+                  <div>
+                    <div class="fw-semibold">Adresse</div>
+                    <div class="small text-muted" id="preview-address"></div>
+                  </div>
+                </div>
+                <div class="d-flex gap-3 align-items-start mb-3">
+                  <i class="bi bi-envelope-fill fs-4 flex-shrink-0" style="color:var(--couleur-principale);"></i>
+                  <div>
+                    <div class="fw-semibold">E-mail</div>
+                    <div class="small text-muted" id="preview-email"></div>
+                  </div>
+                </div>
+                <div class="d-flex gap-3 align-items-start mb-3">
+                  <i class="bi bi-telephone-fill fs-4 flex-shrink-0" style="color:var(--couleur-principale);"></i>
+                  <div>
+                    <div class="fw-semibold">Telephone</div>
+                    <div class="small text-muted" id="preview-phone"></div>
+                  </div>
+                </div>
+                <div class="d-flex gap-3 align-items-start">
+                  <i class="bi bi-clock-fill fs-4 flex-shrink-0" style="color:var(--couleur-principale);"></i>
+                  <div>
+                    <div class="fw-semibold">Horaires</div>
+                    <div class="small text-muted" id="preview-hours"></div>
+                  </div>
+                </div>
+              </div>
+              <iframe class="preview-frame" id="map-preview" loading="lazy" referrerpolicy="no-referrer-when-downgrade"></iframe>
+              <p class="small text-muted mt-3 mb-0">Le formulaire enregistre dans les parametres partages du site. La page publique Contact relit ensuite ces valeurs.</p>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </main>
+
+  <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js"></script>
+  <script src="https://www.gstatic.com/firebasejs/10.14.1/firebase-app-compat.js"></script>
+  <script src="https://www.gstatic.com/firebasejs/10.14.1/firebase-firestore-compat.js"></script>
+  <script src="js/firebase-config.js"></script>
+  <script src="js/db.js"></script>
+  <script src="js/auth.js"></script>
+  <script src="js/site-settings.js"></script>
+  <script>
+  'use strict';
+  const user = AUTH.requireAuth();
+  if (!user) throw new Error();
+  if (!AUTH.hasPermission('Accéder page Paramètres site', user)) {
+    alert('Acces refuse a la page Parametres.');
+    history.back();
+    throw new Error('Permission refusee');
+  }
+  document.getElementById('topbar-user').textContent = user.prenom + ' ' + user.nom;
+  document.getElementById('back-btn').href = AUTH.dashUrl(user.role);
+  AUTH.applyPermissions(document);
+
+  function escapeHtml(value) {
+    return String(value || '')
+      .replace(/&/g, '&amp;')
+      .replace(/</g, '&lt;')
+      .replace(/>/g, '&gt;')
+      .replace(/"/g, '&quot;')
+      .replace(/'/g, '&#39;');
+  }
+
+  function multilineHtml(lines) {
+    return lines.filter(Boolean).map(escapeHtml).join('<br />');
+  }
+
+  function fillForm() {
+    const settings = SITE_SETTINGS.getSettings();
+    document.getElementById('organisation').value = settings.organisation || '';
+    document.getElementById('address-line-1').value = settings.addressLine1 || '';
+    document.getElementById('address-line-2').value = settings.addressLine2 || '';
+    document.getElementById('site-email').value = settings.email || '';
+    document.getElementById('site-phone').value = settings.phone || '';
+    document.getElementById('hours-week').value = settings.hoursWeek || '';
+    document.getElementById('hours-weekend').value = settings.hoursWeekend || '';
+    document.getElementById('form-action').value = settings.formAction || '';
+    document.getElementById('map-url').value = settings.mapEmbedUrl || '';
+    document.getElementById('facebook-url').value = settings.facebookUrl || '';
+    document.getElementById('instagram-url').value = settings.instagramUrl || '';
+    document.getElementById('whatsapp-url').value = settings.whatsappUrl || '';
+    renderPreview();
+  }
+
+  function renderPreview() {
+    document.getElementById('map-preview').src = document.getElementById('map-url').value.trim();
+    document.getElementById('preview-email').textContent = document.getElementById('site-email').value.trim();
+    document.getElementById('preview-phone').textContent = document.getElementById('site-phone').value.trim();
+    document.getElementById('preview-address').innerHTML = multilineHtml([
+      document.getElementById('organisation').value.trim(),
+      document.getElementById('address-line-1').value.trim(),
+      document.getElementById('address-line-2').value.trim()
+    ]);
+    document.getElementById('preview-hours').innerHTML = multilineHtml([
+      document.getElementById('hours-week').value.trim(),
+      document.getElementById('hours-weekend').value.trim()
+    ]);
+  }
+
+  function collectSettings() {
+    return {
+      organisation: document.getElementById('organisation').value.trim(),
+      addressLine1: document.getElementById('address-line-1').value.trim(),
+      addressLine2: document.getElementById('address-line-2').value.trim(),
+      email: document.getElementById('site-email').value.trim(),
+      phone: document.getElementById('site-phone').value.trim(),
+      hoursWeek: document.getElementById('hours-week').value.trim(),
+      hoursWeekend: document.getElementById('hours-weekend').value.trim(),
+      formAction: document.getElementById('form-action').value.trim(),
+      mapEmbedUrl: document.getElementById('map-url').value.trim(),
+      facebookUrl: document.getElementById('facebook-url').value.trim(),
+      instagramUrl: document.getElementById('instagram-url').value.trim(),
+      whatsappUrl: document.getElementById('whatsapp-url').value.trim()
+    };
+  }
+
+  function saveSettings() {
+    if (!AUTH.hasPermission('Modifier paramètres site', user)) {
+      alert('Droits insuffisants pour modifier les parametres du site.');
+      return;
+    }
+    SITE_SETTINGS.updateSettings(collectSettings());
+    document.getElementById('save-state').textContent = 'Parametres enregistres.';
+    renderPreview();
+  }
+
+  function resetSettings() {
+    if (!AUTH.hasPermission('Modifier paramètres site', user)) {
+      alert('Droits insuffisants pour reinitialiser les parametres du site.');
+      return;
+    }
+    if (!confirm('Reinitialiser les parametres avec les valeurs par defaut ?')) return;
+    SITE_SETTINGS.resetSettings();
+    fillForm();
+    document.getElementById('save-state').textContent = 'Parametres reinitialises.';
+  }
+
+  ['organisation','address-line-1','address-line-2','site-email','site-phone','hours-week','hours-weekend','form-action','map-url','facebook-url','instagram-url','whatsapp-url']
+    .forEach(id => document.getElementById(id).addEventListener('input', renderPreview));
+
+  DB_READY.then(fillForm);
+  </script>
+</body>
+</html>

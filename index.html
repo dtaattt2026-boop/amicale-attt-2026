@@ -140,6 +140,22 @@
     </div>
   </section>
 
+  <!-- PUBLICITES D'ACCUEIL -->
+  <section class="py-5 bg-white" id="home-ads-section" style="display:none;">
+    <div class="container">
+      <div class="d-flex justify-content-between align-items-center mb-4 flex-wrap gap-2">
+        <div>
+          <h2 class="section-titre mb-0">A la une</h2>
+          <p class="text-muted mb-0">Photos et videos mises en avant par l'Amicale.</p>
+        </div>
+        <a href="publicites.html" class="btn btn-outline-attt btn-sm d-none" id="home-ads-manage-link">
+          <i class="bi bi-pencil-square me-1"></i>Gérer
+        </a>
+      </div>
+      <div class="row g-4" id="home-ads"></div>
+    </div>
+  </section>
+
   <!-- PROCHAIN ÉVÉNEMENT (dynamique) -->
   <section class="py-5 bg-white">
     <div class="container">
@@ -223,6 +239,7 @@
   <script src="js/auth.js"></script>
   <script src="js/data.js"></script>
   <script src="js/contenu.js"></script>
+  <script src="js/publicites.js"></script>
   <script src="js/profile.js"></script>
   <script src="js/version-check.js"></script>
   <script src="js/main.js"></script>
@@ -232,7 +249,9 @@
 
   function renderHomeEvents() {
     const today = new Date().toISOString().split('T')[0];
+    const currentUser = AUTH.getCurrentUser();
     const events = DATA.getEvents()
+      .filter(e => DATA.canUserAccess(e.acces, currentUser))
       .filter(e => e.date >= today)
       .sort((a,b) => a.date.localeCompare(b.date))
       .slice(0, 3);
@@ -247,13 +266,13 @@
       const participants = typeof PROFILE !== 'undefined' ? PROFILE.getEventParticipants(e.id).length : 0;
       const max = Number(e.nbMaxParticipants) || 0;
       const placesHtml = max > 0 ? `<span class="badge bg-light text-dark border ms-1">${participants}/${max} places</span>` : '';
-      const user = AUTH.getUser();
-      const isInscrit = user && typeof PROFILE !== 'undefined' && PROFILE.getEventParticipants(e.id).some(p => p.userId === user.id);
+      const isInscrit = currentUser && typeof PROFILE !== 'undefined' && PROFILE.getEventParticipants(e.id).some(p => p.userId === currentUser.id);
       const btnHtml = isInscrit
         ? `<span class="badge bg-success"><i class="bi bi-check-circle me-1"></i>Inscrit</span>`
         : `<a href="evenements.html" class="btn btn-attt btn-sm"><i class="bi bi-calendar-check me-1"></i>Participer</a>`;
       return `<div class="col-md-4">
         <div class="card h-100 p-4">
+          ${e.photo ? `<img src="${AUTH.esc(e.photo)}" alt="${AUTH.esc(e.titre)}" class="w-100 rounded-4 mb-3" style="height:190px;object-fit:cover;" />` : ''}
           <div class="d-flex gap-3 align-items-start mb-3">
             <div class="text-center rounded-3 px-2 py-1 flex-shrink-0" style="background:var(--couleur-principale);color:white;min-width:52px;">
               <div class="fw-bold fs-4 lh-1">${String(d.getDate()).padStart(2,'0')}</div>
@@ -293,7 +312,44 @@
       </div>`).join('');
   }
 
-  DB_READY.then(() => { renderHomeEvents(); renderHomeNews(); });
+  function renderHomeAds() {
+    const currentUser = AUTH.getCurrentUser();
+    const ads = PUBLICITES.getAds({ activeOnly: true }).filter(ad => PUBLICITES.userCanSee(ad, currentUser)).slice(0, 6);
+    const section = document.getElementById('home-ads-section');
+    const container = document.getElementById('home-ads');
+    const manageLink = document.getElementById('home-ads-manage-link');
+    if (currentUser && AUTH.hasPermission('Accéder page Publicités accueil', currentUser)) {
+      manageLink.classList.remove('d-none');
+    }
+    if (!ads.length) {
+      section.style.display = 'none';
+      return;
+    }
+    section.style.display = '';
+    container.innerHTML = ads.map(ad => {
+      const actionStart = ad.targetUrl ? `<a href="${AUTH.esc(ad.targetUrl)}" class="text-decoration-none text-reset">` : '<div>';
+      const actionEnd = ad.targetUrl ? '</a>' : '</div>';
+      const media = ad.mediaType === 'video'
+        ? `<div class="ratio ratio-16x9 rounded-4 overflow-hidden bg-dark"><iframe src="${AUTH.esc(ad.mediaUrl)}" title="${AUTH.esc(ad.titre)}" allow="autoplay; encrypted-media" allowfullscreen></iframe></div>`
+        : `<img src="${AUTH.esc(ad.thumbnailUrl || ad.mediaUrl)}" alt="${AUTH.esc(ad.titre)}" class="w-100 rounded-4" style="height:220px;object-fit:cover;" />`;
+      return `<div class="col-md-6 col-xl-4">${actionStart}
+        <div class="card h-100 border-0 shadow-sm p-3">
+          ${media}
+          <div class="pt-3">
+            <div class="d-flex gap-2 align-items-center mb-2 flex-wrap">
+              <span class="badge bg-${ad.mediaType === 'video' ? 'dark' : 'primary'}">${ad.mediaType === 'video' ? 'Vidéo' : 'Photo'}</span>
+              <span class="badge bg-light text-dark border">${AUTH.esc(PUBLICITES.getAccessLabel(ad.access))}</span>
+              ${ad.mediaSize ? `<span class="badge bg-secondary-subtle text-secondary-emphasis border">${AUTH.esc(ad.mediaSize)}</span>` : ''}
+            </div>
+            <h3 class="h5 fw-bold mb-1">${AUTH.esc(ad.titre)}</h3>
+            <p class="text-muted small mb-0">${AUTH.esc(ad.description || '')}</p>
+          </div>
+        </div>
+      ${actionEnd}</div>`;
+    }).join('');
+  }
+
+  DB_READY.then(() => { renderHomeAds(); renderHomeEvents(); renderHomeNews(); });
   </script>
 </body>
 </html>

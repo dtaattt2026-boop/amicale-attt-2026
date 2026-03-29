@@ -2,7 +2,7 @@
  * contenu.js — Gestion des articles / actualités
  * Stockage localStorage : attt_articles
  * Structure article :
- *   { id, titre, resume, corps, photo (base64|null), categorie,
+ *   { id, titre, resume, corps, photo (url|null), categorie,
  *     acces ('tous'|'membres'), auteurId, auteurLogin, datePublication }
  */
 const CONTENU = (() => {

@@ -23,6 +23,9 @@
  *       match /site_data/{document} {
  *         allow read, write: if true;
  *       }
+ *       match /_sys/{document} {
+ *         allow read, write: if true;
+ *       }
  *     }
  *   }
  *
@@ -45,4 +48,29 @@ const FIREBASE_CONFIG = {
   storageBucket:     'amicale-attt.firebasestorage.app',
   messagingSenderId: '778227653817',
   appId:             '1:778227653817:web:537314a7f456ddac658f68'
+};
+
+/*
+ * ─── Stockage média distant ───────────────────────────────
+ * provider:
+ *   - 'auto'         : Google Drive si configuré, sinon Firebase
+ *   - 'google-drive' : force Google Drive
+ *   - 'firebase'     : force Firebase Storage
+ */
+const MEDIA_STORAGE_PROVIDER = 'auto';
+
+/*
+ * Pour stocker les photos et documents dans le Drive ATTT,
+ * créez un OAuth Client ID Web dans Google Cloud puis renseignez clientId.
+ * Le site créera automatiquement une arborescence du type :
+ *   ATTT-Site-Medias / media / events / 2026 / 03
+ */
+const GOOGLE_DRIVE_CONFIG = {
+  clientId: '778227653817-sl5v7fatk6jq3fdovrvn823vkbjda444.apps.googleusercontent.com',
+  loginHint: 'attt.amicale.tunisie@gmail.com',
+  appName: 'Amicale ATTT',
+  baseFolderName: 'ATTT-Site-Medias',
+  docsFolderName: 'documents',
+  mediaFolderName: 'media',
+  scope: 'https://www.googleapis.com/auth/drive.file'
 };

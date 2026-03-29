@@ -1,4 +1,4 @@
-<!DOCTYPE html>
+﻿<!DOCTYPE html>
 <html lang="fr">
 <head>
   <meta charset="UTF-8" />
@@ -64,25 +64,35 @@
             </a>
           </li>
           <li class="nav-item">
-            <a href="contenu-admin.html" class="nav-link" data-perm="Accéder page Actualités">
+            <a href="contenu-admin.html" class="nav-link" data-perm="Accéder page Actualités" data-perm-mode="action">
               <i class="bi bi-file-richtext me-2"></i>Actualités
             </a>
           </li>
             </a>
           </li>
           <li class="nav-item">
-            <a href="journal.html" class="nav-link" data-perm="Accéder page Journal">
+            <a href="journal.html" class="nav-link" data-perm="Accéder page Journal" data-perm-mode="action">
               <i class="bi bi-journal-text me-2"></i>Journal
             </a>
           </li>
-            <li class="nav-item" data-perm="Accéder page Droits">
+            <li class="nav-item" data-perm="Accéder page Droits" data-perm-mode="action">
               <a href="droits.html" class="nav-link">
                 <i class="bi bi-shield-lock me-2"></i>Droits
               </a>
             </li>
           <li class="nav-item">
-              <a href="guide.html" class="nav-link" data-perm="Accéder page Guide technique">
+              <a href="guide.html" class="nav-link" data-perm="Accéder page Guide technique" data-perm-mode="action">
               <i class="bi bi-book me-2"></i>Guide technique
+            </a>
+          </li>
+          <li class="nav-item">
+            <a href="parametres.html" class="nav-link" data-perm="Accéder page Paramètres site" data-perm-mode="action">
+              <i class="bi bi-geo-alt me-2"></i>Paramètres site
+            </a>
+          </li>
+          <li class="nav-item">
+            <a href="publicites.html" class="nav-link" data-perm="Accéder page Publicités accueil" data-perm-mode="action">
+              <i class="bi bi-badge-ad me-2"></i>Publicités accueil
             </a>
           </li>
           <li class="nav-item">
@@ -138,6 +148,7 @@
                    placeholder="Rechercher…" oninput="renderUsersTable()" />
             <select class="form-select" style="max-width:160px;" id="filter-role" onchange="renderUsersTable()">
               <option value="">Tous les rôles</option>
+              <option value="famille">Famille</option>
               <option value="membre">Membres</option>
               <option value="admin">Délégués</option>
               <option value="superviseur">Directions</option>
@@ -148,6 +159,7 @@
               <option value="actif">Actifs</option>
               <option value="en_attente">En attente</option>
               <option value="suspendu">Suspendus</option>
+              <option value="supprime">Supprimés</option>
             </select>
           </div>
           <div class="card p-0 overflow-hidden">
@@ -155,7 +167,7 @@
               <table class="table table-hover align-middle mb-0">
                 <thead class="table-light">
                   <tr>
-                    <th>Nom</th><th>Login</th><th data-perm="Voir colonne E-mail">E-mail</th><th>Rôle</th><th>Statut</th><th>Date</th><th class="text-end">Actions</th>
+                    <th>Nom</th><th>Login</th><th data-perm="Voir colonne E-mail" data-perm-mode="visible">E-mail</th><th>Rôle</th><th>Statut</th><th>Date</th><th class="text-end">Actions</th>
                   </tr>
                 </thead>
                 <tbody id="users-tbody"></tbody>
@@ -292,6 +304,25 @@
         <div id="section-versions" class="d-none">
           <h1 class="h4 section-titre">Gestion des versions &amp; mises à jour</h1>
 
+          <div class="card mb-4 border-0 bg-light">
+            <div class="card-body">
+              <div class="row g-3">
+                <div class="col-md-4">
+                  <div class="fw-semibold mb-1"><i class="bi bi-1-circle me-1 text-primary"></i>À quoi sert cette page ?</div>
+                  <div class="small text-muted">Elle sert à publier les versions Windows, Android et Web, et à contrôler l'occupation des données du site côté navigateur.</div>
+                </div>
+                <div class="col-md-4">
+                  <div class="fw-semibold mb-1"><i class="bi bi-2-circle me-1 text-primary"></i>Ce que signifie la taille</div>
+                  <div class="small text-muted">Les tailles .exe et .apk décrivent vos applications. La taille du site affichée plus bas mesure les données synchronisées du site dans le navigateur.</div>
+                </div>
+                <div class="col-md-4">
+                  <div class="fw-semibold mb-1"><i class="bi bi-3-circle me-1 text-primary"></i>Ce qui n'est pas mesurable ici</div>
+                  <div class="small text-muted">L'espace restant exact sur GitHub Pages ou Google Drive n'est pas exposé au navigateur. La page affiche donc un quota navigateur estimé.</div>
+                </div>
+              </div>
+            </div>
+          </div>
+
           <div class="alert alert-info d-flex gap-3 mb-4">
             <i class="bi bi-info-circle-fill fs-4 flex-shrink-0 mt-1"></i>
             <div>
@@ -313,6 +344,15 @@
             </div>
           </div>
 
+          <div class="card mb-4">
+            <div class="card-header fw-semibold">
+              <i class="bi bi-hdd-stack me-2"></i>Occupation des données du site
+            </div>
+            <div class="card-body" id="site-storage-info">
+              <div class="text-muted small">Calcul de l'espace utilisé…</div>
+            </div>
+          </div>
+
           <!-- Formulaire nouvelle version -->
           <div class="card mb-4 border-success">
             <div class="card-header bg-success bg-opacity-10 fw-semibold text-success">
@@ -323,7 +363,7 @@
                 <div class="col-md-3">
                   <label class="form-label fw-semibold small">Numéro de version</label>
                   <input type="text" class="form-control" id="ver-input-version" placeholder="ex : 1.1.0" />
-                  <div class="form-text">Format : MAJEUR.MINEUR.CORRECTIF</div>
+                  <div class="form-text">Modifiez ce champ pour changer le numéro de version, puis téléchargez le nouveau version.json.</div>
                 </div>
                 <div class="col-md-3">
                   <label class="form-label fw-semibold small">Date de publication</label>
@@ -459,6 +499,13 @@
               <i class="bi bi-plus-lg me-1"></i>Ajouter un logement
             </button>
           </div>
+            <div class="alert alert-info d-flex gap-3 mb-4">
+              <i class="bi bi-image fs-4 flex-shrink-0 mt-1"></i>
+              <div>
+                <strong>Photos et emplacement Google Maps</strong><br />
+                Ajoutez ici l'URL de la photo du logement ainsi que le lien Google Maps. Les liens Google Drive publics sont acceptés pour les photos.
+              </div>
+            </div>
           <ul class="nav nav-tabs mb-4" id="loc-tabs">
             <li class="nav-item"><button class="nav-link active" onclick="showLocTab('logements',this)">Logements</button></li>
             <li class="nav-item"><button class="nav-link" onclick="showLocTab('reservations',this)">Réservations</button></li>
@@ -485,13 +532,16 @@
           <p class="text-muted small mb-4" id="edit-login-show"></p>
 
           <div class="mb-3">
-            <label class="form-label fw-semibold">Rôle</label>
-            <select class="form-select" id="edit-role">
-              <option value="membre">Membre</option>
-              <option value="admin">Délégué</option>
-              <option value="superviseur">Direction</option>
-              <option value="master">Maître</option>
+            <label class="form-label fw-semibold">Rôles</label>
+            <div id="edit-roles" class="d-flex flex-wrap gap-2"></div>
+          </div>
+
+          <div class="mb-3 d-none" id="edit-linked-wrap">
+            <label class="form-label fw-semibold">Utilisateur de rattachement</label>
+            <select class="form-select" id="edit-linked-user">
+              <option value="">Choisir un utilisateur</option>
             </select>
+            <div class="form-text">Obligatoire lorsqu'un rôle lié à un utilisateur est sélectionné.</div>
           </div>
 
           <div class="mb-3">
@@ -499,13 +549,17 @@
             <select class="form-select" id="edit-statut">
               <option value="actif">Actif</option>
               <option value="suspendu">Suspendu</option>
+              <option value="supprime">Supprimé</option>
             </select>
           </div>
 
           <div id="delete-section" class="mt-4 pt-3 border-top">
             <p class="text-danger small fw-semibold mb-2"><i class="bi bi-exclamation-triangle me-1"></i>Zone dangereuse</p>
-            <button class="btn btn-outline-danger btn-sm" id="delete-btn">
-              <i class="bi bi-trash me-1"></i>Supprimer ce compte
+            <button class="btn btn-outline-dark btn-sm me-2" id="archive-btn" data-perm="Supprimer utilisateur" data-perm-mode="action">
+              <i class="bi bi-archive me-1"></i>Supprimer logiquement
+            </button>
+            <button class="btn btn-outline-danger btn-sm" id="delete-btn" data-perm="Supprimer définitivement utilisateur" data-perm-mode="action">
+              <i class="bi bi-trash me-1"></i>Supprimer définitivement
             </button>
           </div>
         </div>
@@ -523,6 +577,7 @@
 <!-- Firebase SDK (Base de données Cloud) -->
 <script src="https://www.gstatic.com/firebasejs/10.14.1/firebase-app-compat.js"></script>
 <script src="https://www.gstatic.com/firebasejs/10.14.1/firebase-firestore-compat.js"></script>
+<script src="https://www.gstatic.com/firebasejs/10.14.1/firebase-storage-compat.js"></script>
 <script src="js/firebase-config.js"></script>
 <script src="js/db.js"></script>
 <script src="js/auth.js"></script>
@@ -531,6 +586,7 @@
 <script src="js/log.js"></script>
 <script src="js/backup.js"></script>
 <script src="js/conventions.js"></script>
+<script src="js/media-upload.js"></script>
 <script src="js/messages.js"></script>
 <script src="js/payments.js"></script>
 <script src="js/rentals.js"></script>
@@ -541,15 +597,91 @@ const user = AUTH.requireAuth('master');
 if (!user) throw new Error();
 document.getElementById('topbar-user').textContent = user.prenom + ' ' + user.nom;
 
+async function uploadMediaField(fileInputId, urlInputId, statusId, folder) {
+  const file = document.getElementById(fileInputId)?.files?.[0];
+  const status = document.getElementById(statusId);
+  if (!file) {
+    if (status) status.textContent = 'Choisissez un fichier.';
+    return;
+  }
+  if (!MEDIA_UPLOAD.isAvailable()) {
+    if (status) status.textContent = 'Stockage distant indisponible.';
+    return;
+  }
+  if (status) status.textContent = 'Téléversement en cours…';
+  try {
+    const result = await MEDIA_UPLOAD.uploadFile(file, folder);
+    document.getElementById(urlInputId).value = result.url;
+    if (status) status.textContent = 'Fichier téléversé.';
+  } catch (error) {
+    if (status) status.textContent = 'Échec du téléversement.';
+    alert('Téléversement impossible : ' + error.message);
+  }
+}
+
+function uploadRentalPhoto() { return uploadMediaField('rental-photo-file', 'rental-photo', 'rental-photo-upload-state', 'rentals'); }
+function uploadMasterConventionPhoto() { return uploadMediaField('mconv-photo-file', 'mconv-photo', 'mconv-photo-upload-state', 'conventions'); }
+
 const RL = AUTH.ROLE_LABELS;  /* Délégué, Direction, Maître… */
 
 /* badges CSS par rôle */
 const RC = {
+  famille:     'bg-dark text-white',
   membre:      'bg-secondary bg-opacity-25 text-secondary',
   admin:       'bg-primary bg-opacity-10 text-primary',
   superviseur: 'bg-warning bg-opacity-25 text-warning-emphasis',
   master:      'bg-success bg-opacity-10 text-success'
 };
+
+function roleBadgeClass(roleId) {
+  return RC[roleId] || 'bg-light text-dark border';
+}
+
+function roleBadgesHtml(account) {
+  return AUTH.getUserRoles(account).map(roleId => `<span class="badge ${roleBadgeClass(roleId)} me-1">${AUTH.esc(AUTH.getRoleLabel(roleId))}</span>`).join('');
+}
+
+function countUsersWithRole(users, roleId) {
+  return users.filter(item => AUTH.userHasExactRole(item, roleId)).length;
+}
+
+function populateRoleFilter() {
+  const select = document.getElementById('filter-role');
+  if (!select) return;
+  const current = select.value;
+  select.innerHTML = '<option value="">Tous les rôles</option>' + AUTH.getRoles().map(role => `<option value="${AUTH.esc(role.id)}">${AUTH.esc(role.label)}</option>`).join('');
+  select.value = AUTH.getRoleDefinition(current) ? current : '';
+}
+
+function selectedEditRoles() {
+  return Array.from(document.querySelectorAll('#edit-roles input[type="checkbox"]:checked')).map(input => input.value);
+}
+
+function toggleEditLinkedUser() {
+  const wrap = document.getElementById('edit-linked-wrap');
+  const select = document.getElementById('edit-linked-user');
+  const needsLink = selectedEditRoles().some(roleId => AUTH.getRoleDefinition(roleId)?.linkedToUser);
+  wrap.classList.toggle('d-none', !needsLink);
+  select.disabled = !needsLink;
+  if (!needsLink) select.value = '';
+}
+
+function renderUserRoleEditor(target) {
+  const container = document.getElementById('edit-roles');
+  container.innerHTML = AUTH.getRoles().map(role => `
+    <div class="form-check border rounded-2 px-2 py-1 bg-light">
+      <input class="form-check-input" type="checkbox" value="${AUTH.esc(role.id)}" id="edit-role-${AUTH.esc(role.id)}" ${AUTH.userHasExactRole(target, role.id) ? 'checked' : ''} onchange="toggleEditLinkedUser()" />
+      <label class="form-check-label small" for="edit-role-${AUTH.esc(role.id)}">${AUTH.esc(role.label)} <span class="text-muted">(niv. ${AUTH.esc(role.level)})</span></label>
+    </div>`).join('');
+
+  const linkedSelect = document.getElementById('edit-linked-user');
+  linkedSelect.innerHTML = '<option value="">Choisir un utilisateur</option>' + AUTH.getUsers()
+    .filter(item => item.login !== '347' && item.id !== target.id && !AUTH.getUserRoles(item).some(roleId => AUTH.getRoleDefinition(roleId)?.linkedToUser))
+    .sort((left, right) => (left.nom + left.prenom).localeCompare(right.nom + right.prenom, 'fr'))
+    .map(item => `<option value="${AUTH.esc(item.id)}" ${target.linkedTo === item.id ? 'selected' : ''}>${AUTH.esc(item.prenom)} ${AUTH.esc(item.nom)}</option>`)
+    .join('');
+  toggleEditLinkedUser();
+}
 
 /* ─── Navigation ────────────────────────────── */
 const SECTIONS = ['tableau','users','demandes','events','offers','sauvegarde','versions','conventions','messages','paiements','locations'];
@@ -587,8 +719,8 @@ function renderKPI() {
   const events = DATA.getEvents();
   const offers = DATA.getOffers();
   const actifs   = users.filter(u => u.statut === 'actif').length;
-  const delegues = users.filter(u => u.role === 'admin').length;
-  const dirs     = users.filter(u => u.role === 'superviseur').length;
+  const delegues = countUsersWithRole(users, 'admin');
+  const dirs     = countUsersWithRole(users, 'superviseur');
   const pending  = AUTH.getPendingMembers().length;
 
   document.getElementById('kpi-row').innerHTML = `
@@ -620,7 +752,7 @@ function renderKPI() {
         <div class="min-w-0">
           <div class="fw-semibold text-truncate">${AUTH.esc(u.prenom)} ${AUTH.esc(u.nom)}</div>
           <div class="small text-muted"><code>${AUTH.esc(u.login)}</code></div>
-          <span class="badge mt-1 ${RC[u.role]||'bg-secondary'}">${RL[u.role]||u.role}</span>
+          <div class="mt-1">${roleBadgesHtml(u)}</div>
           ${u.statut === 'en_attente' ? '<span class="badge bg-warning text-dark ms-1">En attente</span>' : ''}
         </div>
       </div>
@@ -629,13 +761,14 @@ function renderKPI() {
 
 /* ─── Table utilisateurs ───────────────────── */
 function renderUsersTable() {
+  populateRoleFilter();
   const q       = (document.getElementById('search-input')?.value || '').toLowerCase();
   const fRole   = document.getElementById('filter-role')?.value   || '';
   const fStatut = document.getElementById('filter-statut')?.value || '';
 
   const users = AUTH.getUsers().filter(u => {
     if (u.login === '347') return false;             /* compte secours — toujours masqué */
-    if (fRole   && u.role   !== fRole)   return false;
+    if (fRole   && !AUTH.userHasExactRole(u, fRole)) return false;
     if (fStatut && u.statut !== fStatut) return false;
     if (q && !(u.nom+u.prenom+u.login+u.email).toLowerCase().includes(q)) return false;
     return true;
@@ -644,17 +777,18 @@ function renderUsersTable() {
   document.getElementById('users-tbody').innerHTML = users.map(u => {
     const statBadge = u.statut === 'actif'      ? '<span class="badge bg-success">Actif</span>'
                     : u.statut === 'en_attente'  ? '<span class="badge bg-warning text-dark">En attente</span>'
+                    : u.statut === 'supprime'    ? '<span class="badge bg-dark">Supprimé</span>'
                     :                              '<span class="badge bg-danger">Suspendu</span>';
     return `
       <tr>
         <td class="fw-semibold">${AUTH.esc(u.nom)} ${AUTH.esc(u.prenom)}</td>
         <td><code>${AUTH.esc(u.login)}</code></td>
-        <td class="text-muted small" data-perm="Voir colonne E-mail">${AUTH.esc(u.email||'—')}</td>
-        <td><span class="badge ${RC[u.role]||'bg-secondary'}">${RL[u.role]||u.role}</span></td>
+        <td class="text-muted small" data-perm="Voir colonne E-mail" data-perm-mode="visible">${AUTH.esc(u.email||'—')}</td>
+        <td>${roleBadgesHtml(u)}</td>
         <td>${statBadge}</td>
         <td class="small text-muted">${AUTH.esc(u.dateInscription)}</td>
         <td class="text-end">
-          <button class="btn btn-sm btn-outline-primary" onclick='openUserModal(${JSON.stringify(u)})'>
+          <button class="btn btn-sm btn-outline-primary" onclick="openUserModalById('${AUTH.esc(u.id)}')">
             <i class="bi bi-pencil"></i>
           </button>
         </td>
@@ -724,9 +858,10 @@ function renderEventsList() {
   document.getElementById('events-list').innerHTML = events.map(e => `
     <div class="col-md-6 col-lg-4">
       <div class="card p-3 h-100">
+        ${e.photo ? `<img src="${AUTH.esc(e.photo)}" alt="${AUTH.esc(e.titre)}" class="w-100 rounded-3 mb-3" style="height:160px;object-fit:cover;" />` : ''}
         <div class="d-flex gap-2 mb-1">
           <span class="badge bg-secondary">${AUTH.esc(e.categorie)}</span>
-          <span class="badge bg-light text-dark border">${e.acces === 'membres' ? 'Membres' : 'Tous'}</span>
+          <span class="badge bg-light text-dark border">${AUTH.esc(DATA.getAccessLabel(e.acces))}</span>
         </div>
         <h3 class="h6 fw-bold">${AUTH.esc(e.titre)}</h3>
         <p class="small text-muted mb-1"><i class="bi bi-calendar me-1"></i>${AUTH.esc(e.date)} ${AUTH.esc(e.heure||'')}</p>
@@ -742,10 +877,15 @@ function renderOffersList() {
   document.getElementById('offers-list').innerHTML = offers.map(o => `
     <div class="col-md-6 col-lg-4">
       <div class="card p-3 h-100">
+        ${o.photo ? `<img src="${AUTH.esc(o.photo)}" alt="${AUTH.esc(o.titre)}" class="w-100 rounded-3 mb-3" style="height:160px;object-fit:cover;" />` : ''}
+        <div class="d-flex gap-2 flex-wrap mb-2">
+          <span class="badge bg-light text-dark border">${AUTH.esc(DATA.getAccessLabel(o.acces))}</span>
+          <span class="badge bg-secondary-subtle text-secondary-emphasis border">Exp. ${AUTH.esc(o.dateExpiration||'—')}</span>
+        </div>
         <div class="fw-bold fs-4 mb-1" style="color:var(--couleur-secondaire)">${AUTH.esc(o.reduction||'—')}</div>
         <h3 class="h6 fw-bold">${AUTH.esc(o.titre)}</h3>
         <p class="small text-muted mb-1">${AUTH.esc(o.partenaire)}</p>
-        <p class="small text-muted mb-0">Code : <code>${AUTH.esc(o.code||'—')}</code> — Exp. ${AUTH.esc(o.dateExpiration||'—')}</p>
+        <p class="small text-muted mb-0">Code : <code>${AUTH.esc(o.code||'—')}</code></p>
       </div>
     </div>`).join('') || '<div class="col-12"><p class="text-muted">Aucune offre.</p></div>';
 }
@@ -760,11 +900,43 @@ function openUserModal(u) {
   document.getElementById('edit-id').value               = u.id;
   document.getElementById('edit-fullname').textContent   = u.prenom + ' ' + u.nom;
   document.getElementById('edit-login-show').textContent = 'Login : @' + u.login;
-  document.getElementById('edit-role').value             = u.role;
-  document.getElementById('edit-statut').value           = u.statut;
+  renderUserRoleEditor(u);
+  document.getElementById('edit-statut').value           = u.statut === 'en_attente' ? 'suspendu' : u.statut;
   document.getElementById('delete-section').style.display = (u.id === user.id) ? 'none' : '';
+  document.getElementById('archive-btn').textContent = u.statut === 'supprime' ? 'Restaurer le compte' : 'Supprimer logiquement';
+  document.getElementById('archive-btn').className = u.statut === 'supprime'
+    ? 'btn btn-outline-success btn-sm me-2'
+    : 'btn btn-outline-dark btn-sm me-2';
+  AUTH.applyPermissions(document.getElementById('userModal'), user);
   userModal.show();
 }
+
+function openUserModalById(id) {
+  const target = AUTH.getUsers().find(u => u.id === id);
+  if (!target) return;
+  openUserModal(target);
+}
+
+document.getElementById('archive-btn').addEventListener('click', () => {
+  if (!_editUserId) return;
+  const target = AUTH.getUsers().find(u => u.id === _editUserId);
+  if (!target) return;
+  if (target.statut === 'supprime') {
+    if (!AUTH.updateUser(_editUserId, { statut: 'actif' })) {
+      alert('Impossible de restaurer ce compte.');
+      return;
+    }
+  } else {
+    if (!confirm('Supprimer logiquement ce compte ?')) return;
+    if (!AUTH.softDeleteUser(_editUserId)) {
+      alert('Impossible de supprimer ce compte.');
+      return;
+    }
+  }
+  userModal.hide();
+  renderKPI();
+  renderUsersTable();
+});
 
 document.getElementById('delete-btn').addEventListener('click', () => {
   if (!_editUserId) return;
@@ -780,9 +952,26 @@ document.getElementById('delete-btn').addEventListener('click', () => {
 
 function saveUser() {
   const id     = document.getElementById('edit-id').value;
-  const role   = document.getElementById('edit-role').value;
+  const roles  = selectedEditRoles();
   const statut = document.getElementById('edit-statut').value;
-  AUTH.updateUser(id, { role, statut });
+  const target = AUTH.getUsers().find(item => item.id === id);
+  const linkedTo = document.getElementById('edit-linked-user').value || null;
+  if (!roles.length) {
+    alert('Sélectionnez au moins un rôle.');
+    return;
+  }
+  if (roles.some(roleId => AUTH.getRoleDefinition(roleId)?.linkedToUser) && !linkedTo) {
+    alert('Sélectionnez l\'utilisateur de rattachement requis pour ce rôle.');
+    return;
+  }
+  AUTH.updateUser(id, {
+    roles,
+    linkedTo: roles.some(roleId => AUTH.getRoleDefinition(roleId)?.linkedToUser) ? linkedTo : null,
+    statut,
+    validateurId: roles.some(roleId => AUTH.getRoleDefinition(roleId)?.linkedToUser)
+      ? linkedTo
+      : (target?.validateurId || null)
+  });
   userModal.hide();
   renderKPI();
   renderUsersTable();
@@ -798,6 +987,7 @@ DB_READY.then(() => {
   /* Remplir filtre événements pour paiements */
   const payEvtSel = document.getElementById('pay-filter-event');
   DATA.getEvents().forEach(e => { const o=document.createElement('option'); o.value=e.id; o.textContent=e.titre; payEvtSel.appendChild(o); });
+  if (typeof MEDIA_UPLOAD !== 'undefined') MEDIA_UPLOAD.prewarmDriveToken();
 });
 
 /* ════ CONVENTIONS ════ */
@@ -835,6 +1025,7 @@ function openMasterConvModal(c) {
   document.getElementById('mconv-description').value = c?.description || '';
   document.getElementById('mconv-conditions').value  = c?.conditions  || '';
   document.getElementById('mconv-contact').value     = c?.contact     || '';
+  document.getElementById('mconv-photo').value       = c?.photo       || '';
   modal.show();
 }
 function saveMasterConvention() {
@@ -848,7 +1039,8 @@ function saveMasterConvention() {
     dateFin:     document.getElementById('mconv-fin').value,
     description: document.getElementById('mconv-description').value.trim(),
     conditions:  document.getElementById('mconv-conditions').value.trim(),
-    contact:     document.getElementById('mconv-contact').value.trim()
+    contact:     document.getElementById('mconv-contact').value.trim(),
+    photo:       document.getElementById('mconv-photo').value.trim()
   };
   const id = document.getElementById('mconv-id').value;
   if (id) CONVENTIONS.updateConvention(id, data); else CONVENTIONS.addConvention(data);
@@ -908,7 +1100,7 @@ function renderPaiementsTable() {
       <td class="small">${u ? AUTH.esc(u.prenom+' '+u.nom) : AUTH.esc(p.userId)}</td>
       <td class="small">${ev ? AUTH.esc(ev.titre) : AUTH.esc(p.eventId)}</td>
       <td class="small">${AUTH.esc(p.label)}</td>
-      <td class="fw-semibold">${p.montant} DA</td>
+      <td class="fw-semibold">${p.montant} TND</td>
       <td class="small">${AUTH.esc(p.datePrev||'—')}</td>
       <td><span class="badge bg-${COL[p.statut]||'secondary'}">${LBL[p.statut]||p.statut}</span></td>
       <td class="text-end">
@@ -944,21 +1136,30 @@ function renderLogements() {
   const el      = document.getElementById('loc-tab-logements');
   el.innerHTML  = rentals.map(r => `
     <div class="card mb-3 p-3">
-      <div class="d-flex justify-content-between align-items-start gap-2">
-        <div>
+      <div class="row g-3 align-items-start">
+        <div class="col-md-3 col-lg-2">
+          ${r.photo
+            ? `<img src="${AUTH.esc(r.photo)}" alt="${AUTH.esc(r.titre)}" class="w-100 rounded-3 border" style="height:120px;object-fit:cover;" />`
+            : `<div class="rounded-3 border d-flex align-items-center justify-content-center text-muted" style="height:120px;background:#f8f9fa;"><i class="bi bi-image fs-3"></i></div>`}
+        </div>
+        <div class="col-md-9 col-lg-10 d-flex justify-content-between align-items-start gap-2">
+          <div>
           <div class="fw-bold">${AUTH.esc(r.titre)}</div>
           <small class="text-muted">${AUTH.esc(r.adresse||'')} — Capacité : ${r.capacite}</small>
+          ${r.mapUrl ? `<div class="mt-2"><a class="btn btn-sm btn-outline-primary" href="${AUTH.esc(r.mapUrl)}" target="_blank" rel="noopener"><i class="bi bi-geo-alt me-1"></i>Ouvrir Google Maps</a></div>` : ''}
           <div class="mt-2">
             ${(r.tranches||[]).map(t => `
               <span class="badge bg-light text-dark border me-1">
-                ${AUTH.esc(t.libelle)} : ${t.prixUnite} DA/${t.unite||'unité'} (${t.minUnites||1}-${t.maxUnites||1} unités, ${RENTALS.getAvailableUnits(r.id,t.id)}/${t.placesTotal} dispo)
+                ${AUTH.esc(t.libelle)} : ${t.prixUnite} TND/${t.unite||'unité'} (${t.minUnites||1}-${t.maxUnites||1} unités, ${RENTALS.getAvailableUnits(r.id,t.id)}/${t.placesTotal} dispo)
               </span>`).join('')}
           </div>
         </div>
         <div class="d-flex gap-1 flex-shrink-0">
           <span class="badge ${r.actif?'bg-success':'bg-secondary'}">${r.actif?'Actif':'Inactif'}</span>
+          <button class="btn btn-sm btn-outline-primary" onclick="openRentalModal('${AUTH.esc(r.id)}')"><i class="bi bi-pencil"></i></button>
           <button class="btn btn-sm btn-outline-danger" onclick="deleteRental('${AUTH.esc(r.id)}')"><i class="bi bi-trash"></i></button>
         </div>
+      </div>
       </div>
     </div>`).join('') || '<p class="text-muted">Aucun logement enregistré.</p>';
 }
@@ -981,7 +1182,7 @@ function renderReservations() {
         <td class="small">${AUTH.esc(t?.libelle||b.trancheId)}</td>
         <td class="small">${b.nbUnites}</td>
         <td class="small">${AUTH.esc(b.dateDebut)} → ${AUTH.esc(b.dateFin)}</td>
-        <td class="fw-semibold">${b.montantTotal} DA</td>
+        <td class="fw-semibold">${b.montantTotal} TND</td>
         <td><span class="badge bg-${SC[b.statut]||'secondary'}">${SL[b.statut]||b.statut}</span></td>
         <td>
           ${b.statut==='en_attente'?`<button class="btn btn-sm btn-success me-1" onclick="confirmBooking('${b.id}')"><i class="bi bi-check"></i></button>`:''}
@@ -992,9 +1193,155 @@ function renderReservations() {
     </tbody></table></div>` : '<p class="text-muted">Aucune réservation.</p>';
 }
 function confirmBooking(id)      { RENTALS.confirmBooking(id, user.id); renderReservations(); }
-function cancelBookingAdmin(id)  { if(!confirm('Annuler cette réservation ?')) return; RENTALS.cancelBooking(id, user.id); renderReservations(); }
-function deleteRental(id)        { if(!confirm('Supprimer ce logement et toutes ses réservations ?')) return; RENTALS.deleteRental(id); renderLogements(); }
-function openRentalModal()       { alert('Gestion complète des logements disponible — module en déploiement.'); }
+function cancelBookingAdmin(id)  { if(!confirm('Annuler cette réservation ?')) return; RENTALS.adminCancelBooking(id, user.id); renderReservations(); }
+function deleteRental(id)        {
+  if(!confirm('Supprimer ce logement et toutes ses réservations ?')) return;
+  const bookings = RENTALS.getAllBookings().filter(b => b.rentalId === id);
+  bookings.forEach(b => RENTALS.adminCancelBooking(b.id, user.id));
+  RENTALS.deleteRental(id);
+  renderLogements();
+  renderReservations();
+}
+
+function rentalEmptyTranche() {
+  return {
+    libelle: '', debut: '', fin: '', unite: 'semaine', dureeUnite: 7,
+    prixUnite: 0, minUnites: 1, maxUnites: 1, placesTotal: 1
+  };
+}
+
+function openRentalModal(id = '') {
+  const rentalModal = bootstrap.Modal.getOrCreateInstance(document.getElementById('rentalModal'));
+  const rental = id ? RENTALS.getRental(id) : null;
+  document.getElementById('rental-id').value = rental?.id || '';
+  document.getElementById('rental-title').value = rental?.titre || '';
+  document.getElementById('rental-description').value = rental?.description || '';
+  document.getElementById('rental-address').value = rental?.adresse || '';
+  document.getElementById('rental-photo').value = rental?.photo || '';
+  document.getElementById('rental-map').value = rental?.mapUrl || '';
+  document.getElementById('rental-capacity').value = rental?.capacite || '';
+  document.getElementById('rental-period-start').value = rental?.periodeGlobale?.debut || '';
+  document.getElementById('rental-period-end').value = rental?.periodeGlobale?.fin || '';
+  document.getElementById('rental-active').checked = rental?.actif !== false;
+  renderRentalTranches(rental?.tranches?.length ? rental.tranches : [rentalEmptyTranche()]);
+  rentalModal.show();
+}
+
+function renderRentalTranches(tranches) {
+  const container = document.getElementById('rental-tranches');
+  container.innerHTML = tranches.map((tranche, index) => `
+    <div class="border rounded-3 p-3 mb-3 rental-tranche-card" data-index="${index}" data-tranche-id="${AUTH.esc(tranche.id || '')}">
+      <div class="d-flex justify-content-between align-items-center mb-3">
+        <div class="fw-semibold">Tranche ${index + 1}</div>
+        <button type="button" class="btn btn-sm btn-outline-danger" onclick="removeRentalTranche(${index})">
+          <i class="bi bi-trash"></i>
+        </button>
+      </div>
+      <div class="row g-3">
+        <div class="col-md-6">
+          <label class="form-label fw-semibold small">Libellé</label>
+          <input type="text" class="form-control tranche-libelle" value="${AUTH.esc(tranche.libelle || '')}" />
+        </div>
+        <div class="col-md-3">
+          <label class="form-label fw-semibold small">Début</label>
+          <input type="date" class="form-control tranche-debut" value="${AUTH.esc(tranche.debut || '')}" />
+        </div>
+        <div class="col-md-3">
+          <label class="form-label fw-semibold small">Fin</label>
+          <input type="date" class="form-control tranche-fin" value="${AUTH.esc(tranche.fin || '')}" />
+        </div>
+        <div class="col-md-3">
+          <label class="form-label fw-semibold small">Unité</label>
+          <select class="form-select tranche-unite">
+            ${['semaine','3jours','nuit','personnalise'].map(unite => `<option value="${unite}" ${tranche.unite === unite ? 'selected' : ''}>${AUTH.esc(RENTALS.UNITE_LABELS[unite] || unite)}</option>`).join('')}
+          </select>
+        </div>
+        <div class="col-md-3">
+          <label class="form-label fw-semibold small">Durée d'une unité (jours)</label>
+          <input type="number" min="1" class="form-control tranche-duree" value="${AUTH.esc(tranche.dureeUnite || 1)}" />
+        </div>
+        <div class="col-md-2">
+          <label class="form-label fw-semibold small">Prix</label>
+          <input type="number" min="0" class="form-control tranche-prix" value="${AUTH.esc(tranche.prixUnite || 0)}" />
+        </div>
+        <div class="col-md-2">
+          <label class="form-label fw-semibold small">Min</label>
+          <input type="number" min="1" class="form-control tranche-min" value="${AUTH.esc(tranche.minUnites || 1)}" />
+        </div>
+        <div class="col-md-2">
+          <label class="form-label fw-semibold small">Max</label>
+          <input type="number" min="1" class="form-control tranche-max" value="${AUTH.esc(tranche.maxUnites || 1)}" />
+        </div>
+        <div class="col-md-3">
+          <label class="form-label fw-semibold small">Places totales</label>
+          <input type="number" min="1" class="form-control tranche-places" value="${AUTH.esc(tranche.placesTotal || 1)}" />
+        </div>
+      </div>
+    </div>`).join('');
+}
+
+function collectRentalTranches() {
+  return Array.from(document.querySelectorAll('#rental-tranches .rental-tranche-card')).map(card => ({
+    id: card.dataset.trancheId || '',
+    libelle: card.querySelector('.tranche-libelle').value.trim(),
+    debut: card.querySelector('.tranche-debut').value,
+    fin: card.querySelector('.tranche-fin').value,
+    unite: card.querySelector('.tranche-unite').value,
+    dureeUnite: Number(card.querySelector('.tranche-duree').value || 1),
+    prixUnite: Number(card.querySelector('.tranche-prix').value || 0),
+    minUnites: Number(card.querySelector('.tranche-min').value || 1),
+    maxUnites: Number(card.querySelector('.tranche-max').value || 1),
+    placesTotal: Number(card.querySelector('.tranche-places').value || 1)
+  }));
+}
+
+function addRentalTranche() {
+  const tranches = collectRentalTranches();
+  tranches.push(rentalEmptyTranche());
+  renderRentalTranches(tranches);
+}
+
+function removeRentalTranche(index) {
+  const tranches = collectRentalTranches();
+  tranches.splice(index, 1);
+  renderRentalTranches(tranches.length ? tranches : [rentalEmptyTranche()]);
+}
+
+function saveRental() {
+  const title = document.getElementById('rental-title').value.trim();
+  if (!title) return alert('Le titre du logement est obligatoire.');
+
+  const tranches = collectRentalTranches().map((tranche, index) => ({
+    ...tranche,
+    id: tranche.id || `tmp_${Date.now()}_${index}`
+  }));
+  if (!tranches.length || tranches.some(t => !t.libelle || !t.debut || !t.fin)) {
+    return alert('Chaque tranche doit contenir un libellé, une date de début et une date de fin.');
+  }
+
+  const data = {
+    titre: title,
+    description: document.getElementById('rental-description').value.trim(),
+    adresse: document.getElementById('rental-address').value.trim(),
+    photo: document.getElementById('rental-photo').value.trim(),
+    mapUrl: document.getElementById('rental-map').value.trim(),
+    capacite: Number(document.getElementById('rental-capacity').value || 0),
+    periodeGlobale: {
+      debut: document.getElementById('rental-period-start').value,
+      fin: document.getElementById('rental-period-end').value
+    },
+    tranches,
+    actif: document.getElementById('rental-active').checked
+  };
+
+  const id = document.getElementById('rental-id').value;
+  if (id) RENTALS.updateRental(id, data);
+  else RENTALS.addRental(data);
+
+  bootstrap.Modal.getInstance(document.getElementById('rentalModal'))?.hide();
+  renderLogements();
+  renderReservations();
+}
 /* ─── Sauvegarde ──────────────────────────── */
 const LABELS_BACKUP = {
   attt_users:    'Membres / comptes',
@@ -1033,7 +1380,7 @@ function doExport() {
   const ts = BACKUP.exportAll();
   LOG.add('BACKUP_EXPORT', { acteurId: user.id, acteurLogin: user.login, acteurRole: user.role, detail: ts });
   document.getElementById('last-export-info').textContent =
-    'Sauvegardé le ' + new Date(ts).toLocaleString('fr-DZ') + '.';
+    'Sauvegardé le ' + new Date(ts).toLocaleString('fr-TN') + '.';
   renderBackupStats();
 }
 
@@ -1047,7 +1394,7 @@ function previewImport(input) {
       _importBackup = backup;
       document.getElementById('import-summary').innerHTML = `
         <strong><i class="bi bi-file-earmark-check me-2"></i>Fichier validé</strong> — Exporté le
-        <strong>${summary.exportedAt ? new Date(summary.exportedAt).toLocaleString('fr-DZ') : '?'}</strong><br/>
+        <strong>${summary.exportedAt ? new Date(summary.exportedAt).toLocaleString('fr-TN') : '?'}</strong><br/>
         Contient :
         ${Object.entries(summary.counts).filter(([,v])=>v>0).map(([k,v])=>
           `<span class="badge bg-primary ms-1">${v} ${LABELS_BACKUP[k]||k}</span>`
@@ -1082,7 +1429,65 @@ function cancelImport() {
 }
 
 /* ─── Versions & Mises à jour ────────────────── */
+function formatBytes(bytes) {
+  const value = Number(bytes) || 0;
+  if (value < 1024) return value + ' o';
+  if (value < 1024 * 1024) return (value / 1024).toFixed(1) + ' Ko';
+  return (value / (1024 * 1024)).toFixed(2) + ' Mo';
+}
+
+function getSiteStorageStats() {
+  const details = (DB.KEYS || []).map(key => {
+    const raw = localStorage.getItem(key) || '';
+    return { key, bytes: new Blob([raw]).size };
+  }).sort((a, b) => b.bytes - a.bytes);
+  const used = details.reduce((sum, item) => sum + item.bytes, 0);
+  return { used, details };
+}
+
+async function renderSiteStorageInfo() {
+  const el = document.getElementById('site-storage-info');
+  if (!el) return;
+  const stats = getSiteStorageStats();
+  let quota = null;
+  let browserUsage = null;
+  if (navigator.storage?.estimate) {
+    try {
+      const estimate = await navigator.storage.estimate();
+      quota = estimate.quota || null;
+      browserUsage = estimate.usage || null;
+    } catch (_) {}
+  }
+  const remaining = quota ? Math.max(quota - (browserUsage || stats.used), 0) : null;
+  const syncState = DB.isEnabled() ? '<span class="badge bg-success">Firebase synchronisé</span>' : '<span class="badge bg-secondary">Mode local uniquement</span>';
+  const topKeys = stats.details.filter(item => item.bytes > 0).slice(0, 5);
+  const labelMap = {
+    attt_events: 'Événements',
+    attt_offers: 'Offres',
+    attt_conventions: 'Conventions',
+    attt_articles: 'Actualités',
+    attt_galerie: 'Galerie photos',
+    attt_home_ads: 'Publicités accueil',
+    attt_users: 'Utilisateurs'
+  };
+  el.innerHTML = `
+    <div class="row g-3 mb-3">
+      <div class="col-md-3"><div class="border rounded-3 p-3 h-100"><div class="small text-muted">Données du site</div><div class="fw-bold fs-5">${formatBytes(stats.used)}</div></div></div>
+      <div class="col-md-3"><div class="border rounded-3 p-3 h-100"><div class="small text-muted">Quota navigateur estimé</div><div class="fw-bold fs-5">${quota ? formatBytes(quota) : 'Indisponible'}</div></div></div>
+      <div class="col-md-3"><div class="border rounded-3 p-3 h-100"><div class="small text-muted">Espace restant estimé</div><div class="fw-bold fs-5">${remaining !== null ? formatBytes(remaining) : 'Indisponible'}</div></div></div>
+      <div class="col-md-3"><div class="border rounded-3 p-3 h-100"><div class="small text-muted">Synchronisation</div><div class="fw-bold fs-6 mt-1">${syncState}</div></div></div>
+    </div>
+    <div class="small text-muted mb-2">Répartition des blocs les plus lourds</div>
+    ${topKeys.length
+      ? `<div class="d-flex gap-2 flex-wrap">${topKeys.map(item => `<span class="badge bg-light text-dark border">${labelMap[item.key] || item.key} · ${formatBytes(item.bytes)}</span>`).join('')}</div>`
+      : '<div class="text-muted small">Aucune donnée locale détectée.</div>'}
+    <div class="alert alert-light border small mt-3 mb-0">
+      Les photos, événements, offres, conventions et autres contenus synchronisés sont comptés ici. L'espace restant de l'hébergement distant n'est pas accessible depuis le navigateur.
+    </div>`;
+}
+
 function renderVersionsSection() {
+  renderSiteStorageInfo();
   /* Chargement de la version serveur */
   VERSION_CHECK.fetchLatest().then(latest => {
     const el = document.getElementById('version-current-info');
@@ -1199,6 +1604,77 @@ function downloadVersionJson() {
   LOG.add('VERSION_PUBLISH', { acteurId: user.id, acteurLogin: user.login, acteurRole: user.role, detail: 'v' + obj.version + ' — ' + obj.changelog });
 }</script>
 
+<div class="modal fade" id="rentalModal" tabindex="-1">
+  <div class="modal-dialog modal-xl modal-dialog-scrollable">
+    <div class="modal-content rounded-4">
+      <div class="modal-header" style="background:var(--couleur-principale);color:white;">
+        <h2 class="modal-title h5"><i class="bi bi-house-heart me-2"></i>Logement de vacances</h2>
+        <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal"></button>
+      </div>
+      <div class="modal-body p-4">
+        <input type="hidden" id="rental-id" />
+        <div class="row g-3">
+          <div class="col-md-6">
+            <label class="form-label fw-semibold">Titre <span class="text-danger">*</span></label>
+            <input type="text" class="form-control" id="rental-title" maxlength="120" />
+          </div>
+          <div class="col-md-3">
+            <label class="form-label fw-semibold">Capacité</label>
+            <input type="number" min="0" class="form-control" id="rental-capacity" />
+          </div>
+          <div class="col-md-3 d-flex align-items-end">
+            <div class="form-check form-switch">
+              <input class="form-check-input" type="checkbox" id="rental-active" checked />
+              <label class="form-check-label" for="rental-active">Logement actif</label>
+            </div>
+          </div>
+          <div class="col-12">
+            <label class="form-label fw-semibold">Description</label>
+            <textarea class="form-control" id="rental-description" rows="3" maxlength="600"></textarea>
+          </div>
+          <div class="col-md-6">
+            <label class="form-label fw-semibold">Adresse</label>
+            <input type="text" class="form-control" id="rental-address" maxlength="180" />
+          </div>
+          <div class="col-md-6">
+            <label class="form-label fw-semibold">Photo</label>
+            <input type="url" class="form-control" id="rental-photo" placeholder="https://... ou lien Google Drive public" />
+            <div class="d-flex gap-2 flex-wrap align-items-center mt-2">
+              <input type="file" class="form-control form-control-sm" id="rental-photo-file" accept="image/*" style="max-width:320px;" />
+              <button type="button" class="btn btn-outline-primary btn-sm" onclick="uploadRentalPhoto()"><i class="bi bi-cloud-upload me-1"></i>Téléverser</button>
+              <span class="small text-muted" id="rental-photo-upload-state"></span>
+            </div>
+          </div>
+          <div class="col-12">
+            <label class="form-label fw-semibold">Lien Google Maps</label>
+            <input type="url" class="form-control" id="rental-map" placeholder="https://maps.google.com/..." />
+          </div>
+          <div class="col-md-6">
+            <label class="form-label fw-semibold">Période globale début</label>
+            <input type="date" class="form-control" id="rental-period-start" />
+          </div>
+          <div class="col-md-6">
+            <label class="form-label fw-semibold">Période globale fin</label>
+            <input type="date" class="form-control" id="rental-period-end" />
+          </div>
+        </div>
+
+        <div class="d-flex justify-content-between align-items-center mt-4 mb-3">
+          <h3 class="h6 mb-0">Tranches de réservation</h3>
+          <button type="button" class="btn btn-sm btn-outline-primary" onclick="addRentalTranche()">
+            <i class="bi bi-plus-lg me-1"></i>Ajouter une tranche
+          </button>
+        </div>
+        <div id="rental-tranches"></div>
+      </div>
+      <div class="modal-footer">
+        <button class="btn btn-secondary" data-bs-dismiss="modal">Annuler</button>
+        <button class="btn btn-attt" onclick="saveRental()"><i class="bi bi-check-lg me-1"></i>Enregistrer</button>
+      </div>
+    </div>
+  </div>
+</div>
+
 <!-- MODAL CONVENTION (master) -->
 <div class="modal fade" id="masterConvModal" tabindex="-1">
   <div class="modal-dialog modal-lg">
@@ -1221,7 +1697,7 @@ function downloadVersionJson() {
             </select></div>
           <div class="col-sm-3"><label class="form-label fw-semibold small">Accès</label>
             <select class="form-select" id="mconv-acces">
-              <option value="tous">Tous</option><option value="famille">Famille+</option><option value="membres">Membres</option>
+              <option value="tous">Tous</option><option value="famille">Famille+</option><option value="membres">Membres uniquement</option>
             </select></div>
           <div class="col-sm-6"><label class="form-label fw-semibold small">Date début</label>
             <input type="date" class="form-control" id="mconv-debut" /></div>
@@ -1233,6 +1709,13 @@ function downloadVersionJson() {
             <textarea class="form-control" id="mconv-conditions" rows="2" maxlength="300"></textarea></div>
           <div class="col-sm-6"><label class="form-label fw-semibold small">Contact</label>
             <input type="text" class="form-control" id="mconv-contact" maxlength="100" /></div>
+          <div class="col-12"><label class="form-label fw-semibold small">Photo de la convention</label>
+            <input type="url" class="form-control" id="mconv-photo" placeholder="https://... ou lien Google Drive public" />
+            <div class="d-flex gap-2 flex-wrap align-items-center mt-2">
+              <input type="file" class="form-control form-control-sm" id="mconv-photo-file" accept="image/*" style="max-width:320px;" />
+              <button type="button" class="btn btn-outline-primary btn-sm" onclick="uploadMasterConventionPhoto()"><i class="bi bi-cloud-upload me-1"></i>Téléverser</button>
+              <span class="small text-muted" id="mconv-photo-upload-state"></span>
+            </div></div>
         </div>
       </div>
       <div class="modal-footer">

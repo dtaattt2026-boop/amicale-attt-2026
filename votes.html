@@ -1,0 +1,643 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Amicale ATTT — Votes &amp; Scrutins</title>
+  <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css" rel="stylesheet" />
+  <link href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.3/font/bootstrap-icons.css" rel="stylesheet" />
+  <link href="css/style.css" rel="stylesheet" />
+  <link rel="manifest" href="manifest.json" />
+  <meta name="theme-color" content="#003DA6" />
+  <style>
+    .vote-card       { transition: box-shadow .2s, transform .2s; }
+    .vote-card:hover { box-shadow: 0 6px 24px rgba(0,61,166,.14); transform: translateY(-2px); }
+    .choice-item     { cursor: pointer; transition: background .15s; border-radius: 8px; }
+    .choice-item:hover { background: rgba(0,61,166,.06); }
+    .choice-item.selected { background: rgba(0,61,166,.12); border-color: var(--couleur-principale) !important; }
+    .result-bar      { height: 8px; border-radius: 4px; background: var(--couleur-principale); transition: width .4s; }
+    .role-badge      { font-size: .72rem; padding: .2rem .55rem; border-radius: 20px; }
+    .filter-bar .btn.active { box-shadow: 0 0 0 2px var(--couleur-principale); }
+    #btn-create-vote {
+      position: fixed; bottom: 30px; right: 30px; z-index: 1050;
+      border-radius: 50px; padding: 12px 22px;
+      box-shadow: 0 4px 18px rgba(0,61,166,.35);
+      display: none;
+    }
+    .stat-card { border-left: 4px solid var(--couleur-principale); padding: 1rem; }
+    .stat-card .sv  { font-size: 1.8rem; font-weight: 700; color: var(--couleur-principale); }
+    .stat-card .sl  { font-size: .8rem; color: #6c757d; text-transform: uppercase; }
+  </style>
+</head>
+<body>
+
+  <!-- NAVBAR -->
+  <nav class="navbar navbar-expand-lg navbar-dark">
+    <div class="container">
+      <a class="navbar-brand fw-bold d-flex align-items-center gap-2" href="index.html">
+        <i class="bi bi-people-fill fs-4"></i>Amicale ATTT
+      </a>
+      <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navMenu">
+        <span class="navbar-toggler-icon"></span>
+      </button>
+      <div class="collapse navbar-collapse" id="navMenu">
+        <ul class="navbar-nav ms-auto gap-1">
+          <li class="nav-item"><a class="nav-link" href="index.html">Accueil</a></li>
+          <li class="nav-item"><a class="nav-link" href="activites.html">Activités</a></li>
+          <li class="nav-item"><a class="nav-link active" href="votes.html">Votes</a></li>
+          <li class="nav-item"><a class="nav-link" href="evenements.html">Événements</a></li>
+          <li class="nav-item"><a class="nav-link" href="espace-membre.html"><i class="bi bi-person-circle me-1"></i>Mon espace</a></li>
+        </ul>
+      </div>
+    </div>
+  </nav>
+
+  <!-- EN-TÊTE -->
+  <div class="py-4" style="background:linear-gradient(135deg,var(--couleur-principale),#0056cc);color:white;">
+    <div class="container">
+      <nav aria-label="breadcrumb">
+        <ol class="breadcrumb mb-1">
+          <li class="breadcrumb-item"><a href="index.html" class="text-white-50">Accueil</a></li>
+          <li class="breadcrumb-item active text-white">Votes &amp; Scrutins</li>
+        </ol>
+      </nav>
+      <div class="d-flex align-items-center gap-3 flex-wrap">
+        <div>
+          <h1 class="fw-bold mb-1"><i class="bi bi-check2-square me-2"></i>Votes &amp; Scrutins</h1>
+          <p class="mb-0 opacity-75">Élections, sondages et consultations pour les membres de l'Amicale.</p>
+        </div>
+        <div id="hdr-stats" class="ms-auto d-none d-md-flex gap-4" data-perm="Gérer votes"></div>
+      </div>
+    </div>
+  </div>
+
+  <main class="py-5">
+    <div class="container">
+
+      <!-- STATS ADMIN -->
+      <div id="section-stats" class="row g-3 mb-5 d-none" data-perm="Gérer votes">
+        <div class="col-6 col-md-3"><div class="stat-card card shadow-sm h-100">
+          <div class="sv" id="st-total">—</div><div class="sl">Total scrutins</div>
+        </div></div>
+        <div class="col-6 col-md-3"><div class="stat-card card shadow-sm h-100">
+          <div class="sv" id="st-ouverts">—</div><div class="sl">Ouverts</div>
+        </div></div>
+        <div class="col-6 col-md-3"><div class="stat-card card shadow-sm h-100">
+          <div class="sv" id="st-clos">—</div><div class="sl">Clos</div>
+        </div></div>
+        <div class="col-6 col-md-3"><div class="stat-card card shadow-sm h-100">
+          <div class="sv" id="st-votes">—</div><div class="sl">Bulletins déposés</div>
+        </div></div>
+      </div>
+
+      <!-- FILTRES -->
+      <div class="filter-bar d-flex flex-wrap gap-2 align-items-center mb-4">
+        <span class="fw-semibold text-muted small me-1">Statut :</span>
+        <button class="btn btn-sm btn-outline-secondary active" data-flt="" onclick="setFilter(this,'')">Tous</button>
+        <button class="btn btn-sm btn-outline-success" data-flt="ouvert"    onclick="setFilter(this,'ouvert')"><i class="bi bi-check-circle me-1"></i>Ouverts</button>
+        <button class="btn btn-sm btn-outline-dark"    data-flt="clos"      onclick="setFilter(this,'clos')"><i class="bi bi-lock me-1"></i>Clos</button>
+        <button class="btn btn-sm btn-outline-secondary d-none" data-flt="brouillon" id="btn-flt-draft"
+                onclick="setFilter(this,'brouillon')" data-perm="Gérer votes"><i class="bi bi-pencil me-1"></i>Brouillons</button>
+        <div class="ms-auto">
+          <input type="search" id="search-vote" class="form-control form-control-sm"
+                 placeholder="Rechercher…" oninput="renderVotes()" style="min-width:180px;" />
+        </div>
+      </div>
+
+      <!-- GRILLE VOTES -->
+      <div id="vote-grid" class="row g-4 mb-5"></div>
+      <div id="vote-empty" class="text-center text-muted py-5 d-none">
+        <i class="bi bi-check2-square fs-2 d-block mb-2 opacity-50"></i>
+        <p>Aucun scrutin disponible.</p>
+      </div>
+
+      <!-- SECTION ADMIN : gestion des scrutins -->
+      <section id="section-admin" class="d-none border-top pt-4 mt-5" data-perm="Gérer votes">
+        <div class="d-flex align-items-center justify-content-between mb-3 flex-wrap gap-2">
+          <h2 class="fw-bold mb-0"><i class="bi bi-gear me-2"></i>Gestion des scrutins</h2>
+        </div>
+        <div class="table-responsive">
+          <table class="table table-hover align-middle small">
+            <thead class="table-light">
+              <tr>
+                <th>Titre</th>
+                <th>Éligibles</th>
+                <th class="text-center">Choix</th>
+                <th>Début</th>
+                <th>Fin</th>
+                <th class="text-center">Bulletins</th>
+                <th class="text-center">Statut</th>
+                <th class="text-center">Actions</th>
+              </tr>
+            </thead>
+            <tbody id="admin-votes-body"></tbody>
+          </table>
+        </div>
+        <div id="admin-votes-empty" class="text-center text-muted py-3 d-none">
+          <i class="bi bi-inbox me-1"></i>Aucun scrutin créé.
+        </div>
+      </section>
+
+    </div>
+  </main>
+
+  <!-- BOUTON FLOTTANT CRÉER -->
+  <button id="btn-create-vote" class="btn btn-attt" data-perm="Voir bouton Créer vote"
+          onclick="openVoteForm(null)">
+    <i class="bi bi-plus-lg me-1"></i>Nouveau scrutin
+  </button>
+
+  <!-- ═══ MODAL VOTER ═══ -->
+  <div class="modal fade" id="modalVoter" tabindex="-1" aria-labelledby="lblVoter" aria-hidden="true">
+    <div class="modal-dialog modal-lg modal-dialog-centered modal-dialog-scrollable">
+      <div class="modal-content">
+        <div class="modal-header">
+          <h5 class="modal-title" id="lblVoter"><i class="bi bi-check2-square me-2"></i>Voter</h5>
+          <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+        </div>
+        <div class="modal-body">
+          <div id="vote-modal-info" class="mb-3">
+            <h5 id="vote-modal-titre" class="fw-bold"></h5>
+            <p id="vote-modal-desc" class="text-muted small"></p>
+            <p id="vote-modal-instruction" class="text-primary small fw-semibold"></p>
+          </div>
+          <input type="hidden" id="vote-modal-id" />
+          <div id="vote-choices-list" class="d-flex flex-column gap-2"></div>
+          <div id="vote-already" class="alert alert-success d-none mt-3">
+            <i class="bi bi-check-circle-fill me-2"></i>Vous avez déjà voté pour ce scrutin.
+          </div>
+        </div>
+        <div class="modal-footer">
+          <button type="button" class="btn btn-outline-secondary" data-bs-dismiss="modal">Fermer</button>
+          <button type="button" class="btn btn-attt" id="btn-submit-vote" onclick="submitVote()">
+            <i class="bi bi-check2 me-1"></i>Confirmer mon vote
+          </button>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- ═══ MODAL CRÉER / MODIFIER SCRUTIN ═══ -->
+  <div class="modal fade" id="modalVote" tabindex="-1" aria-labelledby="lblVoteForm" aria-hidden="true">
+    <div class="modal-dialog modal-xl modal-dialog-centered modal-dialog-scrollable">
+      <div class="modal-content">
+        <div class="modal-header">
+          <h5 class="modal-title" id="lblVoteForm">Nouveau scrutin</h5>
+          <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+        </div>
+        <div class="modal-body">
+          <form id="form-vote" novalidate>
+            <input type="hidden" id="fv-id" />
+            <div class="row g-3">
+              <div class="col-12">
+                <label class="form-label fw-semibold">Titre du scrutin <span class="text-danger">*</span></label>
+                <input type="text" id="fv-titre" class="form-control" maxlength="150" required />
+              </div>
+              <div class="col-12">
+                <label class="form-label fw-semibold">Description / contexte</label>
+                <textarea id="fv-desc" class="form-control" rows="2"
+                          placeholder="Décrivez l'objet du vote…"></textarea>
+              </div>
+
+              <div class="col-md-6">
+                <label class="form-label fw-semibold">Date de début <span class="text-danger">*</span></label>
+                <input type="date" id="fv-debut" class="form-control" required />
+              </div>
+              <div class="col-md-6">
+                <label class="form-label fw-semibold">Date de fin <span class="text-danger">*</span></label>
+                <input type="date" id="fv-fin" class="form-control" required />
+              </div>
+
+              <div class="col-md-3">
+                <label class="form-label fw-semibold">Choix minimum</label>
+                <input type="number" id="fv-min" class="form-control" min="1" value="1" />
+              </div>
+              <div class="col-md-3">
+                <label class="form-label fw-semibold">Choix maximum</label>
+                <input type="number" id="fv-max" class="form-control" min="1" value="1" />
+              </div>
+              <div class="col-md-3">
+                <label class="form-label fw-semibold">Statut</label>
+                <select id="fv-status" class="form-select">
+                  <option value="brouillon">Brouillon</option>
+                  <option value="ouvert">Ouvert</option>
+                  <option value="clos">Clos</option>
+                </select>
+              </div>
+
+              <div class="col-12">
+                <label class="form-label fw-semibold">Rôles éligibles <span class="text-danger">*</span></label>
+                <div id="fv-roles" class="d-flex flex-wrap gap-2 mt-1"></div>
+              </div>
+
+              <!-- Choix de vote -->
+              <div class="col-12">
+                <hr />
+                <div class="d-flex align-items-center justify-content-between mb-2">
+                  <label class="form-label fw-semibold mb-0">Options de vote <span class="text-danger">*</span></label>
+                  <button type="button" class="btn btn-outline-secondary btn-sm" onclick="addChoice()">
+                    <i class="bi bi-plus me-1"></i>Ajouter une option
+                  </button>
+                </div>
+                <div id="choices-editor" class="d-flex flex-column gap-2"></div>
+                <p class="text-muted small mt-1" id="choices-hint">Ajoutez au moins 2 options.</p>
+              </div>
+            </div>
+          </form>
+        </div>
+        <div class="modal-footer">
+          <button type="button" class="btn btn-outline-secondary" data-bs-dismiss="modal">Annuler</button>
+          <button type="button" class="btn btn-attt" onclick="saveVoteForm()">
+            <i class="bi bi-floppy me-1"></i>Enregistrer
+          </button>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- SCRIPTS -->
+  <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js"></script>
+  <script src="https://www.gstatic.com/firebasejs/10.14.1/firebase-app-compat.js"></script>
+  <script src="https://www.gstatic.com/firebasejs/10.14.1/firebase-firestore-compat.js"></script>
+  <script src="js/firebase-config.js"></script>
+  <script src="js/db.js"></script>
+  <script src="js/auth.js"></script>
+  <script src="js/log.js"></script>
+  <script src="js/votes.js"></script>
+
+  <script>
+  'use strict';
+
+  let _filter = '';
+  let _user   = null;
+
+  document.addEventListener('DOMContentLoaded', async () => {
+    await DB_READY;
+    _user = AUTH.currentUser();
+    AUTH.applyPermissions();
+
+    // Bouton créer
+    if (AUTH.can('Voir bouton Créer vote'))
+      document.getElementById('btn-create-vote').style.display = '';
+
+    // Sections admin
+    if (AUTH.can('Gérer votes')) {
+      document.querySelectorAll('[data-perm="Gérer votes"]').forEach(el => el.classList.remove('d-none'));
+      document.getElementById('btn-flt-draft')?.classList.remove('d-none');
+      renderStats();
+      renderAdminTable();
+    }
+
+    renderVotes();
+
+    // Lien hash direct (ex: votes.html#vote-id)
+    const hash = location.hash.replace('#','');
+    if (hash) setTimeout(() => openVoter(hash), 300);
+  });
+
+  /* ─── Filtres ─── */
+  function setFilter(btn, val) {
+    document.querySelectorAll('.filter-bar [data-flt]').forEach(b => b.classList.remove('active'));
+    btn.classList.add('active');
+    _filter = val;
+    renderVotes();
+  }
+
+  /* ─── Rendu grille ─── */
+  function renderVotes() {
+    const q = (document.getElementById('search-vote')?.value || '').toLowerCase();
+    const canAdmin = AUTH.can('Gérer votes');
+
+    let subjects = VOTES.getSubjects().filter(s => {
+      if (s.status === 'brouillon' && !canAdmin) return false;
+      if (_filter && s.status !== _filter) return false;
+      if (q && !s.titre.toLowerCase().includes(q) && !s.description.toLowerCase().includes(q)) return false;
+      return true;
+    });
+
+    const grid  = document.getElementById('vote-grid');
+    const empty = document.getElementById('vote-empty');
+
+    if (!subjects.length) {
+      grid.innerHTML = '';
+      empty.classList.remove('d-none');
+      return;
+    }
+    empty.classList.add('d-none');
+    grid.innerHTML = subjects.map(s => voteCardHtml(s)).join('');
+  }
+
+  function voteCardHtml(s) {
+    const meta     = VOTES.getStatusMeta(s.status);
+    const active   = VOTES.isActive(s);
+    const eligible = VOTES.isEligible(s, _user);
+    const ballot   = _user ? VOTES.getBallot(s.id, _user.id || _user.login) : null;
+    const results  = VOTES.getResults(s.id);
+    const total    = results?.totalVoters || 0;
+
+    // Rôles éligibles
+    const rolesHtml = s.eligibleRoles.map(r => {
+      const rl = VOTES.AVAILABLE_ROLES.find(x => x.id === r);
+      return `<span class="badge bg-light text-dark border role-badge">${rl ? rl.label : r}</span>`;
+    }).join(' ');
+
+    // Dates
+    const fmtD = d => d ? new Date(d + 'T00:00:00').toLocaleDateString('fr-TN', {day:'2-digit',month:'short',year:'numeric'}) : '—';
+
+    // Bouton action
+    let actionBtn;
+    if (!_user) {
+      actionBtn = `<a href="login.html" class="btn btn-sm btn-attt w-100"><i class="bi bi-box-arrow-in-right me-1"></i>Se connecter</a>`;
+    } else if (ballot) {
+      actionBtn = `<button class="btn btn-sm btn-outline-success w-100" onclick="openVoter('${s.id}')">
+                     <i class="bi bi-check-circle-fill me-1"></i>J'ai voté · Voir les résultats</button>`;
+    } else if (active && eligible) {
+      actionBtn = `<button class="btn btn-sm btn-attt w-100" onclick="openVoter('${s.id}')">
+                     <i class="bi bi-check2-square me-1"></i>Voter maintenant</button>`;
+    } else if (active && !eligible) {
+      actionBtn = `<span class="badge bg-secondary w-100 py-2 d-block">Vous n'êtes pas éligible</span>`;
+    } else {
+      // Closed or draft
+      actionBtn = `<button class="btn btn-sm btn-outline-secondary w-100" onclick="openResults('${s.id}')">
+                     <i class="bi bi-bar-chart me-1"></i>Voir les résultats (${total} votant${total>1?'s':''})</button>`;
+    }
+
+    // Preview choices (max 4)
+    const previewChoices = (results?.choices || s.choices.map(c => ({...c, votes:0, percent:0}))).slice(0,4);
+
+    return `
+    <div class="col-12 col-md-6 col-xl-4">
+      <div class="card vote-card h-100 shadow-sm">
+        <div class="card-body d-flex flex-column gap-2 p-4">
+          <div class="d-flex gap-2 align-items-start">
+            <span class="badge bg-${meta.cls} rounded-pill"><i class="bi ${meta.icon} me-1"></i>${meta.label}</span>
+            ${ballot ? '<span class="badge bg-success-subtle text-success border border-success-subtle">Voté</span>' : ''}
+          </div>
+          <h5 class="fw-bold mb-0">${escHtml(s.titre)}</h5>
+          ${s.description ? `<p class="text-muted small mb-0">${escHtml(s.description).substring(0,120)}${s.description.length>120?'…':''}</p>` : ''}
+          <div class="small text-muted">
+            <i class="bi bi-calendar3 me-1"></i>${fmtD(s.dateDebut)} → ${fmtD(s.dateFin)}
+          </div>
+          <div class="d-flex flex-wrap gap-1">${rolesHtml}</div>
+          <div class="small text-muted"><i class="bi bi-list-check me-1"></i>${s.choices.length} option(s) · max ${s.maxChoix} choix · ${total} votant${total!==1?'s':''}</div>
+          
+          ${(ballot || !active) && previewChoices.length ? `
+          <div class="mt-1">
+            ${previewChoices.map(c => `
+              <div class="mb-1">
+                <div class="d-flex justify-content-between small"><span>${escHtml(c.label)}</span><strong>${c.percent}%</strong></div>
+                <div style="height:6px;background:#e9ecef;border-radius:3px;">
+                  <div style="width:${c.percent}%;height:100%;background:var(--couleur-principale);border-radius:3px;transition:width .4s;"></div>
+                </div>
+              </div>`).join('')}
+          </div>` : ''}
+          
+          <div class="mt-auto pt-2">${actionBtn}</div>
+        </div>
+      </div>
+    </div>`;
+  }
+
+  /* ─── Modal voter ─── */
+  let _voteSubject = null;
+  let _selectedChoices = new Set();
+
+  function openVoter(subjectId) {
+    _voteSubject = VOTES.getSubject(subjectId);
+    if (!_voteSubject) return;
+    _selectedChoices.clear();
+
+    document.getElementById('vote-modal-id').value = subjectId;
+    document.getElementById('vote-modal-titre').textContent = _voteSubject.titre;
+    document.getElementById('vote-modal-desc').textContent   = _voteSubject.description || '';
+    document.getElementById('vote-modal-instruction').textContent =
+      _voteSubject.minChoix === _voteSubject.maxChoix
+        ? `Choisissez exactement ${_voteSubject.maxChoix} option(s)`
+        : `Choisissez entre ${_voteSubject.minChoix} et ${_voteSubject.maxChoix} option(s)`;
+
+    const already = _user && VOTES.getBallot(subjectId, _user.id || _user.login);
+    document.getElementById('vote-already').classList.toggle('d-none', !already);
+    document.getElementById('btn-submit-vote').classList.toggle('d-none', !!already || !VOTES.isActive(_voteSubject) || !VOTES.isEligible(_voteSubject, _user));
+
+    const results = VOTES.getResults(subjectId);
+    const total   = results?.totalVoters || 0;
+    const inputType = _voteSubject.maxChoix > 1 ? 'checkbox' : 'radio';
+
+    document.getElementById('vote-choices-list').innerHTML =
+      (results?.choices || _voteSubject.choices.map(c => ({...c, votes:0, percent:0}))).map(c => `
+        <label class="choice-item d-flex align-items-center gap-3 p-3 border rounded-3 mb-1 ${already ? 'opacity-75' : ''}">
+          <input type="${inputType}" name="vote-choice" value="${escHtml(c.id)}"
+                 class="form-check-input flex-shrink-0 fs-5"
+                 onchange="toggleChoice('${c.id}')" ${already ? 'disabled' : ''} />
+          <div class="flex-grow-1">
+            <div class="fw-semibold">${escHtml(c.label)}</div>
+            ${c.description ? `<div class="text-muted small">${escHtml(c.description)}</div>` : ''}
+            ${(already || !VOTES.isActive(_voteSubject)) && total > 0 ? `
+            <div class="mt-1">
+              <div class="d-flex justify-content-between small text-muted"><span>${c.votes} vote${c.votes!==1?'s':''}</span><strong>${c.percent}%</strong></div>
+              <div style="height:6px;background:#e9ecef;border-radius:3px;">
+                <div class="result-bar" style="width:${c.percent}%"></div>
+              </div>
+            </div>` : ''}
+          </div>
+        </label>`).join('');
+
+    new bootstrap.Modal(document.getElementById('modalVoter')).show();
+  }
+
+  function openResults(subjectId) { openVoter(subjectId); }
+
+  function toggleChoice(choiceId) {
+    if (!_voteSubject) return;
+    if (_voteSubject.maxChoix === 1) {
+      _selectedChoices.clear();
+      _selectedChoices.add(choiceId);
+    } else {
+      if (_selectedChoices.has(choiceId)) _selectedChoices.delete(choiceId);
+      else if (_selectedChoices.size < _voteSubject.maxChoix) _selectedChoices.add(choiceId);
+      else {
+        // Uncheck this input
+        document.querySelectorAll(`input[value="${choiceId}"]`).forEach(i => i.checked = false);
+      }
+    }
+  }
+
+  function submitVote() {
+    if (!_voteSubject || !_user) return;
+    const choiceIds = Array.from(_selectedChoices);
+    const result = VOTES.castVote(_voteSubject.id, _user.id || _user.login, choiceIds);
+    if (!result.ok) {
+      showToast(result.error, 'danger');
+      return;
+    }
+    bootstrap.Modal.getInstance(document.getElementById('modalVoter'))?.hide();
+    if (typeof LOG !== 'undefined') LOG.add('Vote', `${_user.login || _user.nom} → ${_voteSubject.titre}`);
+    renderVotes();
+    if (AUTH.can('Gérer votes')) renderStats();
+    showToast('Vote enregistré avec succès.', 'success');
+  }
+
+  /* ─── Formulaire admin ─── */
+  let _editChoices = [];
+
+  function openVoteForm(id) {
+    const s = id ? VOTES.getSubject(id) : null;
+    _editChoices = s ? s.choices.map(c => ({...c})) : [];
+
+    document.getElementById('fv-id').value    = id || '';
+    document.getElementById('fv-titre').value = s?.titre || '';
+    document.getElementById('fv-desc').value  = s?.description || '';
+    document.getElementById('fv-debut').value = s?.dateDebut || '';
+    document.getElementById('fv-fin').value   = s?.dateFin || '';
+    document.getElementById('fv-min').value   = s?.minChoix || 1;
+    document.getElementById('fv-max').value   = s?.maxChoix || 1;
+    document.getElementById('fv-status').value = s?.status || 'brouillon';
+    document.getElementById('lblVoteForm').textContent = id ? 'Modifier le scrutin' : 'Nouveau scrutin';
+
+    // Rôles
+    const rolesEl = document.getElementById('fv-roles');
+    const selected = s?.eligibleRoles || ['master','superviseur','admin','membre'];
+    rolesEl.innerHTML = VOTES.AVAILABLE_ROLES.map(r => `
+      <div class="form-check">
+        <input type="checkbox" class="form-check-input" id="role-chk-${r.id}" value="${r.id}"
+               ${selected.includes(r.id) ? 'checked' : ''} />
+        <label class="form-check-label" for="role-chk-${r.id}">${r.label}</label>
+      </div>`).join('');
+
+    renderChoicesEditor();
+    new bootstrap.Modal(document.getElementById('modalVote')).show();
+  }
+
+  function renderChoicesEditor() {
+    document.getElementById('choices-editor').innerHTML = _editChoices.map((c, i) => `
+      <div class="input-group input-group-sm">
+        <span class="input-group-text">${i + 1}</span>
+        <input type="text" class="form-control" placeholder="Libellé de l'option…"
+               value="${escHtml(c.label)}" oninput="_editChoices[${i}].label=this.value" />
+        <input type="text" class="form-control" placeholder="Description (optionnel)"
+               value="${escHtml(c.description)}" oninput="_editChoices[${i}].description=this.value" style="max-width:200px;" />
+        <button class="btn btn-outline-danger" type="button" onclick="removeChoice(${i})">
+          <i class="bi bi-x"></i>
+        </button>
+      </div>`).join('');
+    document.getElementById('choices-hint').textContent =
+      _editChoices.length < 2 ? `Ajoutez au moins ${2 - _editChoices.length} option(s) supplémentaire(s).` : '';
+  }
+
+  function addChoice() {
+    _editChoices.push({ id: 'vc_new_' + Date.now(), label: '', description: '', photo: '' });
+    renderChoicesEditor();
+  }
+
+  function removeChoice(i) {
+    _editChoices.splice(i, 1);
+    renderChoicesEditor();
+  }
+
+  function saveVoteForm() {
+    const id    = document.getElementById('fv-id').value || null;
+    const titre = document.getElementById('fv-titre').value.trim();
+    if (!titre) { document.getElementById('fv-titre').focus(); return; }
+    if (_editChoices.filter(c => c.label.trim()).length < 2) {
+      showToast('Ajoutez au moins 2 options.', 'warning'); return;
+    }
+
+    const eligibleRoles = Array.from(document.querySelectorAll('#fv-roles input:checked')).map(i => i.value);
+    if (!eligibleRoles.length) { showToast('Sélectionnez au moins un rôle éligible.', 'warning'); return; }
+
+    const data = {
+      titre,
+      description:   document.getElementById('fv-desc').value.trim(),
+      dateDebut:     document.getElementById('fv-debut').value,
+      dateFin:       document.getElementById('fv-fin').value,
+      minChoix:      parseInt(document.getElementById('fv-min').value) || 1,
+      maxChoix:      parseInt(document.getElementById('fv-max').value) || 1,
+      status:        document.getElementById('fv-status').value,
+      eligibleRoles,
+      choices: _editChoices.filter(c => c.label.trim())
+    };
+
+    const result = id ? VOTES.updateSubject(id, data) : VOTES.addSubject({...data, creatorId: _user?.id || ''});
+    bootstrap.Modal.getInstance(document.getElementById('modalVote'))?.hide();
+    if (typeof LOG !== 'undefined') LOG.add(id ? 'Modification scrutin' : 'Création scrutin', result.titre);
+    renderVotes();
+    renderStats();
+    renderAdminTable();
+    showToast(id ? 'Scrutin modifié.' : 'Scrutin créé.', 'success');
+  }
+
+  /* ─── Table admin ─── */
+  function renderAdminTable() {
+    const subjects = VOTES.getSubjects();
+    const body  = document.getElementById('admin-votes-body');
+    const empty = document.getElementById('admin-votes-empty');
+    if (!subjects.length) {
+      body.innerHTML = ''; empty.classList.remove('d-none'); return;
+    }
+    empty.classList.add('d-none');
+    const ballots = subjects.map(s => VOTES.getResults(s.id)?.totalVoters || 0);
+    body.innerHTML = subjects.map((s, i) => {
+      const meta = VOTES.getStatusMeta(s.status);
+      return `<tr>
+        <td class="fw-semibold">${escHtml(s.titre)}</td>
+        <td>${s.eligibleRoles.map(r => { const rl = VOTES.AVAILABLE_ROLES.find(x => x.id===r); return `<span class="badge bg-light text-dark border me-1" style="font-size:.72rem;">${rl?.label||r}</span>`; }).join('')}</td>
+        <td class="text-center">${s.choices.length}</td>
+        <td><small class="text-muted">${s.dateDebut||'—'}</small></td>
+        <td><small class="text-muted">${s.dateFin||'—'}</small></td>
+        <td class="text-center fw-bold">${ballots[i]}</td>
+        <td class="text-center"><span class="badge bg-${meta.cls}"><i class="bi ${meta.icon} me-1"></i>${meta.label}</span></td>
+        <td class="text-center">
+          <div class="btn-group btn-group-sm">
+            <button class="btn btn-outline-secondary" onclick="openVoteForm('${s.id}')" title="Modifier"><i class="bi bi-pencil"></i></button>
+            <button class="btn btn-outline-danger"    onclick="deleteVoteConfirm('${s.id}')" title="Supprimer"><i class="bi bi-trash"></i></button>
+          </div>
+        </td>
+      </tr>`;
+    }).join('');
+  }
+
+  function deleteVoteConfirm(id) {
+    const s = VOTES.getSubject(id);
+    if (!s || !confirm(`Supprimer le scrutin «${s.titre}» et tous ses bulletins ?`)) return;
+    VOTES.deleteSubject(id);
+    if (typeof LOG !== 'undefined') LOG.add('Suppression scrutin', s.titre);
+    renderVotes(); renderStats(); renderAdminTable();
+    showToast('Scrutin supprimé.', 'warning');
+  }
+
+  /* ─── Stats ─── */
+  function renderStats() {
+    const st = VOTES.getStats();
+    const el = id => document.getElementById(id);
+    if (el('st-total'))  el('st-total').textContent  = st.total;
+    if (el('st-ouverts')) el('st-ouverts').textContent = st.ouverts;
+    if (el('st-clos'))   el('st-clos').textContent   = st.clos;
+    if (el('st-votes'))  el('st-votes').textContent  = st.totalVotes;
+
+    const hdr = document.getElementById('hdr-stats');
+    if (hdr) hdr.innerHTML = `
+      <div class="text-center text-white"><div class="fw-bold fs-5">${st.total}</div><div style="font-size:.75rem;opacity:.8;">Scrutins</div></div>
+      <div class="text-center text-white"><div class="fw-bold fs-5">${st.ouverts}</div><div style="font-size:.75rem;opacity:.8;">Ouverts</div></div>
+      <div class="text-center text-white"><div class="fw-bold fs-5">${st.totalVotes}</div><div style="font-size:.75rem;opacity:.8;">Bulletins</div></div>`;
+  }
+
+  /* ─── Utilitaires ─── */
+  function showToast(msg, variant) {
+    const t = document.createElement('div');
+    t.className = `toast align-items-center text-bg-${variant||'primary'} border-0 show`;
+    t.setAttribute('role','alert');
+    t.style.cssText = 'position:fixed;bottom:80px;right:20px;z-index:9999;min-width:260px;';
+    t.innerHTML = `<div class="d-flex"><div class="toast-body">${msg}</div>
+      <button type="button" class="btn-close btn-close-white me-2 m-auto" onclick="this.closest('.toast').remove()"></button></div>`;
+    document.body.appendChild(t);
+    setTimeout(() => t.remove(), 4000);
+  }
+
+  function escHtml(s) {
+    return String(s || '')
+      .replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;')
+      .replace(/"/g,'&quot;').replace(/'/g,'&#39;');
+  }
+  </script>
+</body>
+</html>

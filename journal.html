@@ -1,4 +1,4 @@
-<!DOCTYPE html>
+﻿<!DOCTYPE html>
 <html lang="fr">
 <head>
   <meta charset="UTF-8" />
@@ -186,6 +186,8 @@ const ACTION_COLOR = {
   REJECT_MEMBER:     'bg-danger',
   SUSPEND_MEMBER:    'bg-warning text-dark',
   REACTIVATE_MEMBER: 'bg-success bg-opacity-50 text-dark',
+  ACCOUNT_ARCHIVE:   'bg-dark bg-opacity-75',
+  ACCOUNT_RESTORE:   'bg-info text-dark',
   ROLE_CHANGE:       'bg-primary',
   EVENT_ADD:         'bg-primary bg-opacity-75',
   EVENT_EDIT:        'bg-primary bg-opacity-50 text-dark',
@@ -193,6 +195,9 @@ const ACTION_COLOR = {
   OFFER_ADD:         'bg-warning text-dark',
   OFFER_EDIT:        'bg-warning bg-opacity-50 text-dark',
   OFFER_DEL:         'bg-danger',
+  HOME_AD_ADD:       'bg-info text-dark',
+  HOME_AD_EDIT:      'bg-info bg-opacity-75 text-dark',
+  HOME_AD_DELETE:    'bg-danger',
   ACCOUNT_DELETE:    'bg-danger fw-bold',
 };
 
@@ -202,9 +207,9 @@ let _viewActions = null;
 /* ─── Groupes de vues ─────────────────────────────────────── */
 const VIEW_ACTIONS = {
   auth:    ['LOGIN','LOGOUT','REGISTER'],
-  membres: ['VALIDATE_MEMBER','REJECT_MEMBER','SUSPEND_MEMBER','REACTIVATE_MEMBER'],
+  membres: ['VALIDATE_MEMBER','REJECT_MEMBER','SUSPEND_MEMBER','REACTIVATE_MEMBER','ACCOUNT_ARCHIVE','ACCOUNT_RESTORE'],
   roles:   ['ROLE_CHANGE'],
-  data:    ['EVENT_ADD','EVENT_EDIT','EVENT_DEL','OFFER_ADD','OFFER_EDIT','OFFER_DEL','ACCOUNT_DELETE'],
+  data:    ['EVENT_ADD','EVENT_EDIT','EVENT_DEL','OFFER_ADD','OFFER_EDIT','OFFER_DEL','HOME_AD_ADD','HOME_AD_EDIT','HOME_AD_DELETE','ACCOUNT_DELETE'],
 };
 
 function setView(name) {
@@ -265,8 +270,8 @@ function renderTable(entries) {
 
   tbody.innerHTML = page.map((l, i) => {
     const ts   = new Date(l.ts);
-    const date = ts.toLocaleDateString('fr-DZ', { day:'2-digit', month:'2-digit', year:'numeric' });
-    const time = ts.toLocaleTimeString('fr-DZ', { hour:'2-digit', minute:'2-digit', second:'2-digit' });
+    const date = ts.toLocaleDateString('fr-TN', { day:'2-digit', month:'2-digit', year:'numeric' });
+    const time = ts.toLocaleTimeString('fr-TN', { hour:'2-digit', minute:'2-digit', second:'2-digit' });
     const colorClass = ACTION_COLOR[l.action] || 'bg-secondary';
     const acteurRole = l.acteurRole ? ' <span class="badge bg-light text-dark border ms-1">' + AUTH.esc(AUTH.ROLE_LABELS[l.acteurRole]||l.acteurRole) + '</span>' : '';
 
@@ -316,8 +321,8 @@ function exportCSV() {
     const ts = new Date(l.ts);
     rows.push([
       i + 1,
-      ts.toLocaleDateString('fr-DZ'),
-      ts.toLocaleTimeString('fr-DZ'),
+      ts.toLocaleDateString('fr-TN'),
+      ts.toLocaleTimeString('fr-TN'),
       l.actionLabel || l.action,
       l.acteurLogin || '',
       AUTH.ROLE_LABELS[l.acteurRole] || l.acteurRole || '',

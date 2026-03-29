@@ -30,6 +30,8 @@ const LOG = (() => {
     REJECT_MEMBER    : 'Rejet inscription',
     SUSPEND_MEMBER   : 'Suspension membre',
     REACTIVATE_MEMBER: 'Réactivation membre',
+    ACCOUNT_ARCHIVE  : 'Suppression logique compte',
+    ACCOUNT_RESTORE  : 'Restauration compte',
     /* Rôles */
     ROLE_CHANGE      : 'Changement de rôle',
     /* Données */
@@ -39,6 +41,9 @@ const LOG = (() => {
     OFFER_ADD        : 'Ajout offre',
     OFFER_EDIT       : 'Modification offre',
     OFFER_DEL        : 'Suppression offre',    /* Articles */
+    HOME_AD_ADD      : 'Ajout publicité accueil',
+    HOME_AD_EDIT     : 'Modification publicité accueil',
+    HOME_AD_DELETE   : 'Suppression publicité accueil',
     ARTICLE_ADD:       'Publication article',
     ARTICLE_EDIT:      'Modification article',
     ARTICLE_DEL:       'Suppression article',    /* Comptes */

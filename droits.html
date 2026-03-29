@@ -42,6 +42,47 @@
     .user-row .role-pill { min-width:90px; }
     .user-avatar { width:36px;height:36px;border-radius:50%;display:flex;align-items:center;justify-content:center;
                    background:var(--couleur-principale);color:#fff;font-weight:700;font-size:.85rem;flex-shrink:0; }
+    .schema-card { border:1px solid #dee2e6; border-radius:14px; background:#fff; }
+    .schema-badge { font-size:.72rem; }
+    /* Matrice des droits — layout */
+    .matrix-shell { display:grid; grid-template-columns:250px minmax(0,1fr); gap:1rem; align-items:start; }
+    .matrix-sidebar-card { position:sticky; top:88px; max-height:calc(100vh - 130px); overflow-y:auto; }
+    .matrix-page-item { width:100%; text-align:left; border:1px solid #dee2e6; background:#fff; border-radius:12px; padding:.75rem .9rem; transition:border-color .15s, box-shadow .15s, background .15s; }
+    .matrix-page-item:hover { border-color:#86b7fe; background:#f8fbff; }
+    .matrix-page-item.active { border-color:var(--couleur-principale); background:#eef5ff; box-shadow:0 0 0 1px rgba(0,61,166,.15); }
+    .matrix-page-name { font-weight:700; }
+    .matrix-page-meta { font-size:.74rem; color:#6c757d; }
+    /* Sélecteur de rôle */
+    .role-tab { border:2px solid #dee2e6; background:#fff; border-radius:999px; padding:.38rem 1rem; font-size:.84rem; font-weight:600; transition:all .15s; cursor:pointer; white-space:nowrap; }
+    .role-tab:hover { border-color:#86b7fe; background:#f0f6ff; }
+    .role-tab.active { border-color:var(--couleur-principale); background:var(--couleur-principale); color:#fff; box-shadow:0 2px 8px rgba(0,61,166,.3); }
+    .role-tab.implicit { border-color:#198754; background:#d1e7dd; color:#0a3622; cursor:default; }
+    /* Lignes de ressources */
+    .matrix-section-block + .matrix-section-block { margin-top:1.25rem; }
+    .matrix-section-title { display:flex; justify-content:space-between; align-items:center; gap:.75rem; margin-bottom:.6rem; font-size:.8rem; font-weight:700; color:#495057; text-transform:uppercase; letter-spacing:.05em; padding:.5rem .75rem; background:#f8f9fa; border-radius:8px; }
+    .res-row { display:flex; align-items:center; gap:.75rem; padding:.6rem .75rem; border:1px solid #e9ecef; border-radius:10px; background:#fff; }
+    .res-row + .res-row { margin-top:.35rem; }
+    .res-row-label { flex:1; min-width:0; }
+    .matrix-resource-title { font-weight:600; }
+    .matrix-resource-meta { font-size:.73rem; color:#6c757d; margin-top:.15rem; }
+    .res-toggle-group { display:flex; gap:.4rem; flex-shrink:0; }
+    .res-toggle { display:inline-flex; align-items:center; gap:.3rem; border:1.5px solid #dee2e6; border-radius:8px; padding:.3rem .75rem; font-size:.75rem; font-weight:600; background:#f8f9fa; color:#6c757d; min-width:100px; justify-content:center; transition:all .15s; }
+    .res-toggle.clickable:hover { opacity:.82; transform:scale(1.04); cursor:pointer; }
+    .res-toggle.st-yes  { border-color:#198754; background:#d1e7dd; color:#0a3622; }
+    .res-toggle.st-cond { border-color:#fd7e14; background:#fff3cd; color:#664d03; }
+    .res-toggle.st-no   { border-color:#e9ecef; background:#f8f9fa; color:#adb5bd; }
+    .res-toggle.locked  { opacity:.6; cursor:not-allowed; }
+    .matrix-page-link { font-weight:600; color:var(--couleur-principale); text-decoration:none; }
+    .matrix-page-link:hover { text-decoration:underline; }
+    .matrix-empty-state { padding:2.5rem 1rem; text-align:center; color:#6c757d; }
+    @media(max-width:991px) {
+      .matrix-shell { grid-template-columns:1fr; }
+      .matrix-sidebar-card { position:static; max-height:none; }
+    }
+    @media(max-width:575px) {
+      .res-toggle { min-width:80px; padding:.26rem .5rem; font-size:.7rem; }
+      .role-tab { font-size:.78rem; padding:.32rem .75rem; }
+    }
   </style>
 </head>
 <body>
@@ -82,6 +123,16 @@
             </button>
           </li>
           <li class="nav-item">
+            <button class="nav-link w-100 text-start" id="btn-roles" onclick="showSection('roles')">
+              <i class="bi bi-sliders me-2"></i>Rôles
+            </button>
+          </li>
+          <li class="nav-item">
+            <button class="nav-link w-100 text-start" id="btn-pages" onclick="showSection('pages')">
+              <i class="bi bi-window-stack me-2"></i>Pages
+            </button>
+          </li>
+          <li class="nav-item">
             <button class="nav-link w-100 text-start" id="btn-assign" onclick="showSection('assign')">
               <i class="bi bi-person-gear me-2"></i>Assigner les rôles
             </button>
@@ -97,67 +148,7 @@
           <h1 class="h4 section-titre">Structure hiérarchique des rôles</h1>
           <p class="text-muted mb-4">Chaque niveau peut gérer les niveaux inférieurs uniquement.</p>
 
-          <!-- Niveaux -->
-          <div class="row g-3 mb-5">
-            <div class="col-md-3">
-              <div class="card level-card niveau-4 p-3 h-100">
-                <div class="d-flex align-items-center gap-2 mb-2">
-                  <span class="badge bg-success">Niveau 4</span>
-                  <strong>Maître</strong>
-                </div>
-                <p class="small text-muted mb-2">Accès total. Gère toutes les entités. Peut valider les inscriptions directement.</p>
-                <hr class="my-2" />
-                <div class="small"><strong>Peut assigner :</strong><br>
-                  <span class="badge bg-success me-1">Maître</span>
-                  <span class="badge bg-warning text-dark me-1">Direction</span>
-                  <span class="badge bg-primary me-1">Délégué</span>
-                  <span class="badge bg-secondary">Membre</span>
-                </div>
-              </div>
-            </div>
-            <div class="col-md-3">
-              <div class="card level-card niveau-3 p-3 h-100">
-                <div class="d-flex align-items-center gap-2 mb-2">
-                  <span class="badge bg-warning text-dark">Niveau 3</span>
-                  <strong>Direction</strong>
-                </div>
-                <p class="small text-muted mb-2">Gère les Délégués et les Directions. Vue en lecture des demandes en attente.</p>
-                <hr class="my-2" />
-                <div class="small"><strong>Peut assigner :</strong><br>
-                  <span class="badge bg-warning text-dark me-1">Direction</span>
-                  <span class="badge bg-primary me-1">Délégué</span>
-                  <span class="badge bg-secondary">Membre</span>
-                </div>
-              </div>
-            </div>
-            <div class="col-md-3">
-              <div class="card level-card niveau-2 p-3 h-100">
-                <div class="d-flex align-items-center gap-2 mb-2">
-                  <span class="badge bg-info text-dark">Niveau 2</span>
-                  <strong>Délégué</strong>
-                </div>
-                <p class="small text-muted mb-2">Valide les inscriptions en attente. Gère ses propres membres. Gère événements &amp; offres.</p>
-                <hr class="my-2" />
-                <div class="small"><strong>Peut assigner :</strong><br>
-                  <span class="badge bg-secondary me-1">Famille</span>
-                  <span class="badge bg-secondary">Membre</span>
-                </div>
-              </div>
-            </div>
-            <div class="col-md-3">
-              <div class="card level-card p-3 h-100">
-                <div class="d-flex align-items-center gap-2 mb-2">
-                  <span class="badge bg-secondary">Niveau 1</span>
-                  <strong>Membre</strong>
-                </div>
-                <p class="small text-muted mb-2">Consulte les événements et offres réservés aux membres. Aucun droit de modification.</p>
-                <hr class="my-2" />
-                <div class="small"><strong>Peut assigner :</strong><br>
-                  <span class="text-muted">Aucun</span>
-                </div>
-              </div>
-            </div>
-          </div>
+          <div class="row g-3 mb-5" id="role-level-cards"></div>
 
           <!-- Arbre hiérarchique dynamique -->
           <h2 class="h5 mb-3">Arbre de l'organisation actuelle</h2>
@@ -169,7 +160,13 @@
           <div class="d-flex align-items-center justify-content-between mb-3 flex-wrap gap-2">
             <h1 class="h4 section-titre mb-0">Matrice des droits</h1>
             <div class="d-flex gap-2" id="matrix-actions">
-              <button class="btn btn-sm btn-outline-primary" id="btn-edit-matrix" data-perm="Voir bouton Modifier matrice" onclick="startEditMatrix()">
+              <button class="btn btn-sm btn-outline-secondary" onclick="exportRightsConfig()">
+                <i class="bi bi-download me-1"></i>Exporter
+              </button>
+              <button class="btn btn-sm btn-outline-secondary" onclick="triggerRightsImport()">
+                <i class="bi bi-upload me-1"></i>Importer
+              </button>
+              <button class="btn btn-sm btn-outline-primary" id="btn-edit-matrix" data-perm="Voir bouton Modifier matrice" data-perm-mode="action" onclick="startEditMatrix()">
                 <i class="bi bi-pencil me-1"></i>Modifier
               </button>
               <button class="btn btn-sm btn-success d-none" id="btn-save-matrix" onclick="saveMatrix()">
@@ -178,33 +175,126 @@
               <button class="btn btn-sm btn-secondary d-none" id="btn-cancel-matrix" onclick="cancelEditMatrix()">
                 Annuler
               </button>
-              <button class="btn btn-sm btn-outline-danger" id="btn-reset-matrix" data-perm="Voir bouton Modifier matrice" onclick="resetMatrix()" title="Remettre les valeurs par défaut">
+              <button class="btn btn-sm btn-outline-danger" id="btn-reset-matrix" data-perm="Voir bouton Modifier matrice" data-perm-mode="action" onclick="resetMatrix()" title="Remettre les valeurs par défaut">
                 <i class="bi bi-arrow-counterclockwise"></i>
               </button>
             </div>
           </div>
           <p class="text-muted mb-3 small">
-            <i class="bi bi-check-circle-fill text-success me-1"></i>Autorisé
-            <i class="bi bi-dash-circle-fill text-secondary mx-1 ms-3"></i>Non disponible
-            <i class="bi bi-slash-circle-fill text-warning mx-1 ms-3"></i>Conditionnel
-            <span class="text-muted ms-3" id="matrix-edit-hint" style="display:none;"><i class="bi bi-info-circle me-1"></i>Cliquez sur une cellule pour changer la valeur</span>
+            <span class="badge bg-primary-subtle text-primary-emphasis border me-1">1</span> Choisissez un rôle
+            <span class="badge bg-primary-subtle text-primary-emphasis border mx-1">2</span> Sélectionnez une page
+            <span class="badge bg-primary-subtle text-primary-emphasis border mx-1">3</span> Configurez chaque élément (Visible&nbsp;/ Action)
+            <span class="text-success ms-3" id="matrix-edit-hint" style="display:none;"><i class="bi bi-pencil-fill me-1"></i>Mode modification actif — cliquez sur les boutons pour changer les droits</span>
           </p>
-          <div class="card p-0 overflow-hidden">
-            <div class="table-responsive">
-              <table class="table table-bordered matrix-table align-middle mb-0" id="matrix-table">
-                <thead class="table-light">
-                  <tr>
-                    <th style="min-width:220px">Action</th>
-                    <th>Maître<br><small class="fw-normal text-muted">Niv. 4</small></th>
-                    <th>Direction<br><small class="fw-normal text-muted">Niv. 3</small></th>
-                    <th>Délégué<br><small class="fw-normal text-muted">Niv. 2</small></th>
-                    <th>Membre<br><small class="fw-normal text-muted">Niv. 1</small></th>
-                  </tr>
-                </thead>
-                <tbody id="matrix-tbody"></tbody>
-              </table>
+
+          <!-- Étape 1 : Sélecteur de rôle -->
+          <div class="card p-3 mb-3">
+            <div class="small fw-semibold text-muted mb-2"><i class="bi bi-person-badge me-1"></i>Rôle à configurer</div>
+            <div id="matrix-role-picker" class="d-flex flex-wrap gap-2"></div>
+          </div>
+
+          <div class="matrix-shell">
+            <!-- Étape 2 : Pages -->
+            <div class="card matrix-sidebar-card p-3">
+              <div class="small fw-semibold text-muted mb-2"><i class="bi bi-window-stack me-1"></i>Page</div>
+              <div class="d-grid gap-2" id="matrix-page-list"></div>
+            </div>
+
+            <!-- Étape 3 : Ressources + droits -->
+            <div class="card p-0">
+              <div class="p-3 border-bottom d-flex justify-content-between align-items-start flex-wrap gap-3">
+                <div>
+                  <h2 class="h5 mb-1" id="matrix-selected-page-name">Sélectionnez un rôle et une page</h2>
+                  <div class="small text-muted" id="matrix-selected-page-meta">Les boutons, colonnes, champs et listes de la page apparaîtront ici.</div>
+                </div>
+                <div class="d-flex gap-2 flex-wrap align-items-center">
+                  <div class="btn-group btn-group-sm" role="group">
+                    <button type="button" class="btn btn-outline-success" id="matrix-allow-all" onclick="applyMatrixPreset('all')" title="Tout autoriser pour ce rôle sur cette page">Tout autoriser</button>
+                    <button type="button" class="btn btn-outline-primary" id="matrix-read-only" onclick="applyMatrixPreset('read')" title="Lecture seule : visible mais action bloquée">Lecture seule</button>
+                    <button type="button" class="btn btn-outline-danger" id="matrix-deny-all" onclick="applyMatrixPreset('none')" title="Tout cacher et bloquer">Tout refuser</button>
+                  </div>
+                  <input type="search" class="form-control form-control-sm" style="min-width:200px;" id="matrix-resource-filter" placeholder="Filtrer…" oninput="renderMatrix()" />
+                  <a href="#" class="btn btn-sm btn-outline-secondary d-none" id="matrix-open-page" target="_blank" rel="noopener">
+                    <i class="bi bi-box-arrow-up-right me-1"></i>Ouvrir
+                  </a>
+                </div>
+              </div>
+              <div class="px-3 py-2 border-bottom small text-muted" id="matrix-stats"></div>
+              <div class="p-3" id="matrix-resource-list"></div>
             </div>
           </div>
+        </div>
+
+        <!-- ════ RÔLES ════ -->
+        <div id="section-roles" class="d-none">
+          <div class="d-flex justify-content-between align-items-center mb-3 flex-wrap gap-2">
+            <div>
+              <h1 class="h4 section-titre mb-1">Catalogue des rôles</h1>
+              <p class="text-muted mb-0">Ajoutez des rôles, ajustez leur niveau et marquez les rôles qui doivent être rattachés à un utilisateur.</p>
+            </div>
+          </div>
+
+          <div class="row g-4">
+            <div class="col-lg-5">
+              <div class="card p-4">
+                <input type="hidden" id="role-edit-id" />
+                <div class="mb-3">
+                  <label class="form-label fw-semibold">Identifiant technique</label>
+                  <input type="text" class="form-control" id="role-id-input" placeholder="ex : coordinateur-regional" />
+                  <div class="form-text">Laissez vide pour le générer depuis le libellé. Les rôles système gardent leur identifiant actuel.</div>
+                </div>
+                <div class="mb-3">
+                  <label class="form-label fw-semibold">Libellé affiché</label>
+                  <input type="text" class="form-control" id="role-label-input" placeholder="ex : Coordinateur régional" />
+                </div>
+                <div class="mb-3">
+                  <label class="form-label fw-semibold">Niveau</label>
+                  <input type="number" min="0" class="form-control" id="role-level-input" />
+                  <div class="form-text">Niveau le plus faible = plus puissant. Maître est fixé à 0.</div>
+                </div>
+                <div class="form-check mb-3">
+                  <input class="form-check-input" type="checkbox" id="role-linked-input" />
+                  <label class="form-check-label" for="role-linked-input">Ce rôle doit être lié à un utilisateur</label>
+                </div>
+                <div class="d-flex gap-2 flex-wrap">
+                  <button class="btn btn-attt" id="role-save-btn" onclick="saveRoleDefinition()">Enregistrer le rôle</button>
+                  <button class="btn btn-outline-secondary" onclick="resetRoleForm()">Vider</button>
+                </div>
+              </div>
+            </div>
+            <div class="col-lg-7">
+              <div class="card p-0 overflow-hidden">
+                <div class="table-responsive">
+                  <table class="table table-hover align-middle mb-0">
+                    <thead class="table-light">
+                      <tr>
+                        <th>Rôle</th>
+                        <th>Niveau</th>
+                        <th>Type</th>
+                        <th>Rattachement</th>
+                        <th class="text-end">Actions</th>
+                      </tr>
+                    </thead>
+                    <tbody id="roles-tbody"></tbody>
+                  </table>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <!-- ════ PAGES ════ -->
+        <div id="section-pages" class="d-none">
+          <div class="d-flex justify-content-between align-items-center mb-3 flex-wrap gap-2">
+            <div>
+              <h1 class="h4 section-titre mb-1">Structure des pages</h1>
+              <p class="text-muted mb-0">Inventaire automatique des boutons, listes déroulantes, tableaux et colonnes détectés dans les pages du site.</p>
+            </div>
+            <button class="btn btn-outline-primary btn-sm" onclick="refreshPageSchemas()">
+              <i class="bi bi-arrow-repeat me-1"></i>Réanalyser
+            </button>
+          </div>
+          <div id="pages-schema-list"></div>
         </div>
 
         <!-- ════ ASSIGNER LES RÔLES ════ -->
@@ -226,6 +316,8 @@
       </div>
     </div>
   </div>
+
+  <input type="file" id="rights-import-file" class="d-none" accept="application/json,.json" onchange="handleRightsImport(event)" />
 
   <!-- MODAL CONFIRMER CHANGEMENT DE RÔLE -->
   <div class="modal fade" id="confirmModal" tabindex="-1">
@@ -255,7 +347,7 @@
 <script src="js/log.js"></script>
 <script>
 'use strict';
-/* ─── Accès : connecté + permission page Droits ──────────── */
+
 const user = AUTH.requireAuth();
 if (!user) throw new Error();
 if (!AUTH.hasPermission('Accéder page Droits', user)) {
@@ -263,152 +355,674 @@ if (!AUTH.hasPermission('Accéder page Droits', user)) {
   history.back();
   throw new Error('Permission refusée');
 }
+
 document.getElementById('topbar-user').textContent = user.prenom + ' ' + user.nom;
-document.getElementById('back-btn').href = AUTH.dashUrl(user.role);
+document.getElementById('back-btn').href = AUTH.dashUrl(user);
 
-const isMaster = (user.role === 'master');
-const RL = AUTH.ROLE_LABELS;  /* { membre, admin, superviseur, master } */
-
-/* Rôles que l'utilisateur courant peut attribuer */
-const ASSIGNABLE = isMaster
-  ? ['membre','admin','superviseur','master']
-  : ['membre','admin','superviseur'];  /* Direction */
-
-/* ─── Navigation ──────────────────────────────────────────── */
-function showSection(name) {
-  ['hierarchy','matrix','assign'].forEach(s => {
-    document.getElementById('section-' + s).classList.toggle('d-none', s !== name);
-    document.getElementById('btn-' + s).classList.toggle('active', s === name);
-  });
-  if (name === 'hierarchy') renderHierarchy();
-  if (name === 'matrix')    renderMatrix();
-  if (name === 'assign')    renderAssign();
-}
-
-/* ════════════════════════════════════════════════════════════
-   SECTION : HIÉRARCHIE
-   ═══════════════════════════════════════════════════════════ */
-function renderHierarchy() {
-  const all     = AUTH.getUsers().filter(u => u.login !== '347');  /* exclure compte secours */
-  const masters = all.filter(u => u.role === 'master' && u.statut === 'actif');
-  const dirs    = all.filter(u => u.role === 'superviseur' && u.statut === 'actif');
-  const deleg   = all.filter(u => u.role === 'admin' && u.statut === 'actif');
-  const pending = AUTH.getPendingMembers();
-
-  const container = document.getElementById('org-tree');
-
-  /* Colonne Maîtres */
-  let masterHTML = masters.map(m => userRow(m, 'success')).join('');
-  if (!masterHTML) masterHTML = '<div class="text-muted small ps-2">Aucun</div>';
-
-  /* Colonne Directions */
-  let dirHTML = dirs.map(d => userRow(d, 'warning')).join('');
-  if (!dirHTML) dirHTML = '<div class="text-muted small ps-2">Aucun</div>';
-
-  /* Colonne Délégués avec membres */
-  let delegHTML = deleg.map(d => {
-    const members = AUTH.getMembersByValidateur(d.id);
-    return `
-      <div class="mb-3">
-        ${userRow(d, 'primary')}
-        <div class="children">
-          ${members.length
-            ? members.map(m => userRow(m, 'secondary')).join('')
-            : '<div class="text-muted small ps-2">Aucun membre validé</div>'}
-        </div>
-      </div>`;
-  }).join('');
-  if (!delegHTML) delegHTML = '<div class="text-muted small ps-2">Aucun</div>';
-
-  /* Membres sans délégué */
-  const orphans = all.filter(u => u.role === 'membre' && u.statut === 'actif' && !u.validateurId);
-  const orphanHTML = orphans.length
-    ? orphans.map(m => userRow(m, 'secondary')).join('')
-    : '<div class="text-muted small ps-2">Aucun</div>';
-
-  container.innerHTML = `
-    <div class="col-md-3">
-      <div class="card p-3">
-        <h6 class="fw-bold mb-2"><span class="badge bg-success me-2">Maîtres</span></h6>
-        ${masterHTML}
-      </div>
-    </div>
-    <div class="col-md-3">
-      <div class="card p-3">
-        <h6 class="fw-bold mb-2"><span class="badge bg-warning text-dark me-2">Directions</span></h6>
-        ${dirHTML}
-      </div>
-    </div>
-    <div class="col-md-3">
-      <div class="card p-3">
-        <h6 class="fw-bold mb-2"><span class="badge bg-primary me-2">Délégués + membres</span></h6>
-        ${delegHTML}
-      </div>
-    </div>
-    <div class="col-md-3">
-      <div class="card p-3">
-        <h6 class="fw-bold mb-2"><span class="badge bg-secondary me-2">Membres sans délégué</span></h6>
-        ${orphanHTML}
-        ${pending.length
-          ? `<div class="mt-2"><span class="badge bg-warning text-dark">${pending.length} en attente</span></div>`
-          : ''}
-      </div>
-    </div>`;
-}
-
-function userRow(u, color) {
-  const init = (u.prenom[0]||'?') + (u.nom[0]||'');
-  return `
-    <div class="user-row">
-      <div class="user-avatar">${AUTH.esc(init.toUpperCase())}</div>
-      <div class="flex-grow-1 min-w-0">
-        <div class="fw-semibold text-truncate small">${AUTH.esc(u.prenom)} ${AUTH.esc(u.nom)}</div>
-        <code class="text-muted" style="font-size:.73rem">@${AUTH.esc(u.login)}</code>
-      </div>
-    </div>`;
-}
-
-/* ════════════════════════════════════════════════════════════
-   SECTION : MATRICE DES DROITS
-   ═══════════════════════════════════════════════════════════ */
-const K_MATRIX = 'attt_droits_matrix';
-const MATRIX_DEFAULT = AUTH.RIGHTS_MATRIX_DEFAULT.map(r => [...r]);
+const isMaster = AUTH.userHasExactRole(user, 'master');
+const canManageRoleCatalog = AUTH.canManageRoleDefinitions(user);
+const confirmModal = new bootstrap.Modal(document.getElementById('confirmModal'));
+const ROLE_BADGE = {
+  master: 'bg-success',
+  superviseur: 'bg-warning text-dark',
+  admin: 'bg-primary',
+  membre: 'bg-secondary',
+  famille: 'bg-dark'
+};
 
 let MATRIX_ROWS = [];
 let _matrixBackup = [];
-
-function _loadMatrix() {
-  const savedMap = new Map((() => {
-    try { return JSON.parse(localStorage.getItem(K_MATRIX) || '[]'); } catch { return []; }
-  })().map(r => [r[0], r]));
-  return MATRIX_DEFAULT.map(row => savedMap.get(row[0]) || [...row]);
-}
+let _editMode = false;
+let _pendingChange = null;
+let PAGE_SCHEMAS = [];
+let SELECTED_MATRIX_PAGE = '';
+let SELECTED_MATRIX_ROLE = '';
 
 const SYM_MAP = {
   '✓': '<i class="bi bi-check-circle-fill check-yes"></i>',
   '—': '<i class="bi bi-dash-circle-fill check-no"></i>',
-  '⚠': '<i class="bi bi-slash-circle-fill check-cond" title="Limité à son niveau"></i>',
+  '⚠': '<i class="bi bi-slash-circle-fill check-cond" title="Limité à son niveau"></i>'
 };
-const SYM_CYCLE = ['✓','—','⚠'];
-let _editMode = false;
+const SYM_CYCLE = ['✓', '—', '⚠'];
 
-function renderMatrix() {
-  MATRIX_ROWS = _loadMatrix();
-  document.getElementById('matrix-tbody').innerHTML = MATRIX_ROWS.map(([label,...cols], ri) => `
-    <tr>
-      <td>${label}</td>
-      ${cols.map((c, ci) => `<td onclick="${_editMode ? `cycleSym(${ri},${ci+1})` : ''}">${SYM_MAP[c]||c}</td>`).join('')}
-    </tr>`).join('');
-  document.getElementById('matrix-table').classList.toggle('matrix-edit-mode', _editMode);
+function roleBadgeClass(roleId) {
+  return ROLE_BADGE[roleId] || 'bg-secondary-subtle text-secondary-emphasis';
 }
 
-function cycleSym(rowIdx, colIdx) {
+function roleBadge(roleId) {
+  return `<span class="badge ${roleBadgeClass(roleId)} me-1">${AUTH.esc(AUTH.getRoleLabel(roleId))}</span>`;
+}
+
+function deepClone(value) {
+  return JSON.parse(JSON.stringify(value));
+}
+
+function canManageUser(target) {
+  if (target.login === '347' || target.id === user.id) return false;
+  return AUTH.getRoleLevel(AUTH.getPrimaryRole(user)) < AUTH.getRoleLevel(AUTH.getPrimaryRole(target));
+}
+
+function canEditRoleDefinition(role) {
+  if (!canManageRoleCatalog) return false;
+  if (isMaster) return true;
+  return !role.system && AUTH.getRoleLevel(role.id) > AUTH.getRoleLevel(AUTH.getPrimaryRole(user));
+}
+
+function getMatrixDisplayRoles() {
+  return AUTH.getRoles();
+}
+
+function showSection(name) {
+  const sections = ['hierarchy', 'matrix', 'roles', 'pages', 'assign'];
+  const safeName = (!canManageRoleCatalog && name === 'roles') ? 'hierarchy' : name;
+  sections.forEach(section => {
+    const block = document.getElementById('section-' + section);
+    const btn = document.getElementById('btn-' + section);
+    if (block) block.classList.toggle('d-none', section !== safeName);
+    if (btn) btn.classList.toggle('active', section === safeName);
+  });
+  if (safeName === 'hierarchy') renderHierarchy();
+  if (safeName === 'matrix') renderMatrix();
+  if (safeName === 'roles') renderRolesSection();
+  if (safeName === 'pages') renderPagesSection();
+  if (safeName === 'assign') renderAssign();
+}
+
+function normalizeText(value) {
+  return String(value || '').replace(/\s+/g, ' ').trim();
+}
+
+function slugPageId(value) {
+  return String(value || '')
+    .normalize('NFD').replace(/[\u0300-\u036f]/g, '')
+    .toLowerCase()
+    .replace(/[^a-z0-9]+/g, '-')
+    .replace(/^-+|-+$/g, '');
+}
+
+function schemaVisibility(element) {
+  const perm = element.getAttribute('data-perm');
+  return perm ? { mode: 'permission', label: perm } : { mode: 'always', label: 'Toujours visible' };
+}
+
+function getNodeLabel(doc, element, fallback) {
+  if (!element) return fallback;
+  const aria = normalizeText(element.getAttribute('aria-label'));
+  const title = normalizeText(element.getAttribute('title'));
+  const text = normalizeText(element.textContent);
+  if (aria) return aria;
+  if (title) return title;
+  if (text) return text;
+  const id = element.id;
+  if (id) {
+    const linkedLabel = doc.querySelector(`label[for="${CSS.escape(id)}"]`);
+    const labelText = normalizeText(linkedLabel?.textContent);
+    if (labelText) return labelText;
+  }
+  return fallback;
+}
+
+function extractButtons(doc) {
+  return [...doc.querySelectorAll('button, a.btn, input[type="button"], input[type="submit"]')]
+    .map((element, index) => ({
+      label: getNodeLabel(doc, element, `Bouton ${index + 1}`),
+      visibility: schemaVisibility(element)
+    }))
+    .filter(item => item.label)
+    .filter((item, index, array) => array.findIndex(candidate => candidate.label === item.label && candidate.visibility.label === item.visibility.label) === index);
+}
+
+function extractSelects(doc) {
+  return [...doc.querySelectorAll('select')].map((element, index) => ({
+    label: getNodeLabel(doc, element, `Liste ${index + 1}`),
+    options: [...element.querySelectorAll('option')].map(option => normalizeText(option.textContent)).filter(Boolean),
+    visibility: schemaVisibility(element)
+  }));
+}
+
+function extractTables(doc) {
+  return [...doc.querySelectorAll('table')].map((table, index) => {
+    const tableId = table.id ? `#${table.id}` : `Tableau ${index + 1}`;
+    const heading = table.closest('.card, section, div')?.querySelector('h1, h2, h3, h4, h5, h6');
+    const title = normalizeText(heading?.textContent) || tableId;
+    const columns = [...table.querySelectorAll('thead th')].map((cell, cellIndex) => ({
+      label: normalizeText(cell.textContent) || `Colonne ${cellIndex + 1}`,
+      visibility: schemaVisibility(cell)
+    }));
+    return { title, tableId, visibility: schemaVisibility(table), columns };
+  });
+}
+
+function extractPageSchema(html, path) {
+  const parsed = new DOMParser().parseFromString(html, 'text/html');
+  const title = normalizeText(parsed.title).replace(/^Amicale\s+ATTT\s+[—-]\s+/i, '') || path;
+  return {
+    path,
+    title,
+    buttons: extractButtons(parsed),
+    selects: extractSelects(parsed),
+    tables: extractTables(parsed)
+  };
+}
+
+function discoverSeedPaths() {
+  const seeds = new Set();
+  seeds.add('index.html');
+  seeds.add('droits.html');
+  (AUTH.getPermissionCatalog().pages || []).forEach(page => {
+    if (page.path) seeds.add(page.path);
+  });
+  document.querySelectorAll('a[href$=".html"]').forEach(link => {
+    const href = link.getAttribute('href');
+    if (href && !href.startsWith('http')) seeds.add(href);
+  });
+  return [...seeds].filter(Boolean);
+}
+
+async function fetchPageSchemas() {
+  const queue = discoverSeedPaths();
+  const visited = new Set();
+  const schemas = [];
+  while (queue.length) {
+    const path = queue.shift();
+    if (!path || visited.has(path)) continue;
+    visited.add(path);
+    try {
+      const response = await fetch(path, { cache: 'no-store' });
+      if (!response.ok) continue;
+      const html = await response.text();
+      const schema = extractPageSchema(html, path);
+      schemas.push(schema);
+      const parsed = new DOMParser().parseFromString(html, 'text/html');
+      parsed.querySelectorAll('a[href$=".html"]').forEach(link => {
+        const href = link.getAttribute('href');
+        if (href && !href.startsWith('http') && !visited.has(href)) queue.push(href);
+      });
+    } catch {}
+  }
+  return schemas.sort((left, right) => left.title.localeCompare(right.title, 'fr'));
+}
+
+function visibilityBadge(visibility) {
+  if (!visibility || visibility.mode === 'always') return '<span class="badge bg-success-subtle text-success-emphasis border schema-badge">Toujours visible</span>';
+  return `<span class="badge bg-warning-subtle text-warning-emphasis border schema-badge">Piloté par ${AUTH.esc(visibility.label)}</span>`;
+}
+
+function resourceTypeBadge(type) {
+  const styles = {
+    button: 'bg-primary-subtle text-primary-emphasis',
+    select: 'bg-info-subtle text-info-emphasis',
+    table: 'bg-danger-subtle text-danger-emphasis',
+    column: 'bg-warning-subtle text-warning-emphasis',
+    permission: 'bg-secondary-subtle text-secondary-emphasis'
+  };
+  const labels = {
+    button: 'Bouton',
+    select: 'Liste',
+    table: 'Tableau',
+    column: 'Colonne',
+    permission: 'Action'
+  };
+  return `<span class="badge ${styles[type] || 'bg-light text-dark'} border schema-badge">${labels[type] || AUTH.esc(type)}</span>`;
+}
+
+function renderPagesSection() {
+  const container = document.getElementById('pages-schema-list');
+  if (!PAGE_SCHEMAS.length) {
+    container.innerHTML = '<div class="alert alert-info">Analyse en cours des pages du site…</div>';
+    refreshPageSchemas();
+    return;
+  }
+  container.innerHTML = PAGE_SCHEMAS.map(page => `
+    <div class="schema-card p-4 mb-4">
+      <div class="d-flex justify-content-between align-items-start gap-3 flex-wrap mb-3">
+        <div>
+          <h2 class="h5 mb-1">${AUTH.esc(page.title)}</h2>
+          <div class="text-muted small">${AUTH.esc(page.path)}</div>
+        </div>
+        <div class="d-flex gap-2 flex-wrap">
+          <span class="badge bg-light text-dark border">${AUTH.esc(page.buttons.length)} bouton(s)</span>
+          <span class="badge bg-light text-dark border">${AUTH.esc(page.selects.length)} liste(s)</span>
+          <span class="badge bg-light text-dark border">${AUTH.esc(page.tables.length)} tableau(x)</span>
+        </div>
+      </div>
+
+      <div class="row g-4">
+        <div class="col-lg-4">
+          <h3 class="h6">Boutons</h3>
+          ${page.buttons.length ? page.buttons.map(button => `<div class="border rounded-3 p-2 mb-2"><div class="fw-semibold small">${AUTH.esc(button.label)}</div>${visibilityBadge(button.visibility)}</div>`).join('') : '<div class="text-muted small">Aucun bouton détecté.</div>'}
+        </div>
+        <div class="col-lg-4">
+          <h3 class="h6">Listes déroulantes</h3>
+          ${page.selects.length ? page.selects.map(select => `<div class="border rounded-3 p-2 mb-2"><div class="fw-semibold small">${AUTH.esc(select.label)}</div>${visibilityBadge(select.visibility)}<div class="small text-muted mt-2">${select.options.length ? AUTH.esc(select.options.join(' • ')) : 'Sans options'}</div></div>`).join('') : '<div class="text-muted small">Aucune liste détectée.</div>'}
+        </div>
+        <div class="col-lg-4">
+          <h3 class="h6">Tableaux et colonnes</h3>
+          ${page.tables.length ? page.tables.map(table => `<div class="border rounded-3 p-2 mb-2"><div class="fw-semibold small">${AUTH.esc(table.title)}</div>${visibilityBadge(table.visibility)}<div class="small text-muted mt-2">${table.columns.length ? table.columns.map(column => `${AUTH.esc(column.label)}${column.visibility.mode === 'permission' ? ' [' + AUTH.esc(column.visibility.label) + ']' : ''}`).join(' • ') : 'Aucune colonne détectée'}</div></div>`).join('') : '<div class="text-muted small">Aucun tableau détecté.</div>'}
+        </div>
+      </div>
+    </div>`).join('');
+}
+
+async function refreshPageSchemas() {
+  document.getElementById('pages-schema-list').innerHTML = '<div class="alert alert-info">Analyse des pages en cours…</div>';
+  PAGE_SCHEMAS = await fetchPageSchemas();
+  renderPagesSection();
+  renderMatrix();
+}
+
+function renderRoleCards() {
+  const roles = AUTH.getRoles();
+  const container = document.getElementById('role-level-cards');
+  container.innerHTML = roles.map(role => {
+    const assignables = role.implicitAll
+      ? AUTH.getRoles().map(item => item.label)
+      : AUTH.getAssignableRoles({ roles: [role.id], role: role.id }).map(item => item.label);
+    const desc = role.implicitAll
+      ? 'Accès total. Toutes les pages et toutes les actions sont autorisées.'
+      : role.linkedToUser
+        ? 'Rôle lié à un utilisateur principal. Utilisé pour la famille ou les comptes dépendants.'
+        : 'Rôle standard piloté par son niveau et la matrice des droits.';
+    return `
+      <div class="col-md-6 col-xl-3">
+        <div class="card level-card p-3 h-100">
+          <div class="d-flex align-items-center gap-2 mb-2">
+            <span class="badge ${roleBadgeClass(role.id)}">Niveau ${AUTH.esc(role.level)}</span>
+            <strong>${AUTH.esc(role.label)}</strong>
+          </div>
+          <p class="small text-muted mb-2">${AUTH.esc(desc)}</p>
+          <hr class="my-2" />
+          <div class="small"><strong>Peut attribuer :</strong><br>
+            ${assignables.length ? assignables.map(label => `<span class="badge bg-light text-dark border me-1 mt-1">${AUTH.esc(label)}</span>`).join('') : '<span class="text-muted">Aucun</span>'}
+          </div>
+        </div>
+      </div>`;
+  }).join('');
+}
+
+function userRow(u) {
+  const linkedUser = u.linkedTo ? AUTH.getUsers().find(item => item.id === u.linkedTo) : null;
+  return `
+    <div class="user-row">
+      <div class="user-avatar">${AUTH.esc(((u.prenom[0] || '?') + (u.nom[0] || '')).toUpperCase())}</div>
+      <div class="flex-grow-1 min-w-0">
+        <div class="fw-semibold text-truncate small">${AUTH.esc(u.prenom)} ${AUTH.esc(u.nom)}</div>
+        <code class="text-muted" style="font-size:.73rem">@${AUTH.esc(u.login)}</code>
+        <div class="mt-1">${AUTH.getUserRoles(u).map(roleBadge).join('')}</div>
+        ${linkedUser ? `<div class="small text-muted mt-1">Rattaché à ${AUTH.esc(linkedUser.prenom)} ${AUTH.esc(linkedUser.nom)}</div>` : ''}
+      </div>
+    </div>`;
+}
+
+function renderHierarchy() {
+  renderRoleCards();
+  const users = AUTH.getUsers().filter(item => item.login !== '347' && item.statut === 'actif');
+  const pending = AUTH.getPendingMembers();
+  const roles = AUTH.getRoles();
+  const container = document.getElementById('org-tree');
+  container.innerHTML = roles.map(role => {
+    const members = users.filter(item => AUTH.getPrimaryRole(item) === role.id);
+    return `
+      <div class="col-md-6 col-xl-4">
+        <div class="card p-3 h-100">
+          <h6 class="fw-bold mb-3">${roleBadge(role.id)} <span class="text-muted small">${members.length} compte(s)</span></h6>
+          ${members.length ? members.map(userRow).join('') : '<div class="text-muted small ps-2">Aucun utilisateur actif</div>'}
+          ${role.id === 'membre' && pending.length ? `<div class="mt-2"><span class="badge bg-warning text-dark">${pending.length} en attente</span></div>` : ''}
+        </div>
+      </div>`;
+  }).join('');
+}
+
+function loadMatrix() {
+  try {
+    const saved = JSON.parse(localStorage.getItem('attt_droits_matrix') || 'null');
+    return deepClone(saved ? AUTH._saveRightsMatrix(saved) : AUTH.RIGHTS_MATRIX_DEFAULT);
+  } catch {
+    return deepClone(AUTH.RIGHTS_MATRIX_DEFAULT);
+  }
+}
+
+function getMatrixGroups(rows) {
+  const pageMap = new Map();
+  const fallback = { id: 'global', label: 'Global', path: '' };
+  (AUTH.getPermissionCatalog().pages || []).forEach(page => {
+    (page.permissions || []).forEach(label => {
+      pageMap.set(label, page);
+    });
+  });
+  const groups = new Map();
+  rows.forEach(row => {
+    const page = pageMap.get(row.label) || fallback;
+    const key = page.id || fallback.id;
+    if (!groups.has(key)) groups.set(key, { ...page, rows: [] });
+    groups.get(key).rows.push(row);
+  });
+  PAGE_SCHEMAS.forEach(page => {
+    const pageId = slugPageId(page.path.replace(/\.html$/i, '') || page.title) || page.path || page.title;
+    if (!groups.has(pageId)) {
+      groups.set(pageId, {
+        id: pageId,
+        label: page.title,
+        path: page.path,
+        rows: []
+      });
+    }
+  });
+  return Array.from(groups.values()).sort((left, right) => {
+    if (left.id === 'global') return -1;
+    if (right.id === 'global') return 1;
+    return left.label.localeCompare(right.label, 'fr');
+  });
+}
+
+function getSchemaForGroup(group) {
+  if (!group?.path) return null;
+  return PAGE_SCHEMAS.find(page => page.path === group.path) || null;
+}
+
+function buildResourceItem(section, type, label, visibility, extra = {}) {
+  return {
+    section,
+    type,
+    label,
+    visibility,
+    permission: visibility?.mode === 'permission' ? visibility.label : '',
+    meta: extra.meta || '',
+    anchor: extra.anchor || '',
+    origin: extra.origin || 'schema'
+  };
+}
+
+function getMatrixPageDetails(group) {
+  const schema = getSchemaForGroup(group);
+  const resources = [];
+  const seen = new Set();
+  const register = item => {
+    const key = [item.section, item.type, item.label, item.permission, item.meta].join('::');
+    if (seen.has(key)) return;
+    seen.add(key);
+    resources.push(item);
+  };
+
+  if (schema) {
+    schema.buttons.forEach(button => register(buildResourceItem('buttons', 'button', button.label, button.visibility)));
+    schema.selects.forEach(select => register(buildResourceItem('selects', 'select', select.label, select.visibility, {
+      meta: select.options.length ? select.options.join(' • ') : 'Sans options'
+    })));
+    schema.tables.forEach(table => {
+      register(buildResourceItem('tables', 'table', table.title, table.visibility, {
+        meta: table.tableId
+      }));
+      table.columns.forEach(column => register(buildResourceItem('columns', 'column', column.label, column.visibility, {
+        meta: table.title
+      })));
+    });
+  }
+
+  const controlledLabels = new Set(resources.map(item => item.permission).filter(Boolean));
+  group.rows.forEach(row => {
+    if (!controlledLabels.has(row.label)) {
+      register(buildResourceItem('permissions', 'permission', row.label, { mode: 'permission', label: row.label }, {
+        origin: 'matrix',
+        meta: schema ? 'Action logique non reliée directement à un composant détecté' : 'Action logique'
+      }));
+    }
+  });
+
+  const rowMap = new Map(group.rows.map(row => [row.label, row]));
+  return { schema, resources, rowMap };
+}
+
+/* ── Accès à une page = preset appliqué à toutes ses permissions ── */
+function pageAccessState(group) {
+  /* Renvoie 'all' | 'none' | 'partial' ou null si aucun droit contrôlé */
+  if (!group.rows.length) return null;
+  const vals = group.rows.map(row => {
+    const v = row.values?.[SELECTED_MATRIX_ROLE] || { visible: '—', action: '—' };
+    if (v.visible === '✔' || v.visible === '✔') return v.visible;
+    return v.visible;
+  });
+  if (vals.every(v => v === '—')) return 'none';
+  if (vals.every(v => v === '✓')) return 'all';
+  return 'partial';
+}
+
+function togglePageAccess(groupId) {
+  if (!_editMode) { alert('Activez d\'abord le mode modification.'); return; }
+  const groups = getMatrixGroups(MATRIX_ROWS);
+  const group  = groups.find(g => g.id === groupId);
+  if (!group || !group.rows.length) return;
+  SELECTED_MATRIX_PAGE = groupId;
+  const state  = pageAccessState(group);
+  const preset = state === 'none' ? { visible: '✓', action: '✓' } : { visible: '—', action: '—' };
+  group.rows.forEach(row => {
+    const idx = MATRIX_ROWS.findIndex(i => i.label === row.label);
+    if (idx === -1) return;
+    if (!MATRIX_ROWS[idx].values) MATRIX_ROWS[idx].values = {};
+    MATRIX_ROWS[idx].values[SELECTED_MATRIX_ROLE] = { ...preset };
+  });
+  renderMatrix();
+}
+
+/* ── Liste des pages (avec état accès par rôle) ───────── */
+function renderMatrixPageList(groups) {
+  const container = document.getElementById('matrix-page-list');
+  if (!groups.length) {
+    container.innerHTML = '<div class="text-muted small">Aucune page disponible.</div>';
+    return;
+  }
+  if (!groups.some(group => group.id === SELECTED_MATRIX_PAGE)) {
+    SELECTED_MATRIX_PAGE = groups[0].id;
+  }
+  container.innerHTML = groups.map(group => {
+    const details   = getMatrixPageDetails(group);
+    const controlled = details.resources.filter(item => item.permission).length;
+    const state     = SELECTED_MATRIX_ROLE && group.rows.length ? pageAccessState(group) : null;
+    const accessDot = state === 'none'    ? '<span class="badge bg-danger me-1" title="Accès bloqué pour ce rôle">✕</span>'
+                    : state === 'all'     ? '<span class="badge bg-success me-1" title="Accès complet">✓</span>'
+                    : state === 'partial' ? '<span class="badge bg-warning text-dark me-1" title="Accès partiel">≈</span>'
+                    : '';
+    const toggleBtn = (state !== null && _editMode)
+      ? `<button class="btn btn-sm ${state === 'none' ? 'btn-outline-success' : 'btn-outline-danger'} py-0 px-1" style="font-size:.7rem" onclick="togglePageAccess('${AUTH.esc(group.id)}');event.stopPropagation()" title="${state === 'none' ? 'Autoriser l\'accès' : 'Bloquer l\'accès'}">
+          <i class="bi ${state === 'none' ? 'bi-unlock' : 'bi-lock'}"></i></button>`
+      : '';
+    return `
+      <button class="matrix-page-item ${group.id === SELECTED_MATRIX_PAGE ? 'active' : ''}" onclick="selectMatrixPage('${AUTH.esc(group.id)}')">
+        <div class="d-flex justify-content-between align-items-start gap-2">
+          <div class="flex-grow-1 min-w-0">
+            <div class="matrix-page-name">${accessDot}${AUTH.esc(group.label)}</div>
+            <div class="matrix-page-meta">${AUTH.esc(group.path || 'Actions globales')}</div>
+          </div>
+          <div class="d-flex align-items-center gap-1 flex-shrink-0">
+            ${toggleBtn}
+            <span class="badge bg-light text-dark border">${AUTH.esc(details.resources.length)}</span>
+          </div>
+        </div>
+        ${controlled ? `<div class="matrix-page-meta mt-1">${controlled} pilotée(s)</div>` : ''}
+      </button>`;
+  }).join('');
+}
+
+function selectMatrixPage(pageId) {
+  SELECTED_MATRIX_PAGE = pageId;
+  renderMatrix();
+}
+
+/* ── Sélecteur de rôle ──────────────────────────────── */
+function renderRolePicker(roles) {
+  const container = document.getElementById('matrix-role-picker');
+  if (!container) return;
+  container.innerHTML = roles.map(role => {
+    const isActive   = role.id === SELECTED_MATRIX_ROLE;
+    const isImplicit = role.implicitAll;
+    const cls  = isImplicit ? 'role-tab implicit' : (isActive ? 'role-tab active' : 'role-tab');
+    const icon = isImplicit ? '<i class="bi bi-shield-fill-check me-1"></i>' : '';
+    const click = isImplicit ? '' : ` onclick="selectMatrixRole('${AUTH.esc(role.id)}')"`;
+    return `<button class="${cls}"${click} title="${AUTH.esc(role.label)}">${icon}${AUTH.esc(role.label)}</button>`;
+  }).join('');
+}
+
+function selectMatrixRole(roleId) {
+  SELECTED_MATRIX_ROLE = roleId;
+  renderMatrix();
+}
+
+/* ── Toggle individuel ─────────────────────────────── */
+function _renderToggle(rowIndex, axis, symbol, editable) {
+  const stCls  = symbol === '✓' ? 'st-yes' : symbol === '⚠' ? 'st-cond' : 'st-no';
+  const icon   = axis === 'visible'
+    ? (symbol === '✓' ? 'bi-eye-fill' : symbol === '⚠' ? 'bi-eye'         : 'bi-eye-slash')
+    : (symbol === '✓' ? 'bi-pencil-fill' : symbol === '⚠' ? 'bi-pencil'  : 'bi-lock-fill');
+  const label  = axis === 'visible'
+    ? (symbol === '✓' ? 'Visible'  : symbol === '⚠' ? 'Limité' : 'Caché')
+    : (symbol === '✓' ? 'Autorisé' : symbol === '⚠' ? 'Limité' : 'Bloqué');
+  if (editable) {
+    return `<button class="res-toggle ${stCls} clickable" onclick="toggleRoleSym(${rowIndex},'${axis}')" title="Cliquer pour changer">
+      <i class="bi ${icon} me-1"></i>${label}</button>`;
+  }
+  return `<span class="res-toggle ${stCls} locked"><i class="bi ${icon} me-1"></i>${label}</span>`;
+}
+
+/* ── Rendu section ressources (rôle unique) ─────────── */
+function renderRoleResourceSection(title, items, role, rowMap, filterValue, group) {
+  const filtered = items.filter(item => {
+    if (!filterValue) return true;
+    return [item.label, item.permission, item.meta].join(' ').toLowerCase().includes(filterValue);
+  });
+  if (!filtered.length) return '';
+  return `
+    <div class="matrix-section-block">
+      <div class="matrix-section-title">
+        <span>${AUTH.esc(title)}</span>
+        <span class="badge bg-light text-dark border">${filtered.length}</span>
+      </div>
+      ${filtered.map(item => {
+        const row      = item.permission ? rowMap.get(item.permission) : null;
+        const rowIndex = row ? MATRIX_ROWS.findIndex(e => e.label === row.label) : -1;
+        const hasCtrl  = !!item.permission && !!row;
+        const values   = hasCtrl ? (row.values?.[role.id] || { visible: '—', action: '—' }) : null;
+        const editable = _editMode && hasCtrl && !role.implicitAll;
+        const toggleVis = hasCtrl
+          ? _renderToggle(rowIndex, 'visible', values.visible, editable)
+          : `<span class="res-toggle st-yes locked"><i class="bi bi-eye-fill me-1"></i>Toujours</span>`;
+        const toggleAct = hasCtrl
+          ? _renderToggle(rowIndex, 'action', values.action, editable)
+          : `<span class="res-toggle st-no locked"><i class="bi bi-lock-fill me-1"></i>Non géré</span>`;
+        return `
+          <div class="res-row">
+            <div class="res-row-label">
+              <div class="d-flex align-items-center gap-2 flex-wrap">${resourceTypeBadge(item.type)}
+                <span class="matrix-resource-title">${AUTH.esc(item.label)}</span>
+              </div>
+              ${item.meta ? `<div class="matrix-resource-meta">${AUTH.esc(item.meta)}</div>` : ''}
+            </div>
+            <div class="res-toggle-group">${toggleVis}${toggleAct}</div>
+          </div>`;
+      }).join('')}
+    </div>`;
+}
+
+/* ── renderMatrix — vue rôle unique ─────────────────── */
+function renderMatrix() {
+  /* NE PAS recharger depuis localStorage quand on est en mode édition
+     (sinon les modifications en mémoire seraient effacées à chaque rendu) */
+  if (!_editMode) {
+    MATRIX_ROWS = loadMatrix();
+  }
+  const roles  = AUTH.getRoles();
+  const groups = getMatrixGroups(MATRIX_ROWS);
+
+  // Initialise le rôle sélectionné si vide ou inconnu
+  if (!SELECTED_MATRIX_ROLE || !roles.find(r => r.id === SELECTED_MATRIX_ROLE)) {
+    SELECTED_MATRIX_ROLE = roles.find(r => !r.implicitAll)?.id || roles[0]?.id || '';
+  }
+  renderRolePicker(roles);
+  renderMatrixPageList(groups);
+
+  const selectedRole  = roles.find(r => r.id === SELECTED_MATRIX_ROLE) || null;
+  const selectedGroup = groups.find(g => g.id === SELECTED_MATRIX_PAGE) || groups[0] || null;
+  const openLink      = document.getElementById('matrix-open-page');
+
+  if (!selectedGroup || !selectedRole) {
+    document.getElementById('matrix-selected-page-name').textContent  = 'Sélectionnez un rôle et une page';
+    document.getElementById('matrix-selected-page-meta').textContent  = '';
+    document.getElementById('matrix-stats').textContent               = '';
+    document.getElementById('matrix-resource-list').innerHTML = '<div class="matrix-empty-state"><i class="bi bi-hand-index-thumb fs-2 d-block mb-2"></i>Sélectionnez un rôle puis une page pour configurer les droits.</div>';
+    if (openLink) openLink.classList.add('d-none');
+    return;
+  }
+
+  SELECTED_MATRIX_PAGE = selectedGroup.id;
+  const isLocked = selectedRole.implicitAll;
+  const presetButtons = ['matrix-allow-all', 'matrix-read-only', 'matrix-deny-all'];
+  presetButtons.forEach(id => document.getElementById(id)?.toggleAttribute('disabled', !_editMode || isLocked || !selectedGroup.rows.length));
+
+  const details     = getMatrixPageDetails(selectedGroup);
+  const filterValue = document.getElementById('matrix-resource-filter')?.value.trim().toLowerCase() || '';
+  const sections    = [
+    ['Boutons',           details.resources.filter(i => i.section === 'buttons')],
+    ['Listes déroulantes', details.resources.filter(i => i.section === 'selects')],
+    ['Tableaux',          details.resources.filter(i => i.section === 'tables')],
+    ['Colonnes',          details.resources.filter(i => i.section === 'columns')],
+    ['Actions logiques',  details.resources.filter(i => i.section === 'permissions')]
+  ];
+
+  document.getElementById('matrix-selected-page-name').textContent = selectedGroup.label;
+  document.getElementById('matrix-selected-page-meta').textContent = selectedGroup.path || 'Actions globales';
+  const nbCtrl = details.resources.filter(i => i.permission).length;
+  document.getElementById('matrix-stats').innerHTML =
+    `Rôle&nbsp;: <strong>${AUTH.esc(selectedRole.label)}</strong> &nbsp;·&nbsp; ${details.resources.length} élément(s) &nbsp;·&nbsp; ${nbCtrl} piloté(s)`;
+
+  if (openLink) {
+    if (selectedGroup.path) { openLink.href = selectedGroup.path; openLink.classList.remove('d-none'); }
+    else { openLink.classList.add('d-none'); openLink.removeAttribute('href'); }
+  }
+
+  if (isLocked) {
+    document.getElementById('matrix-resource-list').innerHTML = `
+      <div class="alert alert-success m-3">
+        <i class="bi bi-shield-fill-check me-2"></i>
+        Le rôle <strong>${AUTH.esc(selectedRole.label)}</strong> a un accès total à toutes les ressources — ses droits ne peuvent pas être restreints.
+      </div>`;
+    return;
+  }
+
+  const html = sections.map(([title, items]) =>
+    renderRoleResourceSection(title, items, selectedRole, details.rowMap, filterValue, selectedGroup)
+  ).join('');
+  document.getElementById('matrix-resource-list').innerHTML =
+    html || '<div class="matrix-empty-state">Aucun élément à afficher pour cette page.</div>';
+}
+
+/* ── Preset : rôle sélectionné seulement ───────────── */
+function applyMatrixPreset(mode) {
+  if (!_editMode) { alert('Activez d\'abord le mode modification.'); return; }
+  if (!SELECTED_MATRIX_ROLE) { alert('Sélectionnez un rôle d\'abord.'); return; }
+  const groups = getMatrixGroups(MATRIX_ROWS);
+  const selectedGroup = groups.find(g => g.id === SELECTED_MATRIX_PAGE);
+  if (!selectedGroup || !selectedGroup.rows.length) return;
+  const preset = mode === 'all'  ? { visible: '✓', action: '✓' }
+               : mode === 'read' ? { visible: '✓', action: '—' }
+               :                   { visible: '—', action: '—' };
+  selectedGroup.rows.forEach(row => {
+    const idx = MATRIX_ROWS.findIndex(i => i.label === row.label);
+    if (idx === -1) return;
+    if (!MATRIX_ROWS[idx].values) MATRIX_ROWS[idx].values = {};
+    MATRIX_ROWS[idx].values[SELECTED_MATRIX_ROLE] = { ...preset };
+  });
+  renderMatrix();
+}
+
+/* ── Toggle droit d'un élément (rôle courant) ───────── */
+function toggleRoleSym(rowIndex, axis) {
   if (!_editMode) return;
-  const cur  = MATRIX_ROWS[rowIdx][colIdx];
-  const next = SYM_CYCLE[(SYM_CYCLE.indexOf(cur) + 1) % SYM_CYCLE.length];
-  MATRIX_ROWS[rowIdx][colIdx] = next;
-  const rows = document.getElementById('matrix-tbody').rows;
-  rows[rowIdx].cells[colIdx].innerHTML = SYM_MAP[next] || next;
+  const cur = MATRIX_ROWS[rowIndex].values?.[SELECTED_MATRIX_ROLE]?.[axis] || '—';
+  const nxt = cur === '—' ? '✓' : cur === '✓' ? '⚠' : '—';
+  if (!MATRIX_ROWS[rowIndex].values) MATRIX_ROWS[rowIndex].values = {};
+  if (!MATRIX_ROWS[rowIndex].values[SELECTED_MATRIX_ROLE])
+    MATRIX_ROWS[rowIndex].values[SELECTED_MATRIX_ROLE] = { visible: '—', action: '—' };
+  MATRIX_ROWS[rowIndex].values[SELECTED_MATRIX_ROLE][axis] = nxt;
+  renderMatrix();
 }
 
 function startEditMatrix() {
@@ -416,7 +1030,9 @@ function startEditMatrix() {
     alert('Droits insuffisants pour modifier la matrice des droits.');
     return;
   }
-  _matrixBackup = _loadMatrix().map(r => [...r]);
+  /* Charger une fois la matrice persistée, puis ne plus y toucher jusqu'à save/cancel */
+  MATRIX_ROWS    = loadMatrix();
+  _matrixBackup  = deepClone(MATRIX_ROWS);
   _editMode = true;
   document.getElementById('btn-edit-matrix').classList.add('d-none');
   document.getElementById('btn-save-matrix').classList.remove('d-none');
@@ -426,21 +1042,17 @@ function startEditMatrix() {
 }
 
 function saveMatrix() {
-  localStorage.setItem(K_MATRIX, JSON.stringify(MATRIX_ROWS));
-  if (typeof DB !== 'undefined') DB.push(K_MATRIX, MATRIX_ROWS);
+  AUTH._saveRightsMatrix(MATRIX_ROWS);
   _editMode = false;
   document.getElementById('btn-edit-matrix').classList.remove('d-none');
   document.getElementById('btn-save-matrix').classList.add('d-none');
   document.getElementById('btn-cancel-matrix').classList.add('d-none');
   document.getElementById('matrix-edit-hint').style.display = 'none';
   renderMatrix();
-  const btn = document.getElementById('btn-edit-matrix');
-  btn.textContent = '✓ Enregistré';
-  setTimeout(() => { btn.innerHTML = '<i class="bi bi-pencil me-1"></i>Modifier'; }, 2000);
 }
 
 function cancelEditMatrix() {
-  MATRIX_ROWS = _matrixBackup;
+  MATRIX_ROWS = deepClone(_matrixBackup);
   _editMode = false;
   document.getElementById('btn-edit-matrix').classList.remove('d-none');
   document.getElementById('btn-save-matrix').classList.add('d-none');
@@ -455,62 +1067,199 @@ function resetMatrix() {
     return;
   }
   if (!confirm('Réinitialiser la matrice avec les valeurs par défaut ?')) return;
-  localStorage.removeItem(K_MATRIX);
+  localStorage.removeItem('attt_droits_matrix');
+  MATRIX_ROWS = deepClone(AUTH.RIGHTS_MATRIX_DEFAULT);
   _editMode = false;
   document.getElementById('btn-edit-matrix').classList.remove('d-none');
   document.getElementById('btn-save-matrix').classList.add('d-none');
   document.getElementById('btn-cancel-matrix').classList.add('d-none');
+  document.getElementById('matrix-edit-hint').style.display = 'none';
   renderMatrix();
 }
 
-/* ════════════════════════════════════════════════════════════
-   SECTION : ASSIGNER LES RÔLES
-   ═══════════════════════════════════════════════════════════ */
-function renderAssign() {
-  /* Note d'info selon rôle du connecté */
-  document.getElementById('assign-note').innerHTML = isMaster
-    ? 'En tant que <strong>Maître</strong>, vous pouvez attribuer tous les rôles.'
-    : 'En tant que <strong>Direction</strong>, vous pouvez attribuer les rôles Membre, Délégué et Direction.';
+function exportRightsConfig() {
+  const payload = AUTH.exportRightsConfig();
+  const blob = new Blob([JSON.stringify(payload, null, 2)], { type: 'application/json' });
+  const url = URL.createObjectURL(blob);
+  const a = document.createElement('a');
+  const stamp = new Date().toISOString().slice(0, 19).replace(/[T:]/g, '-');
+  a.href = url;
+  a.download = `attt-droits-${stamp}.json`;
+  document.body.appendChild(a);
+  a.click();
+  document.body.removeChild(a);
+  URL.revokeObjectURL(url);
+}
 
-  /* Filtre sidebar */
-  const filterSel = document.getElementById('assign-filter');
-  if (!filterSel.options.length || filterSel.options[0].value !== '') {
-    filterSel.innerHTML = '<option value="">Tous les rôles</option>' +
-      ASSIGNABLE.filter(r => r !== 'membre').map(r =>
-        `<option value="${r}">${RL[r]||r}</option>`
-      ).join('');
+function triggerRightsImport() {
+  document.getElementById('rights-import-file').click();
+}
+
+async function handleRightsImport(event) {
+  const file = event.target?.files?.[0];
+  if (!file) return;
+  try {
+    const text = await file.text();
+    const parsed = JSON.parse(text);
+    if (!confirm('Importer cette configuration des droits et remplacer la configuration actuelle ?')) {
+      event.target.value = '';
+      return;
+    }
+    const result = AUTH.importRightsConfig(parsed);
+    if (!result.ok) {
+      alert(result.msg || 'Import impossible.');
+      event.target.value = '';
+      return;
+    }
+    _editMode = false;
+    document.getElementById('btn-edit-matrix').classList.remove('d-none');
+    document.getElementById('btn-save-matrix').classList.add('d-none');
+    document.getElementById('btn-cancel-matrix').classList.add('d-none');
+    document.getElementById('matrix-edit-hint').style.display = 'none';
+    resetRoleForm();
+    renderRolesSection();
+    renderHierarchy();
+    renderAssign();
+    renderMatrix();
+    alert('Configuration des droits importée.');
+  } catch (error) {
+    alert('Fichier invalide : ' + error.message);
+  } finally {
+    event.target.value = '';
   }
-  const filterRole = filterSel.value;
-  const q          = document.getElementById('assign-search').value.toLowerCase();
+}
 
-  /* Utilisateurs assignables : tous sauf le compte secours et soi-même */
-  let users = AUTH.getUsers().filter(u =>
-    u.login !== '347' &&
-    u.id    !== user.id &&
-    u.statut !== 'en_attente'
-  );
+function resetRoleForm() {
+  document.getElementById('role-edit-id').value = '';
+  document.getElementById('role-id-input').value = '';
+  document.getElementById('role-id-input').disabled = false;
+  document.getElementById('role-label-input').value = '';
+  document.getElementById('role-level-input').value = '';
+  document.getElementById('role-linked-input').checked = false;
+}
 
-  /* Direction ne peut pas voir/modifier les Maîtres ni les autres Directions au-delà de son propre niveau */
-  if (!isMaster) users = users.filter(u => u.role !== 'master');
+function editRoleDefinition(roleId) {
+  const role = AUTH.getRoleDefinition(roleId);
+  if (!role) return;
+  document.getElementById('role-edit-id').value = role.id;
+  document.getElementById('role-id-input').value = role.id;
+  document.getElementById('role-id-input').disabled = role.system;
+  document.getElementById('role-label-input').value = role.label;
+  document.getElementById('role-level-input').value = role.level;
+  document.getElementById('role-linked-input').checked = role.linkedToUser;
+}
 
-  if (filterRole) users = users.filter(u => u.role === filterRole);
-  if (q) users = users.filter(u =>
-    (u.nom+u.prenom+u.login).toLowerCase().includes(q)
-  );
-  users.sort((a,b) => a.nom.localeCompare(b.nom));
+function deleteRoleDefinition(roleId) {
+  if (!confirm('Supprimer ce rôle personnalisé ?')) return;
+  if (!AUTH.deleteRole(roleId)) {
+    alert('Suppression impossible pour ce rôle.');
+    return;
+  }
+  resetRoleForm();
+  renderRolesSection();
+  renderHierarchy();
+  renderMatrix();
+  renderAssign();
+}
+
+function saveRoleDefinition() {
+  if (!canManageRoleCatalog) {
+    alert('Droits insuffisants pour modifier le catalogue des rôles.');
+    return;
+  }
+  const editId = document.getElementById('role-edit-id').value;
+  const roleIdInput = document.getElementById('role-id-input').value.trim();
+  const label = document.getElementById('role-label-input').value.trim();
+  const level = Number(document.getElementById('role-level-input').value || 0);
+  const linkedToUser = document.getElementById('role-linked-input').checked;
+  if (!label) {
+    alert('Le libellé du rôle est obligatoire.');
+    return;
+  }
+  if (!isMaster && level <= AUTH.getRoleLevel(AUTH.getPrimaryRole(user))) {
+    alert('Le niveau du rôle doit être inférieur à votre propre niveau.');
+    return;
+  }
+  if (!editId) {
+    const result = AUTH.addRole({ id: roleIdInput, label, level, linkedToUser });
+    if (!result.ok) {
+      alert(result.msg || 'Création impossible.');
+      return;
+    }
+  } else {
+    if (!AUTH.updateRole(editId, { label, level, linkedToUser })) {
+      alert('Mise à jour impossible.');
+      return;
+    }
+  }
+  resetRoleForm();
+  renderRolesSection();
+  renderHierarchy();
+  renderMatrix();
+  renderAssign();
+}
+
+function renderRolesSection() {
+  const roles = AUTH.getRoles();
+  const tbody = document.getElementById('roles-tbody');
+  const formCard = document.getElementById('role-save-btn').closest('.card');
+  tbody.innerHTML = roles.map(role => `
+    <tr>
+      <td>${roleBadge(role.id)}</td>
+      <td><span class="badge bg-light text-dark border">${AUTH.esc(role.level)}</span></td>
+      <td>${role.system ? '<span class="badge bg-secondary">Système</span>' : '<span class="badge bg-info text-dark">Personnalisé</span>'}</td>
+      <td>${role.linkedToUser ? '<span class="badge bg-warning text-dark">Oui</span>' : '<span class="text-muted small">Non</span>'}</td>
+      <td class="text-end">
+        ${canEditRoleDefinition(role) ? `<button class="btn btn-sm btn-outline-primary me-1" onclick="editRoleDefinition('${AUTH.esc(role.id)}')"><i class="bi bi-pencil"></i></button>` : ''}
+        ${canEditRoleDefinition(role) && !role.system ? `<button class="btn btn-sm btn-outline-danger" onclick="deleteRoleDefinition('${AUTH.esc(role.id)}')"><i class="bi bi-trash"></i></button>` : ''}
+      </td>
+    </tr>`).join('') || '<tr><td colspan="5" class="text-center text-muted py-4">Aucun rôle.</td></tr>';
+  document.getElementById('role-save-btn').classList.toggle('d-none', !canManageRoleCatalog);
+  formCard.classList.toggle('d-none', !canManageRoleCatalog);
+}
+
+function selectedRolesFromForm(userId) {
+  return Array.from(document.querySelectorAll(`[data-user-roles="${userId}"] input[type="checkbox"]:checked`)).map(input => input.value);
+}
+
+function toggleLinkedSelect(userId) {
+  const select = document.getElementById('link-' + userId);
+  if (!select) return;
+  const needsLink = selectedRolesFromForm(userId).some(roleId => AUTH.getRoleDefinition(roleId)?.linkedToUser);
+  select.disabled = !needsLink;
+  if (!needsLink) select.value = '';
+}
+
+function renderAssign() {
+  const assignableRoles = AUTH.getAssignableRoles(user);
+  document.getElementById('assign-note').innerHTML = isMaster
+    ? 'En tant que <strong>Maître</strong>, vous pouvez combiner plusieurs rôles sur un même utilisateur.'
+    : 'Les utilisateurs gérés ici peuvent recevoir un ou plusieurs rôles de niveau inférieur au vôtre.';
+
+  const filter = document.getElementById('assign-filter');
+  const currentFilter = filter.value;
+  filter.innerHTML = '<option value="">Tous les rôles</option>' + assignableRoles.map(role => `<option value="${AUTH.esc(role.id)}">${AUTH.esc(role.label)}</option>`).join('');
+  filter.value = assignableRoles.some(role => role.id === currentFilter) ? currentFilter : '';
+
+  const filterRole = filter.value;
+  const q = document.getElementById('assign-search').value.toLowerCase().trim();
+  const sponsors = AUTH.getUsers()
+    .filter(item => item.login !== '347' && item.statut === 'actif' && item.id !== user.id)
+    .filter(item => !AUTH.getUserRoles(item).some(roleId => AUTH.getRoleDefinition(roleId)?.linkedToUser))
+    .sort((left, right) => (left.nom + left.prenom).localeCompare(right.nom + right.prenom, 'fr'));
+
+  const users = AUTH.getUsers()
+    .filter(item => item.login !== '347' && item.id !== user.id && item.statut !== 'en_attente')
+    .filter(canManageUser)
+    .filter(item => !filterRole || AUTH.userHasExactRole(item, filterRole))
+    .filter(item => !q || (item.nom + item.prenom + item.login).toLowerCase().includes(q))
+    .sort((left, right) => left.nom.localeCompare(right.nom, 'fr'));
 
   const container = document.getElementById('assign-list');
   if (!users.length) {
-    container.innerHTML = '<p class="text-muted mt-3">Aucun utilisateur trouvé.</p>';
+    container.innerHTML = '<p class="text-muted mt-3">Aucun utilisateur trouvable avec vos droits actuels.</p>';
     return;
   }
-
-  const RC = {
-    membre:      'bg-secondary',
-    admin:       'bg-primary',
-    superviseur: 'bg-warning text-dark',
-    master:      'bg-success',
-  };
 
   container.innerHTML = `
     <div class="card p-0 overflow-hidden">
@@ -519,87 +1268,100 @@ function renderAssign() {
           <thead class="table-light">
             <tr>
               <th>Utilisateur</th>
-              <th>Login</th>
-              <th>Statut</th>
-              <th>Rôle actuel</th>
-              <th>Nouveau rôle</th>
+              <th>Rôles actuels</th>
+              <th>Nouveaux rôles</th>
+              <th>Rattaché à</th>
               <th class="text-end">Action</th>
             </tr>
           </thead>
           <tbody>
-            ${users.map(u => `
-              <tr id="row-${AUTH.esc(u.id)}">
+            ${users.map(target => `
+              <tr>
                 <td>
                   <div class="d-flex align-items-center gap-2">
-                    <div class="user-avatar" style="width:32px;height:32px;font-size:.75rem;">
-                      ${AUTH.esc((u.prenom[0]||'?')+(u.nom[0]||''))}
-                    </div>
+                    <div class="user-avatar" style="width:32px;height:32px;font-size:.75rem;">${AUTH.esc((target.prenom[0] || '?') + (target.nom[0] || ''))}</div>
                     <div>
-                      <div class="fw-semibold small">${AUTH.esc(u.nom)} ${AUTH.esc(u.prenom)}</div>
-                      <div class="text-muted" style="font-size:.73rem">${AUTH.esc(u.email||'')}</div>
+                      <div class="fw-semibold small">${AUTH.esc(target.nom)} ${AUTH.esc(target.prenom)}</div>
+                      <div class="text-muted" style="font-size:.73rem">@${AUTH.esc(target.login)}</div>
                     </div>
                   </div>
                 </td>
-                <td><code class="small">${AUTH.esc(u.login)}</code></td>
-                <td>${u.statut === 'actif'
-                  ? '<span class="badge bg-success">Actif</span>'
-                  : '<span class="badge bg-danger">Suspendu</span>'}</td>
+                <td>${AUTH.getUserRoles(target).map(roleBadge).join('')}</td>
                 <td>
-                  <span class="badge ${RC[u.role]||'bg-secondary'} role-pill">
-                    ${RL[u.role]||u.role}
-                  </span>
+                  <div data-user-roles="${AUTH.esc(target.id)}" class="d-flex flex-wrap gap-2" onchange="toggleLinkedSelect('${AUTH.esc(target.id)}')">
+                    ${assignableRoles.map(role => `
+                      <div class="form-check border rounded-2 px-2 py-1 bg-light">
+                        <input class="form-check-input" type="checkbox" value="${AUTH.esc(role.id)}" id="role-${AUTH.esc(target.id)}-${AUTH.esc(role.id)}" ${AUTH.userHasExactRole(target, role.id) ? 'checked' : ''} />
+                        <label class="form-check-label small" for="role-${AUTH.esc(target.id)}-${AUTH.esc(role.id)}">${AUTH.esc(role.label)}</label>
+                      </div>`).join('')}
+                  </div>
                 </td>
                 <td>
-                  <select class="form-select form-select-sm" style="max-width:140px;"
-                          id="sel-${AUTH.esc(u.id)}">
-                    ${ASSIGNABLE.map(r => `
-                      <option value="${r}" ${r === u.role ? 'selected' : ''}>
-                        ${RL[r]||r}
-                      </option>`).join('')}
+                  <select class="form-select form-select-sm" style="max-width:220px;" id="link-${AUTH.esc(target.id)}">
+                    <option value="">Choisir un utilisateur</option>
+                    ${sponsors.filter(item => item.id !== target.id).map(item => `<option value="${AUTH.esc(item.id)}" ${target.linkedTo === item.id ? 'selected' : ''}>${AUTH.esc(item.prenom)} ${AUTH.esc(item.nom)}</option>`).join('')}
                   </select>
+                  <div class="text-muted" style="font-size:.73rem;">Requis si un rôle lié est coché</div>
                 </td>
                 <td class="text-end">
-                  <button class="btn btn-attt btn-sm" onclick="applyRole('${AUTH.esc(u.id)}','${AUTH.esc(u.login)}','${AUTH.esc(u.role)}')">
-                    <i class="bi bi-check-lg me-1"></i>Appliquer
-                  </button>
+                  <button class="btn btn-attt btn-sm" onclick="applyRoles('${AUTH.esc(target.id)}','${AUTH.esc(target.login)}')"><i class="bi bi-check-lg me-1"></i>Appliquer</button>
                 </td>
               </tr>`).join('')}
           </tbody>
         </table>
       </div>
     </div>`;
+
+  users.forEach(target => toggleLinkedSelect(target.id));
 }
 
-/* ─── Appliquer le changement de rôle ──────────────────────── */
-const confirmModal = new bootstrap.Modal(document.getElementById('confirmModal'));
-let _pendingChange = null;
-
-function applyRole(userId, userLogin, oldRole) {
-  const select  = document.getElementById('sel-' + userId);
-  const newRole = select.value;
-  if (newRole === oldRole) { alert('Aucun changement de rôle sélectionné.'); return; }
-  if (!ASSIGNABLE.includes(newRole)) { alert('Vous ne pouvez pas attribuer ce rôle.'); return; }
-
-  _pendingChange = { userId, newRole };
+function applyRoles(userId, userLogin) {
+  const target = AUTH.getUsers().find(item => item.id === userId);
+  if (!target) return;
+  const roles = selectedRolesFromForm(userId);
+  const linkedTo = document.getElementById('link-' + userId)?.value || '';
+  if (!roles.length) {
+    alert('Sélectionnez au moins un rôle.');
+    return;
+  }
+  const needsLink = roles.some(roleId => AUTH.getRoleDefinition(roleId)?.linkedToUser);
+  if (needsLink && !linkedTo) {
+    alert('Choisissez l\'utilisateur auquel rattacher ce compte.');
+    return;
+  }
+  _pendingChange = {
+    userId,
+    roles,
+    linkedTo: needsLink ? linkedTo : null,
+    before: AUTH.getUserRoles(target).map(roleId => AUTH.getRoleLabel(roleId)).join(', '),
+    after: roles.map(roleId => AUTH.getRoleLabel(roleId)).join(', ')
+  };
   document.getElementById('confirm-text').innerHTML =
-    'Changer le rôle de <strong>@' + AUTH.esc(userLogin) + '</strong> de ' +
-    '<strong>' + (RL[oldRole]||oldRole) + '</strong> vers ' +
-    '<strong>' + (RL[newRole]||newRole) + '</strong> ?';
+    'Appliquer à <strong>@' + AUTH.esc(userLogin) + '</strong> les rôles <strong>' + AUTH.esc(_pendingChange.after) + '</strong> à la place de <strong>' + AUTH.esc(_pendingChange.before) + '</strong> ?';
   confirmModal.show();
 }
 
 document.getElementById('confirm-ok').addEventListener('click', () => {
   if (!_pendingChange) return;
-  AUTH.updateUser(_pendingChange.userId, { role: _pendingChange.newRole });
+  const changes = {
+    roles: _pendingChange.roles,
+    linkedTo: _pendingChange.linkedTo,
+    validateurId: _pendingChange.linkedTo || null
+  };
+  AUTH.updateUser(_pendingChange.userId, changes);
   confirmModal.hide();
   _pendingChange = null;
   renderAssign();
-  /* Rafraîchir arbre si visible */
-  if (!document.getElementById('section-hierarchy').classList.contains('d-none')) renderHierarchy();
+  renderHierarchy();
 });
 
-/* ─── Init ─────────────────────────────────────────────────── */
-renderHierarchy();
+DB_READY.then(() => {
+  AUTH.applyPermissions(document, user);
+  if (!canManageRoleCatalog) document.getElementById('btn-roles').classList.add('d-none');
+  resetRoleForm();
+  renderHierarchy();
+  refreshPageSchemas();
+});
 </script>
 </body>
 </html>

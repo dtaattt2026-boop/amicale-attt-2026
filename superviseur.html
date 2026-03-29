@@ -1,4 +1,4 @@
-<!DOCTYPE html>
+﻿<!DOCTYPE html>
 <html lang="fr">
 <head>
   <meta charset="UTF-8" />
@@ -78,14 +78,34 @@
               <i class="bi bi-tag me-2"></i>Offres
             </button>
           </li>
+          <li class="nav-item">
+            <a href="location.html" class="nav-link">
+              <i class="bi bi-house me-2"></i>Locations vacances
+            </a>
+          </li>
+          <li class="nav-item">
+            <a href="voyages.html" class="nav-link">
+              <i class="bi bi-compass me-2"></i>Voyages &amp; sorties
+            </a>
+          </li>
           <li class="nav-item mt-3 border-top border-secondary pt-3">
-              <a href="droits.html" class="nav-link" data-perm="Accéder page Droits">
+              <a href="droits.html" class="nav-link" data-perm="Accéder page Droits" data-perm-mode="action">
               <i class="bi bi-shield-lock me-2"></i>Droits
             </a>
           </li>
           <li class="nav-item">
-              <a href="contenu-admin.html" class="nav-link" data-perm="Accéder page Actualités">
+              <a href="contenu-admin.html" class="nav-link" data-perm="Accéder page Actualités" data-perm-mode="action">
               <i class="bi bi-file-richtext me-2"></i>Actualités
+            </a>
+          </li>
+          <li class="nav-item">
+            <a href="parametres.html" class="nav-link" data-perm="Accéder page Paramètres site" data-perm-mode="action">
+              <i class="bi bi-geo-alt me-2"></i>Paramètres site
+            </a>
+          </li>
+          <li class="nav-item">
+            <a href="publicites.html" class="nav-link" data-perm="Accéder page Publicités accueil" data-perm-mode="action">
+              <i class="bi bi-badge-ad me-2"></i>Publicités accueil
             </a>
           </li>
         </ul>
@@ -131,7 +151,7 @@
         <div id="section-events" class="d-none">
           <div class="d-flex justify-content-between align-items-center mb-4">
             <h1 class="h4 section-titre mb-0">Gestion des événements</h1>
-            <button class="btn btn-attt" data-perm="Voir bouton Ajouter événement" data-bs-toggle="modal" data-bs-target="#eventModal" onclick="openEventModal()">
+            <button class="btn btn-attt" data-perm="Voir bouton Ajouter événement" data-perm-mode="action" data-bs-toggle="modal" data-bs-target="#eventModal" onclick="openEventModal()">
               <i class="bi bi-plus-lg me-1"></i>Ajouter
             </button>
           </div>
@@ -139,10 +159,36 @@
             <div class="table-responsive">
               <table class="table table-hover align-middle mb-0">
                 <thead class="table-light">
-                  <tr><th>Date</th><th>Titre</th><th>Lieu</th><th>Catégorie</th><th>Accès</th><th data-perm="Voir colonne Inscrits">Inscrits</th><th class="text-end">Actions</th></tr>
+                  <tr><th>Date</th><th>Titre</th><th>Lieu</th><th>Catégorie</th><th>Accès</th><th data-perm="Voir colonne Inscrits" data-perm-mode="visible">Inscrits</th><th class="text-end">Actions</th></tr>
                 </thead>
                 <tbody id="events-tbody"></tbody>
               </table>
+            </div>
+          </div>
+
+          <!-- Dossiers Journée du Savoir -->
+          <div id="special-dossiers-section" class="mt-5 d-none">
+            <hr />
+            <div class="d-flex flex-wrap gap-3 justify-content-between align-items-end mb-3">
+              <div>
+                <h2 class="section-titre mb-1">Dossiers — Événement Spécial</h2>
+                <p class="text-muted mb-0">Validation des inscriptions et suivi des dossiers.</p>
+              </div>
+              <div style="min-width:280px;">
+                <label class="form-label small fw-semibold mb-1">Événement</label>
+                <select id="special-dossier-filter" class="form-select" onchange="renderDossierTable()"></select>
+              </div>
+            </div>
+            <div id="special-dossier-summary" class="row g-3 mb-3"></div>
+            <div class="card border-0 shadow-sm">
+              <div class="table-responsive">
+                <table class="table align-middle mb-0">
+                  <thead class="table-light">
+                    <tr><th>Adhérent</th><th>Bénéficiaires</th><th>Accompagnateurs</th><th>Paiement</th><th>Total</th><th>Statut</th><th class="text-end">Actions</th></tr>
+                  </thead>
+                  <tbody id="special-dossier-tbody"></tbody>
+                </table>
+              </div>
             </div>
           </div>
         </div>
@@ -151,7 +197,7 @@
         <div id="section-offers" class="d-none">
           <div class="d-flex justify-content-between align-items-center mb-4">
             <h1 class="h4 section-titre mb-0">Gestion des offres</h1>
-            <button class="btn btn-attt" data-perm="Voir bouton Ajouter offre" data-bs-toggle="modal" data-bs-target="#offerModal" onclick="openOfferModal()">
+            <button class="btn btn-attt" data-perm="Voir bouton Ajouter offre" data-perm-mode="action" data-bs-toggle="modal" data-bs-target="#offerModal" onclick="openOfferModal()">
               <i class="bi bi-plus-lg me-1"></i>Ajouter
             </button>
           </div>
@@ -159,7 +205,7 @@
             <div class="table-responsive">
               <table class="table table-hover align-middle mb-0">
                 <thead class="table-light">
-                  <tr><th>Titre</th><th>Partenaire</th><th>Réduction</th><th>Expiration</th><th>Code</th><th class="text-end">Actions</th></tr>
+                  <tr><th>Titre</th><th>Partenaire</th><th>Accès</th><th>Réduction</th><th>Expiration</th><th>Code</th><th class="text-end">Actions</th></tr>
                 </thead>
                 <tbody id="offers-tbody"></tbody>
               </table>
@@ -197,6 +243,20 @@
     </div>
   </div>
 
+  <!-- ════ MODAL REVOIR DOSSIER SPÉCIAL ════ -->
+  <div class="modal fade" id="dossierReviewModal" tabindex="-1">
+    <div class="modal-dialog modal-lg modal-dialog-scrollable">
+      <div class="modal-content rounded-4">
+        <div class="modal-header text-white" style="background:var(--couleur-principale);">
+          <h2 class="modal-title h5" id="dossierReviewLabel">Dossier d'inscription</h2>
+          <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal"></button>
+        </div>
+        <div class="modal-body p-4" id="dossier-review-body"></div>
+        <div class="modal-footer" id="dossier-review-footer"></div>
+      </div>
+    </div>
+  </div>
+
   <!-- ════ MODAL ÉVÉNEMENT ════ -->
   <div class="modal fade" id="eventModal" tabindex="-1" aria-labelledby="eventModalLabel">
     <div class="modal-dialog modal-lg">
@@ -217,8 +277,19 @@
               <input type="date" class="form-control" id="evt-date" required />
             </div>
             <div class="col-sm-6">
+              <label class="form-label fw-semibold">Date de fin</label>
+              <input type="date" class="form-control" id="evt-dateFin" />
+            </div>
+            <div class="col-sm-6">
               <label class="form-label fw-semibold">Heure</label>
               <input type="time" class="form-control" id="evt-heure" />
+            </div>
+            <div class="col-sm-6">
+              <label class="form-label fw-semibold">Type d'événement</label>
+              <select class="form-select" id="evt-type" onchange="toggleSupervisorEventType()">
+                <option value="standard">Standard</option>
+                <option value="journee-savoir">Événement spécial · Journée du Savoir</option>
+              </select>
             </div>
             <div class="col-12">
               <label class="form-label fw-semibold">Lieu <span class="text-danger">*</span></label>
@@ -236,13 +307,41 @@
             <div class="col-sm-6">
               <label class="form-label fw-semibold">Accès</label>
               <select class="form-select" id="evt-acces">
-                <option value="tous">Ouvert à tous</option>
+                <option value="tous">Tous</option>
+                <option value="famille">Famille+</option>
                 <option value="membres">Membres uniquement</option>
               </select>
             </div>
             <div class="col-12">
               <label class="form-label fw-semibold">Description</label>
               <textarea class="form-control" id="evt-description" rows="3" maxlength="500"></textarea>
+            </div>
+            <div class="col-12">
+              <label class="form-label fw-semibold">Photo de l'événement</label>
+              <input type="url" class="form-control" id="evt-photo" placeholder="https://... ou lien Google Drive public" />
+              <div class="form-text">Lien image public uniquement. Les liens Google Drive publics sont convertis automatiquement.</div>
+              <div class="d-flex gap-2 flex-wrap align-items-center mt-2">
+                <input type="file" class="form-control form-control-sm" id="evt-photo-file" accept="image/*" style="max-width:320px;" />
+                <button type="button" class="btn btn-outline-primary btn-sm" onclick="uploadEventPhoto()"><i class="bi bi-cloud-upload me-1"></i>Téléverser</button>
+                <span class="small text-muted" id="evt-photo-upload-state"></span>
+              </div>
+            </div>
+            <div class="col-12" id="evt-standard-super-header"><hr class="my-1" /><p class="fw-semibold small text-muted mb-0">Configuration standard</p></div>
+            <div class="col-12 d-none" id="evt-special-super-fields">
+              <hr class="my-1" />
+              <p class="fw-semibold small text-muted mb-3">Paramètres spéciaux · Journée du Savoir</p>
+              <div class="row g-3">
+                <div class="col-sm-4"><label class="form-label fw-semibold small">Date limite de confirmation</label><input type="date" class="form-control" id="evt-limitConfirmation" /></div>
+                <div class="col-sm-4"><label class="form-label fw-semibold small">Date limite de paiement</label><input type="date" class="form-control" id="evt-limitPaiement" /></div>
+                <div class="col-sm-4"><label class="form-label fw-semibold small">Dossier diplôme</label><input type="text" class="form-control" id="evt-diploma-folder" value="diplome" /></div>
+                <div class="col-sm-4"><label class="form-label fw-semibold small">Prix bénéficiaire</label><input type="number" class="form-control" id="evt-price-beneficiary" min="0" value="0" /></div>
+                <div class="col-sm-4"><label class="form-label fw-semibold small">Prix adhérent</label><input type="number" class="form-control" id="evt-price-adherent" min="0" value="0" /></div>
+                <div class="col-sm-4"><label class="form-label fw-semibold small">Prix famille</label><input type="number" class="form-control" id="evt-price-family" min="0" value="0" /></div>
+                <div class="col-sm-4"><label class="form-label fw-semibold small">Prix non-adhérent</label><input type="number" class="form-control" id="evt-price-nonadherent" min="0" value="0" /></div>
+                <div class="col-sm-4"><label class="form-label fw-semibold small">Prix direction</label><input type="number" class="form-control" id="evt-price-direction" min="0" value="0" /></div>
+                <div class="col-sm-4"><label class="form-label fw-semibold small">Prix délégué</label><input type="number" class="form-control" id="evt-price-delegate" min="0" value="0" /></div>
+                <div class="col-12"><label class="form-label fw-semibold small">Modes de paiement</label><textarea class="form-control" id="evt-payment-modes" rows="2" placeholder="Retenue sur salaire, Espèces, Virement"></textarea></div>
+              </div>
             </div>
           </div>
         </div>
@@ -285,9 +384,26 @@
               <label class="form-label fw-semibold">Date d'expiration</label>
               <input type="date" class="form-control" id="off-expiration" />
             </div>
+            <div class="col-sm-6">
+              <label class="form-label fw-semibold">Accès</label>
+              <select class="form-select" id="off-acces">
+                <option value="tous">Tous</option>
+                <option value="famille">Famille+</option>
+                <option value="membres">Membres uniquement</option>
+              </select>
+            </div>
             <div class="col-12">
               <label class="form-label fw-semibold">Description</label>
               <textarea class="form-control" id="off-description" rows="3" maxlength="500"></textarea>
+            </div>
+            <div class="col-12">
+              <label class="form-label fw-semibold">Photo de l'offre</label>
+              <input type="url" class="form-control" id="off-photo" placeholder="https://... ou lien Google Drive public" />
+              <div class="d-flex gap-2 flex-wrap align-items-center mt-2">
+                <input type="file" class="form-control form-control-sm" id="off-photo-file" accept="image/*" style="max-width:320px;" />
+                <button type="button" class="btn btn-outline-primary btn-sm" onclick="uploadOfferPhoto()"><i class="bi bi-cloud-upload me-1"></i>Téléverser</button>
+                <span class="small text-muted" id="off-photo-upload-state"></span>
+              </div>
             </div>
           </div>
         </div>
@@ -303,19 +419,53 @@
 <!-- Firebase SDK (Base de données Cloud) -->
 <script src="https://www.gstatic.com/firebasejs/10.14.1/firebase-app-compat.js"></script>
 <script src="https://www.gstatic.com/firebasejs/10.14.1/firebase-firestore-compat.js"></script>
+<script src="https://www.gstatic.com/firebasejs/10.14.1/firebase-storage-compat.js"></script>
 <script src="js/firebase-config.js"></script>
 <script src="js/db.js"></script>
 <script src="js/auth.js"></script>
 <script src="js/data.js"></script>
 <script src="js/profile.js"></script>
+<script src="js/special-events.js"></script>
 <script src="js/log.js"></script>
+<script src="js/media-upload.js"></script>
 <script>
 'use strict';
 const user = AUTH.requireAuth('superviseur');
 if (!user) throw new Error();
 document.getElementById('topbar-user').textContent = user.prenom + ' ' + user.nom;
 
-const RL = AUTH.ROLE_LABELS;   /* Délégué, Direction, Maître… */
+async function uploadMediaField(fileInputId, urlInputId, statusId, folder) {
+  const file = document.getElementById(fileInputId)?.files?.[0];
+  const status = document.getElementById(statusId);
+  if (!file) {
+    if (status) status.textContent = 'Choisissez un fichier.';
+    return;
+  }
+  if (!MEDIA_UPLOAD.isAvailable()) {
+    if (status) status.textContent = 'Stockage distant indisponible.';
+    return;
+  }
+  if (status) status.textContent = 'Téléversement en cours…';
+  try {
+    const result = await MEDIA_UPLOAD.uploadFile(file, folder);
+    document.getElementById(urlInputId).value = result.url;
+    if (status) status.textContent = 'Fichier téléversé.';
+  } catch (error) {
+    if (status) status.textContent = 'Échec du téléversement.';
+    alert('Téléversement impossible : ' + error.message);
+  }
+}
+
+function uploadEventPhoto() { return uploadMediaField('evt-photo-file', 'evt-photo', 'evt-photo-upload-state', 'events'); }
+function uploadOfferPhoto() { return uploadMediaField('off-photo-file', 'off-photo', 'off-photo-upload-state', 'offers'); }
+
+function roleBadgesHtml(account) {
+  return AUTH.getUserRoles(account).map(roleId => `<span class="badge bg-light text-dark border me-1">${AUTH.esc(AUTH.getRoleLabel(roleId))}</span>`).join('');
+}
+
+function countUsersWithRole(users, roleId) {
+  return users.filter(item => AUTH.userHasExactRole(item, roleId)).length;
+}
 
 /* ─── Navigation ──────────────────────────────────── */
 const SECTIONS = ['dashboard','delegues','membres','attente','events','offers'];
@@ -344,9 +494,9 @@ function updateAttenteBadge() {
 function renderDashboard() {
   updateAttenteBadge();
   const all       = AUTH.getUsers();
-  const actifs    = all.filter(u => u.role === 'membre' && u.statut === 'actif').length;
-  const delegues  = all.filter(u => u.role === 'admin').length;
-  const directions= all.filter(u => u.role === 'superviseur').length;
+  const actifs    = all.filter(u => AUTH.userHasExactRole(u, 'membre') && u.statut === 'actif').length;
+  const delegues  = countUsersWithRole(all, 'admin');
+  const directions= countUsersWithRole(all, 'superviseur');
   const pending   = AUTH.getPendingMembers().length;
 
   document.getElementById('kpi-row').innerHTML = `
@@ -375,7 +525,7 @@ function renderDashboard() {
     </div>`;
 
   /* Vue rapide Délégués */
-  const deleg = all.filter(u => u.role === 'admin');
+  const deleg = all.filter(u => AUTH.userHasExactRole(u, 'admin'));
   const container = document.getElementById('delegues-overview');
   if (!deleg.length) {
     container.innerHTML = `<p class="text-muted small">Aucun Délégué désigné. Allez dans <strong>Membres</strong> pour promouvoir un membre.</p>`;
@@ -401,7 +551,7 @@ function renderDashboard() {
 
 /* ─── Section Délégués ─────────────────────────────── */
 function renderDelegues() {
-  const deleg     = AUTH.getUsers().filter(u => u.role === 'admin');
+  const deleg     = AUTH.getUsers().filter(u => AUTH.userHasExactRole(u, 'admin'));
   const container = document.getElementById('delegues-content');
   if (!deleg.length) {
     container.innerHTML = `
@@ -417,7 +567,7 @@ function renderDelegues() {
       <div class="table-responsive">
         <table class="table table-hover align-middle mb-0">
           <thead class="table-light">
-            <tr><th>Nom &amp; Prénom</th><th>Login</th><th data-perm="Voir colonne E-mail">E-mail</th><th>Membres validés</th><th class="text-end">Actions</th></tr>
+            <tr><th>Nom &amp; Prénom</th><th>Login</th><th data-perm="Voir colonne E-mail" data-perm-mode="visible">E-mail</th><th>Membres validés</th><th class="text-end">Actions</th></tr>
           </thead>
           <tbody>
             ${deleg.map(u => {
@@ -426,12 +576,24 @@ function renderDelegues() {
                 <tr>
                   <td class="fw-semibold">${AUTH.esc(u.nom)} ${AUTH.esc(u.prenom)}</td>
                   <td><code>${AUTH.esc(u.login)}</code></td>
-                  <td class="text-muted small" data-perm="Voir colonne E-mail">${AUTH.esc(u.email || '—')}</td>
+                  <td class="text-muted small" data-perm="Voir colonne E-mail" data-perm-mode="visible">${AUTH.esc(u.email || '—')}</td>
                   <td><span class="badge bg-success">${cnt}</span></td>
-                  <td class="text-end">
+                  <td class="text-end d-flex gap-1 justify-content-end">
                     <button class="btn btn-sm btn-outline-primary" onclick="openRoleModal('${AUTH.esc(u.id)}')">
                       <i class="bi bi-pencil me-1"></i>Rôle
                     </button>
+                    ${u.statut === 'actif'
+                      ? `<button class="btn btn-sm btn-outline-warning" data-perm="Suspendre / réactiver utilisateur" data-perm-mode="action" onclick="setManagedUserStatus('${AUTH.esc(u.id)}','suspendu')">
+                           <i class="bi bi-pause-circle"></i>
+                         </button>`
+                      : `<button class="btn btn-sm btn-outline-success" data-perm="Suspendre / réactiver utilisateur" data-perm-mode="action" onclick="setManagedUserStatus('${AUTH.esc(u.id)}','actif')">
+                           <i class="bi bi-play-circle"></i>
+                         </button>`}
+                    ${u.statut !== 'supprime'
+                      ? `<button class="btn btn-sm btn-outline-danger" data-perm="Supprimer utilisateur" data-perm-mode="action" onclick="softDeleteManagedUser('${AUTH.esc(u.id)}','${AUTH.esc(u.prenom + ' ' + u.nom)}')">
+                           <i class="bi bi-trash"></i>
+                         </button>`
+                      : ''}
                   </td>
                 </tr>`;
             }).join('')}
@@ -446,7 +608,7 @@ function renderDelegues() {
 function renderMembres() {
   const q   = (document.getElementById('search-membres')?.value || '').toLowerCase();
   const all = AUTH.getUsers().filter(u =>
-    u.role === 'membre' && u.statut === 'actif' &&
+    AUTH.userHasExactRole(u, 'membre') && u.statut === 'actif' &&
     (!q || (u.nom + u.prenom + u.login).toLowerCase().includes(q))
   ).sort((a,b) => a.nom.localeCompare(b.nom));
 
@@ -460,18 +622,25 @@ function renderMembres() {
       <div class="table-responsive">
         <table class="table table-hover align-middle mb-0">
           <thead class="table-light">
-            <tr><th>Nom &amp; Prénom</th><th>Login</th><th data-perm="Voir colonne E-mail">E-mail</th><th>Inscrit le</th><th class="text-end">Promouvoir</th></tr>
+            <tr><th>Nom &amp; Prénom</th><th>Login</th><th data-perm="Voir colonne E-mail" data-perm-mode="visible">E-mail</th><th>Rôle</th><th>Inscrit le</th><th class="text-end">Actions</th></tr>
           </thead>
           <tbody>
             ${all.map(u => `
               <tr>
                 <td class="fw-semibold">${AUTH.esc(u.nom)} ${AUTH.esc(u.prenom)}</td>
                 <td><code>${AUTH.esc(u.login)}</code></td>
-                <td class="text-muted small" data-perm="Voir colonne E-mail">${AUTH.esc(u.email || '—')}</td>
+                <td class="text-muted small" data-perm="Voir colonne E-mail" data-perm-mode="visible">${AUTH.esc(u.email || '—')}</td>
+                <td>${roleBadgesHtml(u)}</td>
                 <td class="text-muted small">${AUTH.esc(u.dateInscription)}</td>
-                <td class="text-end">
+                <td class="text-end d-flex gap-1 justify-content-end">
                   <button class="btn btn-sm btn-outline-primary" onclick="openRoleModal('${AUTH.esc(u.id)}')">
                     <i class="bi bi-arrow-up-circle me-1"></i>Promouvoir
+                  </button>
+                  <button class="btn btn-sm btn-outline-warning" data-perm="Suspendre / réactiver utilisateur" data-perm-mode="action" onclick="setManagedUserStatus('${AUTH.esc(u.id)}','suspendu')">
+                    <i class="bi bi-pause-circle"></i>
+                  </button>
+                  <button class="btn btn-sm btn-outline-danger" data-perm="Supprimer utilisateur" data-perm-mode="action" onclick="softDeleteManagedUser('${AUTH.esc(u.id)}','${AUTH.esc(u.prenom + ' ' + u.nom)}')">
+                    <i class="bi bi-trash"></i>
                   </button>
                 </td>
               </tr>`).join('')}
@@ -500,14 +669,14 @@ function renderAttente() {
       <div class="table-responsive">
         <table class="table align-middle mb-0">
           <thead class="table-light">
-            <tr><th>Nom &amp; Prénom</th><th>Login</th><th data-perm="Voir colonne E-mail">E-mail</th><th>Inscrit le</th><th class="text-end">Actions</th></tr>
+            <tr><th>Nom &amp; Prénom</th><th>Login</th><th data-perm="Voir colonne E-mail" data-perm-mode="visible">E-mail</th><th>Inscrit le</th><th class="text-end">Actions</th></tr>
           </thead>
           <tbody>
             ${pending.map(u => `
               <tr>
                 <td class="fw-semibold">${AUTH.esc(u.nom)} ${AUTH.esc(u.prenom)}</td>
                 <td><code>${AUTH.esc(u.login)}</code></td>
-                <td class="text-muted small" data-perm="Voir colonne E-mail">${AUTH.esc(u.email || '—')}</td>
+                <td class="text-muted small" data-perm="Voir colonne E-mail" data-perm-mode="visible">${AUTH.esc(u.email || '—')}</td>
                 <td class="text-muted small">${AUTH.esc(u.dateInscription)}</td>
                 <td class="text-end">
                   <button class="btn btn-sm btn-success me-1" onclick="validateUser('${u.id}')">
@@ -541,27 +710,152 @@ function rejectUser(id, name) {
 
 /* ─── Table événements ─────────────────────────────── */
 function renderEventsTable() {
+  const today  = new Date().toISOString().split('T')[0];
   const events = DATA.getEvents().sort((a,b) => a.date.localeCompare(b.date));
   const tbody  = document.getElementById('events-tbody');
   const catBadge = { sport:'primary', culture:'warning', famille:'success', autre:'secondary' };
-  tbody.innerHTML = events.length ? events.map(e => `
+  const getCount = event => (typeof SPECIAL_EVENT !== 'undefined' && SPECIAL_EVENT.isSpecialEvent(event))
+    ? SPECIAL_EVENT.getEventRegistrations(event.id).filter(item => item.status !== SPECIAL_EVENT.STATUS.rejected).length
+    : (typeof PROFILE !== 'undefined' ? PROFILE.getEventParticipants(event.id).length : 0);
+
+  tbody.innerHTML = events.length ? events.map(e => {
+    const past      = e.date < today;
+    const isSpecial = typeof SPECIAL_EVENT !== 'undefined' && SPECIAL_EVENT.isSpecialEvent(e);
+    const isInscrit = isSpecial
+      ? !!(SPECIAL_EVENT.getUserRegistration(e.id, user.id)?.status !== SPECIAL_EVENT.STATUS.rejected)
+      : PROFILE.getEventParticipants(e.id).some(p => p.userId === user.id);
+
+    let participateBtn = '';
+    if (!past && DATA.canUserAccess(e.acces, user)) {
+      if (isSpecial) {
+        const reg = typeof SPECIAL_EVENT !== 'undefined' ? SPECIAL_EVENT.getUserRegistration(e.id, user.id) : null;
+        if (reg) {
+          participateBtn = `<a href="evenements.html" class="btn btn-sm btn-outline-info me-1" title="Voir/modifier mon dossier"><i class="bi bi-stars"></i></a>`;
+        } else {
+          participateBtn = `<a href="evenements.html" class="btn btn-sm btn-outline-primary me-1" title="Déposer un dossier Journée du Savoir"><i class="bi bi-file-earmark-plus"></i></a>`;
+        }
+      } else if (isInscrit) {
+        participateBtn = `<button class="btn btn-sm btn-outline-success me-1" title="Inscrit — annuler" onclick="superviseurAnnuler('${AUTH.esc(e.id)}')"><i class="bi bi-check-circle"></i></button>`;
+      } else {
+        participateBtn = `<button class="btn btn-sm btn-outline-primary me-1" title="Participer" onclick="superviseurParticiper('${AUTH.esc(e.id)}')"><i class="bi bi-calendar-check"></i></button>`;
+      }
+    }
+
+    return `
     <tr>
       <td class="fw-semibold">${AUTH.esc(e.date)} <span class="text-muted small">${AUTH.esc(e.heure||'')}</span></td>
-      <td>${AUTH.esc(e.titre)}</td>
+      <td>${AUTH.esc(e.titre)}${isSpecial ? ' <span class="badge text-bg-danger ms-1">Spécial</span>' : ''}</td>
       <td class="text-muted small">${AUTH.esc(e.lieu)}</td>
       <td><span class="badge bg-${catBadge[e.categorie]||'secondary'}">${AUTH.esc(e.categorie)}</span></td>
-      <td>${e.acces === 'membres' ? '<span class="badge bg-warning text-dark">Membres</span>' : '<span class="badge bg-light text-dark border">Tous</span>'}</td>
-      <td data-perm="Voir colonne Inscrits"><span class="badge bg-info text-dark">${typeof PROFILE !== 'undefined' ? PROFILE.getEventParticipants(e.id).length : 0}${e.nbMaxParticipants > 0 ? ' / '+e.nbMaxParticipants : ''}</span></td>
+      <td><span class="badge bg-light text-dark border">${AUTH.esc(DATA.getAccessLabel(e.acces))}</span></td>
+      <td data-perm="Voir colonne Inscrits" data-perm-mode="visible"><span class="badge bg-info text-dark">${getCount(e)}${e.nbMaxParticipants > 0 ? ' / '+e.nbMaxParticipants : ''}</span></td>
       <td class="text-end">
+        ${participateBtn}
         <button class="btn btn-sm btn-outline-primary me-1" onclick="openEventModal('${AUTH.esc(e.id)}')">
           <i class="bi bi-pencil"></i>
         </button>
-        <button class="btn btn-sm btn-outline-danger" data-perm="Voir bouton Supprimer événement" onclick="delEvent('${AUTH.esc(e.id)}')">
+        <button class="btn btn-sm btn-outline-danger" data-perm="Voir bouton Supprimer événement" data-perm-mode="action" onclick="delEvent('${AUTH.esc(e.id)}')">
           <i class="bi bi-trash"></i>
         </button>
       </td>
-    </tr>`).join('') : '<tr><td colspan="7" class="text-center text-muted py-4">Aucun événement.</td></tr>';
+    </tr>`;
+  }).join('') : '<tr><td colspan="7" class="text-center text-muted py-4">Aucun événement.</td></tr>';
   AUTH.applyPermissions(tbody);
+  renderSpecialDossiersPanel();
+}
+
+function superviseurParticiper(eventId) {
+  PROFILE.recordParticipation(user.id, eventId);
+  LOG.add('EVENT_PART', { acteurId: user.id, detail: eventId });
+  renderEventsTable();
+}
+function superviseurAnnuler(eventId) {
+  if (!confirm('Annuler votre participation ?')) return;
+  PROFILE.cancelParticipation(user.id, eventId);
+  renderEventsTable();
+}
+
+/* ─── Dossiers Journée du Savoir ────────────────────── */
+function renderSpecialDossiersPanel() {
+  if (typeof SPECIAL_EVENT === 'undefined') return;
+  const specialEvents = DATA.getEvents().filter(e => SPECIAL_EVENT.isSpecialEvent(e));
+  const section = document.getElementById('special-dossiers-section');
+  if (!specialEvents.length) { section.classList.add('d-none'); return; }
+  section.classList.remove('d-none');
+  const select = document.getElementById('special-dossier-filter');
+  const prev   = select.value;
+  select.innerHTML = specialEvents.map(e => `<option value="${e.id}">${AUTH.esc(e.titre)}</option>`).join('');
+  if (specialEvents.some(e => e.id === prev)) select.value = prev;
+  renderDossierTable();
+}
+
+function renderDossierTable() {
+  if (typeof SPECIAL_EVENT === 'undefined') return;
+  const eventId = document.getElementById('special-dossier-filter')?.value;
+  if (!eventId) return;
+  const regs  = SPECIAL_EVENT.getEventRegistrations(eventId);
+  const tbody = document.getElementById('special-dossier-tbody');
+  const summary = document.getElementById('special-dossier-summary');
+  const counts = { total: regs.length, pending: 0, approved: 0, rejected: 0 };
+  regs.forEach(r => { if (r.status===SPECIAL_EVENT.STATUS.pending) counts.pending++; else if (r.status===SPECIAL_EVENT.STATUS.approved) counts.approved++; else counts.rejected++; });
+  summary.innerHTML = [
+    { label:'Dossiers', value:counts.total, cls:'primary' },
+    { label:'En attente', value:counts.pending, cls:'warning text-dark' },
+    { label:'Validés', value:counts.approved, cls:'success' },
+    { label:'Rejetés', value:counts.rejected, cls:'danger' }
+  ].map(c => `<div class="col-sm-6 col-xl-3"><div class="card border-0 shadow-sm"><div class="card-body"><div class="small text-muted">${c.label}</div><div class="display-6 fw-bold text-${c.cls.split(' ')[0]}">${c.value}</div></div></div></div>`).join('');
+  tbody.innerHTML = regs.length ? regs.map(reg => {
+    const meta = SPECIAL_EVENT.getStatusMeta(reg.status);
+    return `<tr>
+      <td><div class="fw-semibold">${AUTH.esc(reg.userName)}</div><div class="small text-muted">@${AUTH.esc(reg.userLogin||'')}</div></td>
+      <td><span class="fw-semibold">${reg.beneficiaries.length}</span></td>
+      <td><span class="fw-semibold">${reg.companions?.length||0}</span></td>
+      <td>${AUTH.esc(reg.paymentMode||'—')}</td>
+      <td class="fw-semibold">${(Number(reg.totals?.total)||0).toLocaleString('fr-FR')} TND</td>
+      <td><span class="badge ${meta.badge}">${meta.label}</span></td>
+      <td class="text-end">
+        <button class="btn btn-sm btn-outline-secondary me-1" onclick="openDossierReview('${reg.id}')"><i class="bi bi-eye"></i></button>
+        <button class="btn btn-sm btn-outline-success me-1" onclick="approveDossier('${reg.id}')"><i class="bi bi-check-lg"></i></button>
+        <button class="btn btn-sm btn-outline-danger" onclick="rejectDossier('${reg.id}')"><i class="bi bi-x-lg"></i></button>
+      </td>
+    </tr>`;
+  }).join('') : '<tr><td colspan="7" class="text-center text-muted py-4">Aucun dossier.</td></tr>';
+}
+
+function openDossierReview(regId) {
+  if (typeof SPECIAL_EVENT === 'undefined') return;
+  const reg = SPECIAL_EVENT.getRegistrations().find(r => r.id === regId);
+  if (!reg) return;
+  const meta = SPECIAL_EVENT.getStatusMeta(reg.status);
+  document.getElementById('dossierReviewLabel').textContent = reg.eventTitle || 'Dossier';
+  document.getElementById('dossier-review-body').innerHTML = `
+    <div class="d-flex justify-content-between align-items-start mb-3">
+      <div><p class="mb-1 fw-semibold">${AUTH.esc(reg.userName)}</p><p class="small text-muted mb-0">Paiement : ${AUTH.esc(reg.paymentMode||'—')} · Total : ${(Number(reg.totals?.total)||0).toLocaleString('fr-FR')} TND</p></div>
+      <span class="badge ${meta.badge}">${meta.label}</span>
+    </div>
+    <h3 class="h6 fw-bold mt-3">Bénéficiaires</h3>
+    ${(reg.beneficiaries||[]).map(b => `<div class="border rounded p-2 mb-2"><div class="fw-semibold">${AUTH.esc(b.prenom)} ${AUTH.esc(b.nom)}</div><div class="small text-muted">${AUTH.esc(b.studyLevel)} · ${b.present?'Présent':'Absent'} · ${b.qualifies?'Éligible':'Non éligible'}</div><div class="small">${b.documentUrl?`<a href="${AUTH.esc(b.documentUrl)}" target="_blank" rel="noopener">${AUTH.esc(b.documentName||'Justificatif')}</a>`:'Aucun document'}</div></div>`).join('')||'<p class="text-muted small">Aucun bénéficiaire.</p>'}
+    <h3 class="h6 fw-bold mt-3">Accompagnateurs</h3>
+    ${(reg.companions||[]).map(c => `<div class="border rounded p-2 mb-2"><div class="fw-semibold">${AUTH.esc(c.prenom)} ${AUTH.esc(c.nom)}</div><div class="small text-muted">${AUTH.esc(c.category)} · ${c.present?'Présent':'Absent'} · ${(Number(c.amount)||0).toLocaleString('fr-FR')} TND</div></div>`).join('')||'<p class="text-muted small">Aucun accompagnateur.</p>'}
+    ${reg.adminNote?`<div class="alert alert-light border mt-3"><strong>Note admin :</strong> ${AUTH.esc(reg.adminNote)}</div>`:''}`;
+  document.getElementById('dossier-review-footer').innerHTML = `
+    <button class="btn btn-secondary" data-bs-dismiss="modal">Fermer</button>
+    <button class="btn btn-outline-success" onclick="approveDossier('${reg.id}')">Valider</button>
+    <button class="btn btn-outline-danger" onclick="rejectDossier('${reg.id}')">Rejeter</button>`;
+  new bootstrap.Modal(document.getElementById('dossierReviewModal')).show();
+}
+function approveDossier(regId) {
+  if (typeof SPECIAL_EVENT === 'undefined') return;
+  SPECIAL_EVENT.setRegistrationStatus(regId, SPECIAL_EVENT.STATUS.approved, user, '');
+  renderEventsTable();
+  bootstrap.Modal.getInstance(document.getElementById('dossierReviewModal'))?.hide();
+}
+function rejectDossier(regId) {
+  if (typeof SPECIAL_EVENT === 'undefined') return;
+  const note = prompt('Motif du rejet (optionnel) :') || '';
+  SPECIAL_EVENT.setRegistrationStatus(regId, SPECIAL_EVENT.STATUS.rejected, user, note);
+  renderEventsTable();
+  bootstrap.Modal.getInstance(document.getElementById('dossierReviewModal'))?.hide();
 }
 
 /* ─── Table offres ──────────────────────────────────── */
@@ -572,6 +866,7 @@ function renderOffersTable() {
     <tr>
       <td class="fw-semibold">${AUTH.esc(o.titre)}</td>
       <td class="text-muted small">${AUTH.esc(o.partenaire)}</td>
+      <td><span class="badge bg-light text-dark border">${AUTH.esc(DATA.getAccessLabel(o.acces))}</span></td>
       <td><span class="badge" style="background:var(--couleur-secondaire);color:#111;">${AUTH.esc(o.reduction||'—')}</span></td>
       <td class="small">${AUTH.esc(o.dateExpiration||'—')}</td>
       <td><code>${AUTH.esc(o.code||'—')}</code></td>
@@ -579,40 +874,77 @@ function renderOffersTable() {
         <button class="btn btn-sm btn-outline-primary me-1" onclick="openOfferModal('${AUTH.esc(o.id)}')">
           <i class="bi bi-pencil"></i>
         </button>
-        <button class="btn btn-sm btn-outline-danger" data-perm="Voir bouton Supprimer offre" onclick="delOffer('${AUTH.esc(o.id)}')">
+        <button class="btn btn-sm btn-outline-danger" data-perm="Voir bouton Supprimer offre" data-perm-mode="action" onclick="delOffer('${AUTH.esc(o.id)}')">
           <i class="bi bi-trash"></i>
         </button>
       </td>
-    </tr>`).join('') : '<tr><td colspan="6" class="text-center text-muted py-4">Aucune offre.</td></tr>';
+    </tr>`).join('') : '<tr><td colspan="7" class="text-center text-muted py-4">Aucune offre.</td></tr>';
   AUTH.applyPermissions(tbody);
 }
 
 /* ─── Modal événement ───────────────────────────────── */
 const evtModal = new bootstrap.Modal(document.getElementById('eventModal'));
+function toggleSupervisorEventType() {
+  const isSpecial = document.getElementById('evt-type').value === 'journee-savoir';
+  document.getElementById('evt-standard-super-header').classList.toggle('d-none', isSpecial);
+  document.getElementById('evt-special-super-fields').classList.toggle('d-none', !isSpecial);
+}
 function openEventModal(id) {
   const evt = id ? DATA.getEvents().find(e => e.id === id) : null;
+  const config = typeof SPECIAL_EVENT !== 'undefined' ? SPECIAL_EVENT.normalizeConfig(evt?.specialConfig || {}) : (evt?.specialConfig || {});
   document.getElementById('eventModalLabel').textContent = evt ? "Modifier l'événement" : 'Nouvel événement';
   document.getElementById('evt-id').value          = evt?.id          || '';
   document.getElementById('evt-titre').value       = evt?.titre       || '';
   document.getElementById('evt-date').value        = evt?.date        || '';
+  document.getElementById('evt-dateFin').value     = evt?.dateFin     || evt?.date || '';
   document.getElementById('evt-heure').value       = evt?.heure       || '';
   document.getElementById('evt-lieu').value        = evt?.lieu        || '';
   document.getElementById('evt-categorie').value   = evt?.categorie   || 'sport';
   document.getElementById('evt-acces').value       = evt?.acces       || 'tous';
+  document.getElementById('evt-type').value        = evt?.eventType   || 'standard';
   document.getElementById('evt-description').value = evt?.description || '';
+  document.getElementById('evt-photo').value       = evt?.photo       || '';
+  document.getElementById('evt-limitConfirmation').value = evt?.dateLimitConfirmation || evt?.dateLimitParticipation || '';
+  document.getElementById('evt-limitPaiement').value = evt?.dateLimitPaiement || '';
+  document.getElementById('evt-diploma-folder').value = config.diplomaFolder || 'diplome';
+  document.getElementById('evt-price-beneficiary').value = config.beneficiaryPrice || 0;
+  document.getElementById('evt-price-adherent').value = config.adherentPrice || 0;
+  document.getElementById('evt-price-family').value = config.familyPrice || 0;
+  document.getElementById('evt-price-nonadherent').value = config.nonAdherentPrice || 0;
+  document.getElementById('evt-price-direction').value = config.directionPrice || 0;
+  document.getElementById('evt-price-delegate').value = config.delegatePrice || 0;
+  document.getElementById('evt-payment-modes').value = (config.paymentModes || ['Retenue sur salaire', 'Espèces', 'Virement']).join(', ');
+  toggleSupervisorEventType();
   evtModal.show();
 }
 function saveEvent() {
   const titre = document.getElementById('evt-titre').value.trim();
   const date  = document.getElementById('evt-date').value;
   const lieu  = document.getElementById('evt-lieu').value.trim();
+  const type  = document.getElementById('evt-type').value;
   if (!titre || !date || !lieu) { alert('Titre, date et lieu sont requis.'); return; }
   const data = {
     titre, date, lieu,
+    dateFin:     document.getElementById('evt-dateFin').value || date,
     heure:       document.getElementById('evt-heure').value,
     categorie:   document.getElementById('evt-categorie').value,
     acces:       document.getElementById('evt-acces').value,
-    description: document.getElementById('evt-description').value.trim()
+    eventType:   type,
+    description: document.getElementById('evt-description').value.trim(),
+    photo:       document.getElementById('evt-photo').value.trim(),
+    dateLimitParticipation: type === 'journee-savoir' ? document.getElementById('evt-limitConfirmation').value : '',
+    dateLimitConfirmation:  type === 'journee-savoir' ? document.getElementById('evt-limitConfirmation').value : '',
+    dateLimitPaiement:      document.getElementById('evt-limitPaiement').value,
+    specialConfig:          type === 'journee-savoir' ? {
+      beneficiaryPrice: Number(document.getElementById('evt-price-beneficiary').value) || 0,
+      adherentPrice: Number(document.getElementById('evt-price-adherent').value) || 0,
+      familyPrice: Number(document.getElementById('evt-price-family').value) || 0,
+      nonAdherentPrice: Number(document.getElementById('evt-price-nonadherent').value) || 0,
+      directionPrice: Number(document.getElementById('evt-price-direction').value) || 0,
+      delegatePrice: Number(document.getElementById('evt-price-delegate').value) || 0,
+      paymentModes: document.getElementById('evt-payment-modes').value,
+      diplomaFolder: document.getElementById('evt-diploma-folder').value.trim() || 'diplome'
+    } : {}
   };
   const id = document.getElementById('evt-id').value;
   if (id) { DATA.updateEvent(id, data); LOG.add('EVENT_EDIT', { acteurId: user.id, acteurLogin: user.login, acteurRole: user.role, detail: data.titre }); }
@@ -639,7 +971,9 @@ function openOfferModal(id) {
   document.getElementById('off-reduction').value   = off?.reduction   || '';
   document.getElementById('off-code').value        = off?.code        || '';
   document.getElementById('off-expiration').value  = off?.dateExpiration || '';
+  document.getElementById('off-acces').value       = off?.acces || 'membres';
   document.getElementById('off-description').value = off?.description || '';
+  document.getElementById('off-photo').value       = off?.photo || '';
   offModal.show();
 }
 function saveOffer() {
@@ -651,7 +985,9 @@ function saveOffer() {
     reduction:      document.getElementById('off-reduction').value.trim(),
     code:           document.getElementById('off-code').value.trim(),
     dateExpiration: document.getElementById('off-expiration').value,
-    description:    document.getElementById('off-description').value.trim()
+    acces:          document.getElementById('off-acces').value,
+    description:    document.getElementById('off-description').value.trim(),
+    photo:          document.getElementById('off-photo').value.trim()
   };
   const id = document.getElementById('off-id').value;
   if (id) { DATA.updateOffer(id, data); LOG.add('OFFER_EDIT', { acteurId: user.id, acteurLogin: user.login, acteurRole: user.role, detail: data.titre }); }
@@ -672,14 +1008,10 @@ const roleModal = new bootstrap.Modal(document.getElementById('roleModal'));
 function openRoleModal(id) {
   const u = AUTH.getUsers().find(x => x.id === id);
   if (!u) return;
-  /* Niveaux assignables : strictement inférieurs au niveau du compte connecté */
-  const ROLE_LEVELS = { famille:0, membre:1, admin:2, superviseur:3, master:4 };
-  const ROLE_LABELS = { famille:'Famille', membre:'Membre', admin:'Délégué', superviseur:'Direction', master:'Maître' };
-  const myLevel = ROLE_LEVELS[user.role] || 0;
   const select  = document.getElementById('edit-role');
-  select.innerHTML = Object.entries(ROLE_LEVELS)
-    .filter(([r, lvl]) => lvl < myLevel)          /* seulement inférieurs à mon niveau */
-    .map(([r, lvl]) => `<option value="${r}"${u.role===r?' selected':''}>${ROLE_LABELS[r]} (niv.${lvl})</option>`)
+  select.innerHTML = AUTH.getAssignableRoles(user)
+    .filter(role => !role.linkedToUser || AUTH.userHasExactRole(u, role.id))
+    .map(role => `<option value="${role.id}"${AUTH.getPrimaryRole(u)===role.id?' selected':''}>${AUTH.esc(role.label)} (niv.${AUTH.esc(role.level)})</option>`)
     .join('');
   document.getElementById('edit-id').value = u.id;
   document.getElementById('edit-fullname').textContent = u.prenom + ' ' + u.nom + ' (@' + u.login + ')';
@@ -689,11 +1021,11 @@ function openRoleModal(id) {
 function saveRole() {
   const id   = document.getElementById('edit-id').value;
   const role = document.getElementById('edit-role').value;
-  const ROLE_LEVELS = { famille:0, membre:1, admin:2, superviseur:3, master:4 };
-  const myLevel = ROLE_LEVELS[user.role] || 0;
-  /* Vérification : le rôle attribué doit être strictement inférieur au niveau de l'opérateur */
-  if ((ROLE_LEVELS[role] ?? 99) >= myLevel) { alert('Droits insuffisants pour attribuer ce rôle.'); return; }
-  AUTH.updateUser(id, { role });
+  if (!AUTH.getAssignableRoles(user).some(item => item.id === role && !item.linkedToUser)) {
+    alert('Droits insuffisants pour attribuer ce rôle.');
+    return;
+  }
+  AUTH.updateUser(id, { roles: [role], linkedTo: null });
   roleModal.hide();
   renderDashboard();
   /* Refresh active section */
@@ -702,8 +1034,33 @@ function saveRole() {
   if (active === 'membres')  renderMembres();
 }
 
+function setManagedUserStatus(id, statut) {
+  if (!AUTH.updateUser(id, { statut })) {
+    alert('Action refusée par les droits actuels.');
+    return;
+  }
+  renderDashboard();
+  renderDelegues();
+  renderMembres();
+}
+
+function softDeleteManagedUser(id, name) {
+  if (!confirm('Supprimer logiquement le compte de ' + name + ' ?')) return;
+  if (!AUTH.softDeleteUser(id)) {
+    alert('Action refusée par les droits actuels.');
+    return;
+  }
+  renderDashboard();
+  renderDelegues();
+  renderMembres();
+}
+
 /* ─── Init ─────────────────────────────────────────── */
-DB_READY.then(() => { renderDashboard(); updateAttenteBadge(); });
+DB_READY.then(() => {
+  renderDashboard();
+  updateAttenteBadge();
+  if (typeof MEDIA_UPLOAD !== 'undefined') MEDIA_UPLOAD.prewarmDriveToken();
+});
 </script>
 </body>
 </html>

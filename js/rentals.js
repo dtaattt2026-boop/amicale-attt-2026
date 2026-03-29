@@ -1,4 +1,4 @@
-/**
+﻿/**
  * rentals.js — Module Location / Hébergement de vacances
  *
  * L'Amicale loue des maisons/villas pour une période globale, puis les
@@ -13,7 +13,7 @@
  *       id, libelle, debut, fin,
  *       unite: 'semaine'|'3jours'|'nuit'|'personnalise',
  *       dureeUnite: 7,        // nombre de jours de l'unité
- *       prixUnite: 450,       // prix d'une unité (en DA)
+ *       prixUnite: 450,       // prix d'une unité (en TND)
  *       minUnites: 1,         // min unités qu'un user peut réserver
  *       maxUnites: 1,         // max unités qu'un user peut réserver
  *       placesTotal: 8        // nombre total d'unités disponibles
@@ -40,6 +40,57 @@ const RENTALS = (() => {
   const K_RENTALS  = 'attt_rentals';
   const K_BOOKINGS = 'attt_bookings';
 
+  function _directDriveUrl(url) {
+    const value = String(url || '').trim();
+    if (!value) return '';
+    const match = value.match(/drive\.google\.com\/(?:file\/d\/|open\?id=|uc\?id=)([a-zA-Z0-9_-]+)/);
+    return match ? `https://drive.google.com/uc?export=view&id=${match[1]}` : value;
+  }
+
+  function normalizePhotoUrl(url) {
+    return _directDriveUrl(url);
+  }
+
+  function _normalizeTranche(tranche, rentalId, index) {
+    return {
+      id: tranche?.id || `${rentalId}_t${index + 1}`,
+      libelle: String(tranche?.libelle || '').trim(),
+      debut: String(tranche?.debut || '').trim(),
+      fin: String(tranche?.fin || '').trim(),
+      unite: tranche?.unite || 'semaine',
+      dureeUnite: Number(tranche?.dureeUnite || 1),
+      prixUnite: Number(tranche?.prixUnite || 0),
+      minUnites: Number(tranche?.minUnites || 1),
+      maxUnites: Number(tranche?.maxUnites || 1),
+      placesTotal: Number(tranche?.placesTotal || 1)
+    };
+  }
+
+  function _normalizeRental(rental, index = 0) {
+    const id = rental?.id || `r_${Date.now()}_${index}`;
+    return {
+      id,
+      titre: String(rental?.titre || '').trim(),
+      description: String(rental?.description || '').trim(),
+      adresse: String(rental?.adresse || '').trim(),
+      capacite: Number(rental?.capacite || 0),
+      photo: normalizePhotoUrl(rental?.photo || ''),
+      mapUrl: String(rental?.mapUrl || '').trim(),
+      periodeGlobale: {
+        debut: String(rental?.periodeGlobale?.debut || '').trim(),
+        fin: String(rental?.periodeGlobale?.fin || '').trim()
+      },
+      tranches: Array.isArray(rental?.tranches)
+        ? rental.tranches.map((tranche, trancheIndex) => _normalizeTranche(tranche, id, trancheIndex))
+        : [],
+      actif: rental?.actif !== false
+    };
+  }
+
+  function _normalizeRentalsList(list) {
+    return Array.isArray(list) ? list.map((rental, index) => _normalizeRental(rental, index)) : [];
+  }
+
   /* Exemple de location préremplie */
   const DEFAULTS_RENTALS = [
     {
@@ -49,6 +100,7 @@ const RENTALS = (() => {
       adresse: 'Route de la Corniche, Annaba',
       capacite: 8,
       photo: null,
+      mapUrl: '',
       periodeGlobale: { debut: '2026-08-01', fin: '2026-08-31' },
       tranches: [
         {
@@ -73,9 +125,20 @@ const RENTALS = (() => {
   ];
 
   /* ── Persistance ──────────────────────────────────────────── */
-  function _loadRentals()   { try { return JSON.parse(localStorage.getItem(K_RENTALS)  || 'null'); } catch { return null; } }
+  function _loadRentals()   {
+    try {
+      const data = JSON.parse(localStorage.getItem(K_RENTALS)  || 'null');
+      return data ? _normalizeRentalsList(data) : null;
+    } catch {
+      return null;
+    }
+  }
   function _loadBookings()  { try { return JSON.parse(localStorage.getItem(K_BOOKINGS) || '[]');   } catch { return []; }   }
-  function _saveRentals(l)  { localStorage.setItem(K_RENTALS,  JSON.stringify(l)); if (typeof DB !== 'undefined') DB.push(K_RENTALS,  l); }
+  function _saveRentals(l)  {
+    const normalized = _normalizeRentalsList(l);
+    localStorage.setItem(K_RENTALS,  JSON.stringify(normalized));
+    if (typeof DB !== 'undefined') DB.push(K_RENTALS,  normalized);
+  }
   function _saveBookings(l) { localStorage.setItem(K_BOOKINGS, JSON.stringify(l)); if (typeof DB !== 'undefined') DB.push(K_BOOKINGS, l); }
 
   function _bootstrap() {
@@ -98,7 +161,7 @@ const RENTALS = (() => {
   function addRental(data) {
     _bootstrap();
     const list   = _loadRentals();
-    const rental = { id: 'r_' + Date.now(), ...data, actif: data.actif !== false };
+    const rental = _normalizeRental({ id: 'r_' + Date.now(), ...data, actif: data.actif !== false }, list.length);
     list.push(rental);
     _saveRentals(list);
     return rental;
@@ -108,7 +171,7 @@ const RENTALS = (() => {
     const list = _loadRentals(); if (!list) return false;
     const idx  = list.findIndex(r => r.id === id);
     if (idx === -1) return false;
-    Object.assign(list[idx], changes);
+    list[idx] = _normalizeRental({ ...list[idx], ...changes, id }, idx);
     _saveRentals(list);
     return true;
   }
@@ -221,6 +284,16 @@ const RENTALS = (() => {
     return true;
   }
 
+  function adminCancelBooking(bookingId, actorId) {
+    const list    = _loadBookings();
+    const booking = list.find(b => b.id === bookingId);
+    if (!booking) return false;
+    booking.statut = 'annulee';
+    booking.cancelledBy = actorId;
+    _saveBookings(list);
+    return true;
+  }
+
   function confirmBooking(bookingId, adminId) {
     const list    = _loadBookings();
     const booking = list.find(b => b.id === bookingId);
@@ -253,9 +326,10 @@ const RENTALS = (() => {
   return {
     getRentals, getRental, addRental, updateRental, deleteRental,
     getBookedUnits, getAvailableUnits, getUserBookingsForTranche,
-    book, cancelBooking, confirmBooking,
+    book, cancelBooking, adminCancelBooking, confirmBooking,
     getUserBookings, getRentalBookings, getAllBookings,
     UNITE_LABELS, STATUT_LABELS, STATUT_COLORS,
-    KEY: K_RENTALS, KEY_BOOKINGS: K_BOOKINGS
+    KEY: K_RENTALS, KEY_BOOKINGS: K_BOOKINGS,
+    normalizePhotoUrl
   };
 })();

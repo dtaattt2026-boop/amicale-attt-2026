@@ -66,7 +66,7 @@
             <strong>Message envoyé !</strong> Nous vous répondrons sous 48h ouvrées.
           </div>
 
-          <form id="contact-form" action="https://formspree.io/f/VOTRE_ID_FORMSPREE" method="POST" novalidate>
+          <form id="contact-form" data-site-setting="contact-form" action="https://formspree.io/f/VOTRE_ID_FORMSPREE" method="POST" novalidate>
 
             <div class="row g-3 mb-3">
               <div class="col-sm-6">
@@ -125,11 +125,7 @@
               <i class="bi bi-geo-alt-fill fs-4 flex-shrink-0" style="color: var(--couleur-principale);"></i>
               <div>
                 <h3 class="h6 fw-bold mb-1">Adresse</h3>
-                <p class="text-muted small mb-0">
-                  Agence Technique des Transports Terrestres (ATTT)<br />
-                  [Votre adresse complète]<br />
-                  Alger, Algérie
-                </p>
+                <p class="text-muted small mb-0" data-site-setting="address"></p>
               </div>
             </div>
           </div>
@@ -139,7 +135,7 @@
               <i class="bi bi-envelope-fill fs-4 flex-shrink-0" style="color: var(--couleur-principale);"></i>
               <div>
                 <h3 class="h6 fw-bold mb-1">E-mail</h3>
-                <a href="mailto:amicale@attt.dz" class="text-muted small">amicale@attt.dz</a>
+                <a href="mailto:attt.amicale.tunisie@gmail.com" class="text-muted small" data-site-setting="email-link">attt.amicale.tunisie@gmail.com</a>
               </div>
             </div>
           </div>
@@ -149,7 +145,7 @@
               <i class="bi bi-telephone-fill fs-4 flex-shrink-0" style="color: var(--couleur-principale);"></i>
               <div>
                 <h3 class="h6 fw-bold mb-1">Téléphone</h3>
-                <a href="tel:+213XXXXXXXXX" class="text-muted small">+213 XX XX XX XX</a>
+                <a href="tel:+21600000000" class="text-muted small" data-site-setting="phone-link">+216 00 000 000</a>
               </div>
             </div>
           </div>
@@ -159,24 +155,39 @@
               <i class="bi bi-clock-fill fs-4 flex-shrink-0" style="color: var(--couleur-principale);"></i>
               <div>
                 <h3 class="h6 fw-bold mb-1">Horaires d'accueil</h3>
-                <p class="text-muted small mb-0">
-                  Dimanche – Jeudi : 08h00 – 16h30<br />
-                  Vendredi & Samedi : Fermé
-                </p>
+                <p class="text-muted small mb-0" data-site-setting="hours"></p>
               </div>
             </div>
+          </div>
+
+          <div class="card p-3 mb-4 overflow-hidden">
+            <div class="d-flex gap-3 align-items-start mb-3">
+              <i class="bi bi-map-fill fs-4 flex-shrink-0" style="color: var(--couleur-principale);"></i>
+              <div>
+                <h3 class="h6 fw-bold mb-1">Localisation</h3>
+                <p class="text-muted small mb-0">Accès rapide via Google Maps.</p>
+              </div>
+            </div>
+            <iframe
+              data-site-setting="map-frame"
+              src="https://www.google.com/maps?q=Agence%20Technique%20des%20Transports%20Terrestres%20Tunis&output=embed"
+              width="100%"
+              height="260"
+              style="border:0;border-radius:16px;"
+              loading="lazy"
+              referrerpolicy="no-referrer-when-downgrade"></iframe>
           </div>
 
           <!-- Réseaux sociaux -->
           <h3 class="h6 fw-bold mb-3">Suivez-nous</h3>
           <div class="d-flex gap-3">
-            <a href="#" aria-label="Facebook" class="btn btn-outline-attt rounded-circle p-2" style="width:42px;height:42px;display:flex;align-items:center;justify-content:center;">
+            <a href="#" aria-label="Facebook" data-site-setting="facebook-link" class="btn btn-outline-attt rounded-circle p-2 d-none" style="width:42px;height:42px;display:flex;align-items:center;justify-content:center;">
               <i class="bi bi-facebook"></i>
             </a>
-            <a href="#" aria-label="Instagram" class="btn btn-outline-attt rounded-circle p-2" style="width:42px;height:42px;display:flex;align-items:center;justify-content:center;">
+            <a href="#" aria-label="Instagram" data-site-setting="instagram-link" class="btn btn-outline-attt rounded-circle p-2 d-none" style="width:42px;height:42px;display:flex;align-items:center;justify-content:center;">
               <i class="bi bi-instagram"></i>
             </a>
-            <a href="#" aria-label="WhatsApp" class="btn btn-outline-attt rounded-circle p-2" style="width:42px;height:42px;display:flex;align-items:center;justify-content:center;">
+            <a href="#" aria-label="WhatsApp" data-site-setting="whatsapp-link" class="btn btn-outline-attt rounded-circle p-2 d-none" style="width:42px;height:42px;display:flex;align-items:center;justify-content:center;">
               <i class="bi bi-whatsapp"></i>
             </a>
           </div>
@@ -209,10 +220,20 @@
   </footer>
 
   <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js"></script>
+  <script src="https://www.gstatic.com/firebasejs/10.14.1/firebase-app-compat.js"></script>
+  <script src="https://www.gstatic.com/firebasejs/10.14.1/firebase-firestore-compat.js"></script>
+  <script src="js/firebase-config.js"></script>
+  <script src="js/db.js"></script>
   <script src="js/auth.js"></script>
+  <script src="js/site-settings.js"></script>
   <script src="js/version-check.js"></script>
   <script src="js/main.js"></script>
   <script>
+    if (typeof DB_READY !== 'undefined' && DB_READY && typeof DB_READY.then === 'function') {
+      DB_READY.then(() => SITE_SETTINGS.applyContactPage());
+    } else {
+      SITE_SETTINGS.applyContactPage();
+    }
     /* Validation Bootstrap côté client */
     const form = document.getElementById('contact-form');
     if (form) {

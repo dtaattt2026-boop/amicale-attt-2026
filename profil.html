@@ -1,4 +1,4 @@
-<!DOCTYPE html>
+﻿<!DOCTYPE html>
 <html lang="fr">
 <head>
   <meta charset="UTF-8" />
@@ -46,7 +46,7 @@
     <div class="container">
       <div class="d-flex align-items-center gap-4 flex-wrap">
         <div class="avatar-wrap">
-          <img id="avatar-img" src="img/avatar-default.svg" class="avatar-img" alt="Photo de profil" />
+          <img id="avatar-img" src="img/icon.svg" class="avatar-img" alt="Photo de profil" />
           <button class="avatar-edit" onclick="document.getElementById('avatar-file').click()" title="Changer la photo">
             <i class="bi bi-camera-fill" style="font-size:.85rem;"></i>
           </button>
@@ -360,11 +360,13 @@
 <!-- Firebase -->
 <script src="https://www.gstatic.com/firebasejs/10.14.1/firebase-app-compat.js"></script>
 <script src="https://www.gstatic.com/firebasejs/10.14.1/firebase-firestore-compat.js"></script>
+<script src="https://www.gstatic.com/firebasejs/10.14.1/firebase-storage-compat.js"></script>
 <script src="js/firebase-config.js"></script>
 <script src="js/db.js"></script>
 <script src="js/auth.js"></script>
 <script src="js/data.js"></script>
 <script src="js/log.js"></script>
+<script src="js/media-upload.js"></script>
 <script src="js/profile.js"></script>
 <script src="js/payments.js"></script>
 <script src="js/rentals.js"></script>
@@ -382,6 +384,7 @@ DB_READY.then(() => {
 
   loadPage();
   showAnniversaires();
+  if (typeof MEDIA_UPLOAD !== 'undefined') MEDIA_UPLOAD.prewarmDriveToken();
 });
 
 function loadPage() {
@@ -488,9 +491,15 @@ async function uploadAvatar(input) {
   const file = input.files?.[0];
   if (!file) return;
   try {
-    const b64 = await PROFILE.resizeImageToBase64(file, 300);
-    PROFILE.updateProfile(user.id, { photoProfil: b64 });
-    document.getElementById('avatar-img').src = b64;
+    if (MEDIA_UPLOAD.isAvailable()) {
+      const result = await MEDIA_UPLOAD.uploadFile(file, 'profiles/avatar');
+      PROFILE.updateProfile(user.id, { photoProfil: result.url });
+      document.getElementById('avatar-img').src = result.url;
+    } else {
+      const b64 = await PROFILE.resizeImageToBase64(file, 300);
+      PROFILE.updateProfile(user.id, { photoProfil: b64 });
+      document.getElementById('avatar-img').src = b64;
+    }
   } catch(e) { alert('Erreur lors du chargement : ' + e.message); }
 }
 
@@ -498,10 +507,16 @@ async function uploadFamilyPhoto(input) {
   const file = input.files?.[0];
   if (!file) return;
   try {
-    const b64 = await PROFILE.resizeImageToBase64(file, 800);
-    PROFILE.updateProfile(user.id, { photoFamille: b64 });
+    let photoUrl = '';
+    if (MEDIA_UPLOAD.isAvailable()) {
+      const result = await MEDIA_UPLOAD.uploadFile(file, 'profiles/family');
+      photoUrl = result.url;
+    } else {
+      photoUrl = await PROFILE.resizeImageToBase64(file, 800);
+    }
+    PROFILE.updateProfile(user.id, { photoFamille: photoUrl });
     const fi = document.getElementById('family-photo-img');
-    fi.src = b64; fi.style.display = '';
+    fi.src = photoUrl; fi.style.display = '';
     document.getElementById('family-photo-placeholder').style.display = 'none';
   } catch(e) { alert('Erreur : ' + e.message); }
 }
@@ -512,12 +527,13 @@ const REL_LABELS = { conjoint:'Conjoint(e)', enfant:'Enfant', parent:'Parent', f
 function renderFamille() {
   const u   = PROFILE.getProfile(user.id);
   const fam = u?.famille || [];
+  const linked = PROFILE.getLinkedFamilyMembers(user.id);
   const el  = document.getElementById('famille-list');
-  if (!fam.length) {
+  if (!fam.length && !linked.length) {
     el.innerHTML = '<p class="text-muted small">Aucun membre de famille enregistré.</p>';
     return;
   }
-  el.innerHTML = fam.map(m => `
+  const manualHtml = fam.map(m => `
     <div class="d-flex align-items-center justify-content-between border-bottom py-2 gap-2">
       <div>
         <span class="fw-semibold">${AUTH.esc(m.prenom)} ${AUTH.esc(m.nom)}</span>
@@ -528,6 +544,17 @@ function renderFamille() {
         <i class="bi bi-trash"></i>
       </button>
     </div>`).join('');
+  const linkedHtml = linked.map(member => `
+    <div class="d-flex align-items-center justify-content-between border-bottom py-2 gap-2">
+      <div>
+        <span class="fw-semibold">${AUTH.esc(member.prenom)} ${AUTH.esc(member.nom)}</span>
+        <span class="badge bg-info-subtle text-info-emphasis border relation-badge ms-1">Compte lié</span>
+        <span class="badge bg-light text-dark border relation-badge ms-1">${AUTH.esc(AUTH.ROLE_LABELS[member.role] || member.role)}</span>
+        ${member.email ? `<small class="text-muted ms-2"><i class="bi bi-envelope me-1"></i>${AUTH.esc(member.email)}</small>` : ''}
+      </div>
+      <span class="badge bg-success">Actif</span>
+    </div>`).join('');
+  el.innerHTML = manualHtml + linkedHtml;
 }
 
 function renderFamilyRequests() {
@@ -565,6 +592,7 @@ function saveFamilyMember() {
   PROFILE.addFamilyMember(user.id, { nom, prenom, dateNaissance: date, relation: rel });
   renderFamille();
   /* Fermer modal et reset */
+  document.activeElement?.blur?.();
   bootstrap.Modal.getInstance(document.getElementById('modalFamille')).hide();
   ['fm-nom','fm-prenom','fm-date'].forEach(id => document.getElementById(id).value='');
   alert.classList.add('d-none');
@@ -612,6 +640,7 @@ function approveFamilyRequest(memberId) {
   const result = PROFILE.approveFamilyRequest(user.id, memberId);
   if (!result.ok) return alert(result.msg || 'Activation impossible.');
   renderFamilyRequests();
+  renderFamille();
 }
 function rejectFamilyRequest(memberId) {
   if (!confirm('Refuser et supprimer cette demande famille ?')) return;
@@ -670,7 +699,7 @@ function renderPaiements() {
       return `<tr>
         <td class="small">${ev ? AUTH.esc(ev.titre) : AUTH.esc(p.eventId)}</td>
         <td class="small">${AUTH.esc(p.label)}</td>
-        <td class="fw-semibold">${p.montant} DA</td>
+        <td class="fw-semibold">${p.montant} TND</td>
         <td class="small">${AUTH.esc(p.datePrev||'—')}</td>
         <td><span class="badge bg-${COL[p.statut]||'secondary'}">${LBL[p.statut]||p.statut}</span></td>
       </tr>`;
@@ -702,7 +731,7 @@ function renderLocations() {
         </div>
         <div class="text-end">
           <span class="badge bg-${SC}">${SL}</span>
-          <div class="fw-bold mt-1">${b.montantTotal} DA</div>
+          <div class="fw-bold mt-1">${b.montantTotal} TND</div>
           ${b.statut === 'en_attente' ? `<button class="btn btn-outline-danger btn-sm mt-1" onclick="cancelBooking('${b.id}')"><i class="bi bi-x me-1"></i>Annuler</button>` : ''}
         </div>
       </div>

@@ -166,6 +166,16 @@ const PROFILE = (() => {
     ).sort((a, b) => a.nom.localeCompare(b.nom));
   }
 
+  function getLinkedFamilyMembers(parentId) {
+    return AUTH.getUsers()
+      .filter(u => u.linkedTo === parentId && u.role === 'famille' && u.statut === 'actif')
+      .sort((a, b) => {
+        const nameA = (a.prenom + ' ' + a.nom).trim();
+        const nameB = (b.prenom + ' ' + b.nom).trim();
+        return nameA.localeCompare(nameB);
+      });
+  }
+
   function approveFamilyRequest(parentId, memberId) {
     const member = AUTH.getUsers().find(u => u.id === memberId && u.linkedTo === parentId);
     if (!member) return { ok: false, msg: 'Demande introuvable.' };
@@ -289,7 +299,7 @@ const PROFILE = (() => {
     resizeImageToBase64,
     addFamilyMember, removeFamilyMember, updateFamilyMember,
     generateFamilyShareCode, getFamilyShareCode, getFamilyShareLink, registerViaFamilyCode,
-    getPendingFamilyRequests, approveFamilyRequest, rejectFamilyRequest,
+    getPendingFamilyRequests, getLinkedFamilyMembers, approveFamilyRequest, rejectFamilyRequest,
     recordParticipation, cancelParticipation, getUserParticipations, getEventParticipants,
     getUpcomingAnniversaries,
     getNotifPrefs, setNotifPrefs, getDefaultNotifPrefs

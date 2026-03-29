@@ -72,8 +72,18 @@
             </button>
           </li>
           <li class="nav-item mt-3 border-top border-secondary pt-3">
-            <a href="contenu-admin.html" class="nav-link" data-perm="Accéder page Actualités">
+            <a href="contenu-admin.html" class="nav-link" data-perm="Accéder page Actualités" data-perm-mode="action">
               <i class="bi bi-file-richtext me-2"></i>Actualités
+            </a>
+          </li>
+          <li class="nav-item">
+            <a href="parametres.html" class="nav-link" data-perm="Accéder page Paramètres site" data-perm-mode="action">
+              <i class="bi bi-geo-alt me-2"></i>Paramètres site
+            </a>
+          </li>
+          <li class="nav-item">
+            <a href="publicites.html" class="nav-link" data-perm="Accéder page Publicités accueil" data-perm-mode="action">
+              <i class="bi bi-badge-ad me-2"></i>Publicités accueil
             </a>
           </li>
         </ul>
@@ -100,7 +110,7 @@
         <div id="section-events" class="d-none">
           <div class="d-flex justify-content-between align-items-center mb-4">
             <h1 class="h4 section-titre mb-0">Gestion des événements</h1>
-            <button class="btn btn-attt" data-perm="Voir bouton Ajouter événement" data-bs-toggle="modal" data-bs-target="#eventModal" onclick="openEventModal()">
+            <button class="btn btn-attt" data-perm="Voir bouton Ajouter événement" data-perm-mode="action" data-bs-toggle="modal" data-bs-target="#eventModal" onclick="openEventModal()">
               <i class="bi bi-plus-lg me-1"></i>Ajouter
             </button>
           </div>
@@ -108,7 +118,7 @@
             <div class="table-responsive">
               <table class="table table-hover align-middle mb-0">
                 <thead class="table-light">
-                  <tr><th>Date</th><th>Titre</th><th>Lieu</th><th>Catégorie</th><th>Accès</th><th data-perm="Voir colonne Inscrits">Inscrits</th><th class="text-end">Actions</th></tr>
+                  <tr><th>Date</th><th>Titre</th><th>Lieu</th><th>Catégorie</th><th>Accès</th><th data-perm="Voir colonne Inscrits" data-perm-mode="visible">Inscrits</th><th class="text-end">Actions</th></tr>
                 </thead>
                 <tbody id="events-tbody"></tbody>
               </table>
@@ -120,7 +130,7 @@
         <div id="section-offers" class="d-none">
           <div class="d-flex justify-content-between align-items-center mb-4">
             <h1 class="h4 section-titre mb-0">Gestion des offres</h1>
-            <button class="btn btn-attt" data-perm="Voir bouton Ajouter offre" data-bs-toggle="modal" data-bs-target="#offerModal" onclick="openOfferModal()">
+            <button class="btn btn-attt" data-perm="Voir bouton Ajouter offre" data-perm-mode="action" data-bs-toggle="modal" data-bs-target="#offerModal" onclick="openOfferModal()">
               <i class="bi bi-plus-lg me-1"></i>Ajouter
             </button>
           </div>
@@ -128,7 +138,7 @@
             <div class="table-responsive">
               <table class="table table-hover align-middle mb-0">
                 <thead class="table-light">
-                  <tr><th>Titre</th><th>Partenaire</th><th>Réduction</th><th>Expiration</th><th>Code</th><th class="text-end">Actions</th></tr>
+                  <tr><th>Titre</th><th>Partenaire</th><th>Accès</th><th>Réduction</th><th>Expiration</th><th>Code</th><th class="text-end">Actions</th></tr>
                 </thead>
                 <tbody id="offers-tbody"></tbody>
               </table>
@@ -140,7 +150,7 @@
         <div id="section-conventions" class="d-none">
           <div class="d-flex justify-content-between align-items-center mb-4">
             <h1 class="h4 section-titre mb-0">Conventions &amp; partenariats</h1>
-            <button class="btn btn-attt" data-perm="Voir bouton Ajouter convention" data-bs-toggle="modal" data-bs-target="#convModal" onclick="openConvModal()">
+            <button class="btn btn-attt" data-perm="Voir bouton Ajouter convention" data-perm-mode="action" data-bs-toggle="modal" data-bs-target="#convModal" onclick="openConvModal()">
               <i class="bi bi-plus-lg me-1"></i>Ajouter
             </button>
           </div>
@@ -206,8 +216,19 @@
               <input type="date" class="form-control" id="evt-date" required />
             </div>
             <div class="col-sm-6">
+              <label class="form-label fw-semibold">Date de fin</label>
+              <input type="date" class="form-control" id="evt-dateFin" />
+            </div>
+            <div class="col-sm-6">
               <label class="form-label fw-semibold">Heure</label>
               <input type="time" class="form-control" id="evt-heure" />
+            </div>
+            <div class="col-sm-6">
+              <label class="form-label fw-semibold">Type d'événement</label>
+              <select class="form-select" id="evt-type" onchange="toggleAdminEventType()">
+                <option value="standard">Standard</option>
+                <option value="journee-savoir">Événement spécial · Journée du Savoir</option>
+              </select>
             </div>
             <div class="col-12">
               <label class="form-label fw-semibold">Lieu <span class="text-danger">*</span></label>
@@ -225,7 +246,8 @@
             <div class="col-sm-6">
               <label class="form-label fw-semibold">Accès</label>
               <select class="form-select" id="evt-acces">
-                <option value="tous">Ouvert à tous</option>
+                <option value="tous">Tous</option>
+                <option value="famille">Famille+</option>
                 <option value="membres">Membres uniquement</option>
               </select>
             </div>
@@ -233,35 +255,70 @@
               <label class="form-label fw-semibold">Description</label>
               <textarea class="form-control" id="evt-description" rows="3" maxlength="500"></textarea>
             </div>
+            <div class="col-12">
+              <label class="form-label fw-semibold">Photo de l'événement</label>
+              <input type="url" class="form-control" id="evt-photo" placeholder="https://... ou lien Google Drive public" />
+              <div class="form-text">Lien image public uniquement. Les liens Google Drive publics sont convertis automatiquement.</div>
+              <div class="d-flex gap-2 flex-wrap align-items-center mt-2">
+                <input type="file" class="form-control form-control-sm" id="evt-photo-file" accept="image/*" style="max-width:320px;" />
+                <button type="button" class="btn btn-outline-primary btn-sm" onclick="uploadEventPhoto()"><i class="bi bi-cloud-upload me-1"></i>Téléverser</button>
+                <span class="small text-muted" id="evt-photo-upload-state"></span>
+              </div>
+            </div>
             <!-- ═ Champs avancés ═ -->
-            <div class="col-12"><hr class="my-1" /><p class="fw-semibold small text-muted mb-0">Participation &amp; paiement (optionnel)</p></div>
-            <div class="col-sm-4">
+            <div class="col-12" id="evt-standard-admin-header"><hr class="my-1" /><p class="fw-semibold small text-muted mb-0">Participation &amp; paiement (optionnel)</p></div>
+            <div class="col-sm-4 evt-standard-admin-field">
               <label class="form-label fw-semibold small">Date limite d'inscription</label>
               <input type="date" class="form-control" id="evt-limitParticipation" />
             </div>
-            <div class="col-sm-4">
+            <div class="col-sm-4 evt-standard-admin-field">
               <label class="form-label fw-semibold small">Participants min</label>
               <input type="number" class="form-control" id="evt-nbMin" min="0" value="0" />
             </div>
-            <div class="col-sm-4">
+            <div class="col-sm-4 evt-standard-admin-field">
               <label class="form-label fw-semibold small">Participants max</label>
               <input type="number" class="form-control" id="evt-nbMax" min="0" value="0" />
             </div>
-            <div class="col-sm-3">
+            <div class="col-sm-3 evt-standard-admin-field">
               <label class="form-label fw-semibold small">Quota min / candidat</label>
               <input type="number" class="form-control" id="evt-quotaMin" min="1" value="1" />
             </div>
-            <div class="col-sm-3">
+            <div class="col-sm-3 evt-standard-admin-field">
               <label class="form-label fw-semibold small">Quota max / candidat</label>
               <input type="number" class="form-control" id="evt-quotaMax" min="1" value="1" />
             </div>
-            <div class="col-sm-3">
-              <label class="form-label fw-semibold small">Prix / participant (DA)</label>
+            <div class="col-sm-3 evt-standard-admin-field">
+              <label class="form-label fw-semibold small">Prix / participant (TND)</label>
               <input type="number" class="form-control" id="evt-prix" min="0" value="0" />
             </div>
-            <div class="col-sm-3">
+            <div class="col-sm-3 evt-standard-admin-field">
               <label class="form-label fw-semibold small">Date limite de paiement</label>
               <input type="date" class="form-control" id="evt-limitPaiement" />
+            </div>
+            <div class="col-12 d-none" id="evt-special-admin-fields">
+              <hr class="my-1" />
+              <p class="fw-semibold small text-muted mb-3">Paramètres spéciaux · Journée du Savoir</p>
+              <div class="row g-3">
+                <div class="col-sm-4">
+                  <label class="form-label fw-semibold small">Date limite de confirmation</label>
+                  <input type="date" class="form-control" id="evt-limitConfirmation" />
+                </div>
+                <div class="col-sm-4">
+                  <label class="form-label fw-semibold small">Date limite de paiement</label>
+                  <input type="date" class="form-control" id="evt-limitPaiementSpecial" />
+                </div>
+                <div class="col-sm-4">
+                  <label class="form-label fw-semibold small">Dossier diplôme</label>
+                  <input type="text" class="form-control" id="evt-diploma-folder" value="diplome" />
+                </div>
+                <div class="col-sm-4"><label class="form-label fw-semibold small">Prix bénéficiaire</label><input type="number" class="form-control" id="evt-price-beneficiary" min="0" value="0" /></div>
+                <div class="col-sm-4"><label class="form-label fw-semibold small">Prix adhérent</label><input type="number" class="form-control" id="evt-price-adherent" min="0" value="0" /></div>
+                <div class="col-sm-4"><label class="form-label fw-semibold small">Prix famille</label><input type="number" class="form-control" id="evt-price-family" min="0" value="0" /></div>
+                <div class="col-sm-4"><label class="form-label fw-semibold small">Prix non-adhérent</label><input type="number" class="form-control" id="evt-price-nonadherent" min="0" value="0" /></div>
+                <div class="col-sm-4"><label class="form-label fw-semibold small">Prix direction</label><input type="number" class="form-control" id="evt-price-direction" min="0" value="0" /></div>
+                <div class="col-sm-4"><label class="form-label fw-semibold small">Prix délégué</label><input type="number" class="form-control" id="evt-price-delegate" min="0" value="0" /></div>
+                <div class="col-12"><label class="form-label fw-semibold small">Modes de paiement</label><textarea class="form-control" id="evt-payment-modes" rows="2" placeholder="Retenue sur salaire, Espèces, Virement"></textarea></div>
+              </div>
             </div>
           </div>
         </div>
@@ -304,9 +361,26 @@
               <label class="form-label fw-semibold">Date d'expiration</label>
               <input type="date" class="form-control" id="off-expiration" />
             </div>
+            <div class="col-sm-6">
+              <label class="form-label fw-semibold">Accès</label>
+              <select class="form-select" id="off-acces">
+                <option value="tous">Tous</option>
+                <option value="famille">Famille+</option>
+                <option value="membres">Membres uniquement</option>
+              </select>
+            </div>
             <div class="col-12">
               <label class="form-label fw-semibold">Description</label>
               <textarea class="form-control" id="off-description" rows="3" maxlength="500"></textarea>
+            </div>
+            <div class="col-12">
+              <label class="form-label fw-semibold">Photo de l'offre</label>
+              <input type="url" class="form-control" id="off-photo" placeholder="https://... ou lien Google Drive public" />
+              <div class="d-flex gap-2 flex-wrap align-items-center mt-2">
+                <input type="file" class="form-control form-control-sm" id="off-photo-file" accept="image/*" style="max-width:320px;" />
+                <button type="button" class="btn btn-outline-primary btn-sm" onclick="uploadOfferPhoto()"><i class="bi bi-cloud-upload me-1"></i>Téléverser</button>
+                <span class="small text-muted" id="off-photo-upload-state"></span>
+              </div>
             </div>
           </div>
         </div>
@@ -375,6 +449,15 @@
               <label class="form-label fw-semibold small">Contact</label>
               <input type="text" class="form-control" id="conv-contact" maxlength="100" placeholder="Tél, email, adresse…" />
             </div>
+            <div class="col-12">
+              <label class="form-label fw-semibold small">Photo de la convention</label>
+              <input type="url" class="form-control" id="conv-photo" placeholder="https://... ou lien Google Drive public" />
+              <div class="d-flex gap-2 flex-wrap align-items-center mt-2">
+                <input type="file" class="form-control form-control-sm" id="conv-photo-file" accept="image/*" style="max-width:320px;" />
+                <button type="button" class="btn btn-outline-primary btn-sm" onclick="uploadConventionPhoto()"><i class="bi bi-cloud-upload me-1"></i>Téléverser</button>
+                <span class="small text-muted" id="conv-photo-upload-state"></span>
+              </div>
+            </div>
           </div>
         </div>
         <div class="modal-footer">
@@ -389,18 +472,47 @@
 <!-- Firebase SDK (Base de données Cloud) -->
 <script src="https://www.gstatic.com/firebasejs/10.14.1/firebase-app-compat.js"></script>
 <script src="https://www.gstatic.com/firebasejs/10.14.1/firebase-firestore-compat.js"></script>
+<script src="https://www.gstatic.com/firebasejs/10.14.1/firebase-storage-compat.js"></script>
 <script src="js/firebase-config.js"></script>
 <script src="js/db.js"></script>
 <script src="js/auth.js"></script>
 <script src="js/data.js"></script>
 <script src="js/profile.js"></script>
+<script src="js/special-events.js"></script>
 <script src="js/conventions.js"></script>
 <script src="js/log.js"></script>
+<script src="js/media-upload.js"></script>
 <script>
 'use strict';
 const user = AUTH.requireAuth('admin');
 if (!user) throw new Error();
 document.getElementById('topbar-user').textContent = user.prenom + ' ' + user.nom;
+
+async function uploadMediaField(fileInputId, urlInputId, statusId, folder) {
+  const file = document.getElementById(fileInputId)?.files?.[0];
+  const status = document.getElementById(statusId);
+  if (!file) {
+    if (status) status.textContent = 'Choisissez un fichier.';
+    return;
+  }
+  if (!MEDIA_UPLOAD.isAvailable()) {
+    if (status) status.textContent = 'Stockage distant indisponible.';
+    return;
+  }
+  if (status) status.textContent = 'Téléversement en cours…';
+  try {
+    const result = await MEDIA_UPLOAD.uploadFile(file, folder);
+    document.getElementById(urlInputId).value = result.url;
+    if (status) status.textContent = 'Fichier téléversé.';
+  } catch (error) {
+    if (status) status.textContent = 'Échec du téléversement.';
+    alert('Téléversement impossible : ' + error.message);
+  }
+}
+
+function uploadEventPhoto() { return uploadMediaField('evt-photo-file', 'evt-photo', 'evt-photo-upload-state', 'events'); }
+function uploadOfferPhoto() { return uploadMediaField('off-photo-file', 'off-photo', 'off-photo-upload-state', 'offers'); }
+function uploadConventionPhoto() { return uploadMediaField('conv-photo-file', 'conv-photo', 'conv-photo-upload-state', 'conventions'); }
 
 /* ─── Navigation ────────────────────────────────────────── */
 const SECTIONS = ['demandes','membres','events','offers','conventions'];
@@ -443,14 +555,14 @@ function renderDemandes() {
       <div class="table-responsive">
         <table class="table table-hover align-middle mb-0">
           <thead class="table-light">
-            <tr><th>Nom &amp; Prénom</th><th>Login</th><th data-perm="Voir colonne E-mail">E-mail</th><th>Inscrit le</th><th class="text-end">Actions</th></tr>
+            <tr><th>Nom &amp; Prénom</th><th>Login</th><th data-perm="Voir colonne E-mail" data-perm-mode="visible">E-mail</th><th>Inscrit le</th><th class="text-end">Actions</th></tr>
           </thead>
           <tbody>
             ${pending.map(u => `
               <tr>
                 <td class="fw-semibold">${AUTH.esc(u.nom)} ${AUTH.esc(u.prenom)}</td>
                 <td><code>${AUTH.esc(u.login)}</code></td>
-                <td class="text-muted small" data-perm="Voir colonne E-mail">${AUTH.esc(u.email || '—')}</td>
+                <td class="text-muted small" data-perm="Voir colonne E-mail" data-perm-mode="visible">${AUTH.esc(u.email || '—')}</td>
                 <td class="text-muted small">${AUTH.esc(u.dateInscription)}</td>
                 <td class="text-end">
                   <button class="btn btn-sm btn-success me-1" onclick="validateUser('${AUTH.esc(u.id)}')">
@@ -498,29 +610,37 @@ function renderMembres() {
       <div class="table-responsive">
         <table class="table table-hover align-middle mb-0">
           <thead class="table-light">
-            <tr><th>Nom &amp; Prénom</th><th>Login</th><th data-perm="Voir colonne E-mail">E-mail</th><th>Inscrit le</th><th>Statut</th><th class="text-end">Actions</th></tr>
+            <tr><th>Nom &amp; Prénom</th><th>Login</th><th data-perm="Voir colonne E-mail" data-perm-mode="visible">E-mail</th><th>Rôle</th><th>Inscrit le</th><th>Statut</th><th class="text-end">Actions</th></tr>
           </thead>
           <tbody>
             ${members.map(u => `
               <tr>
                 <td class="fw-semibold">${AUTH.esc(u.nom)} ${AUTH.esc(u.prenom)}</td>
                 <td><code>${AUTH.esc(u.login)}</code></td>
-                <td class="text-muted small" data-perm="Voir colonne E-mail">${AUTH.esc(u.email || '—')}</td>
+                <td class="text-muted small" data-perm="Voir colonne E-mail" data-perm-mode="visible">${AUTH.esc(u.email || '—')}</td>
+                <td>${AUTH.getUserRoles(u).map(roleId => `<span class="badge bg-light text-dark border me-1">${AUTH.esc(AUTH.getRoleLabel(roleId))}</span>`).join('')}</td>
                 <td class="text-muted small">${AUTH.esc(u.dateInscription)}</td>
                 <td>${u.statut === 'actif'
                   ? '<span class="badge bg-success">Actif</span>'
-                  : '<span class="badge bg-danger">Suspendu</span>'}</td>
+                  : u.statut === 'supprime'
+                    ? '<span class="badge bg-dark">Supprimé</span>'
+                    : '<span class="badge bg-danger">Suspendu</span>'}</td>
                 <td class="text-end d-flex gap-1 justify-content-end">
                   <button class="btn btn-sm btn-outline-secondary" onclick="openRoleMembre('${AUTH.esc(u.id)}')">
                     <i class="bi bi-person-gear me-1"></i>Rôle
                   </button>
                   ${u.statut === 'actif'
-                    ? `<button class="btn btn-sm btn-outline-warning" onclick="toggleMembre('${AUTH.esc(u.id)}','suspendu')">
+                    ? `<button class="btn btn-sm btn-outline-warning" data-perm="Suspendre / réactiver utilisateur" data-perm-mode="action" onclick="toggleMembre('${AUTH.esc(u.id)}','suspendu')">
                          <i class="bi bi-pause-circle me-1"></i>Suspendre
                        </button>`
-                    : `<button class="btn btn-sm btn-outline-success" onclick="toggleMembre('${AUTH.esc(u.id)}','actif')">
+                    : `<button class="btn btn-sm btn-outline-success" data-perm="Suspendre / réactiver utilisateur" data-perm-mode="action" onclick="toggleMembre('${AUTH.esc(u.id)}','actif')">
                          <i class="bi bi-play-circle me-1"></i>Réactiver
                        </button>`}
+                  ${u.statut !== 'supprime'
+                    ? `<button class="btn btn-sm btn-outline-danger" data-perm="Supprimer utilisateur" data-perm-mode="action" onclick="softDeleteMembre('${AUTH.esc(u.id)}','${AUTH.esc(u.prenom + ' ' + u.nom)}')">
+                         <i class="bi bi-trash me-1"></i>Supprimer
+                       </button>`
+                    : ''}
                 </td>
               </tr>`).join('')}
           </tbody>
@@ -531,7 +651,19 @@ function renderMembres() {
 }
 
 function toggleMembre(id, statut) {
-  AUTH.updateUser(id, { statut });
+  if (!AUTH.updateUser(id, { statut })) {
+    alert('Action refusée par les droits actuels.');
+    return;
+  }
+  renderMembres();
+}
+
+function softDeleteMembre(id, name) {
+  if (!confirm('Supprimer logiquement le compte de ' + name + ' ?')) return;
+  if (!AUTH.softDeleteUser(id)) {
+    alert('Action refusée par les droits actuels.');
+    return;
+  }
   renderMembres();
 }
 
@@ -539,17 +671,23 @@ const roleMembreModal = new bootstrap.Modal(document.getElementById('roleMembreM
 function openRoleMembre(id) {
   const u = AUTH.getUsers().find(x => x.id === id);
   if (!u) return;
+  const select = document.getElementById('rm-role');
+  select.innerHTML = AUTH.getAssignableRoles(user)
+    .filter(role => !role.linkedToUser || AUTH.userHasExactRole(u, role.id))
+    .map(role => `<option value="${role.id}"${AUTH.getPrimaryRole(u)===role.id ? ' selected' : ''}>${AUTH.esc(role.label)} (niv. ${AUTH.esc(role.level)})</option>`)
+    .join('');
   document.getElementById('rm-id').value = u.id;
   document.getElementById('rm-fullname').textContent = u.prenom + ' ' + u.nom + ' (@' + u.login + ')';
-  document.getElementById('rm-role').value = u.role;
   roleMembreModal.show();
 }
 function saveRoleMembre() {
   const id   = document.getElementById('rm-id').value;
   const role = document.getElementById('rm-role').value;
-  /* Délégué ne peut attribuer que famille(0) ou membre(1) */
-  if (!['famille','membre'].includes(role)) { alert('Droits insuffisants.'); return; }
-  AUTH.updateUser(id, { role });
+  if (!AUTH.getAssignableRoles(user).some(item => item.id === role && !item.linkedToUser)) {
+    alert('Droits insuffisants.');
+    return;
+  }
+  AUTH.updateUser(id, { roles: [role], linkedTo: null });
   roleMembreModal.hide();
   renderMembres();
 }
@@ -559,19 +697,22 @@ function renderEventsTable() {
   const events = DATA.getEvents().sort((a,b) => a.date.localeCompare(b.date));
   const tbody  = document.getElementById('events-tbody');
   const catBadge = { sport:'primary', culture:'warning', famille:'success', autre:'secondary' };
+  const getCount = event => (typeof SPECIAL_EVENT !== 'undefined' && SPECIAL_EVENT.isSpecialEvent(event))
+    ? SPECIAL_EVENT.getEventRegistrations(event.id).filter(item => item.status !== SPECIAL_EVENT.STATUS.rejected).length
+    : (typeof PROFILE !== 'undefined' ? PROFILE.getEventParticipants(event.id).length : 0);
   tbody.innerHTML = events.length ? events.map(e => `
     <tr>
       <td class="fw-semibold">${AUTH.esc(e.date)} <span class="text-muted small">${AUTH.esc(e.heure||'')}</span></td>
-      <td>${AUTH.esc(e.titre)}</td>
+      <td>${AUTH.esc(e.titre)}${typeof SPECIAL_EVENT !== 'undefined' && SPECIAL_EVENT.isSpecialEvent(e) ? ' <span class="badge text-bg-danger ms-1">Spécial</span>' : ''}</td>
       <td class="text-muted small">${AUTH.esc(e.lieu)}</td>
       <td><span class="badge bg-${catBadge[e.categorie]||'secondary'}">${AUTH.esc(e.categorie)}</span></td>
-      <td>${e.acces === 'membres' ? '<span class="badge bg-warning text-dark">Membres</span>' : '<span class="badge bg-light text-dark border">Tous</span>'}</td>
-      <td data-perm="Voir colonne Inscrits"><span class="badge bg-info text-dark">${typeof PROFILE !== 'undefined' ? PROFILE.getEventParticipants(e.id).length : 0}${e.nbMaxParticipants > 0 ? ' / '+e.nbMaxParticipants : ''}</span></td>
+      <td><span class="badge bg-light text-dark border">${AUTH.esc(DATA.getAccessLabel(e.acces))}</span></td>
+      <td data-perm="Voir colonne Inscrits" data-perm-mode="visible"><span class="badge bg-info text-dark">${getCount(e)}${e.nbMaxParticipants > 0 ? ' / '+e.nbMaxParticipants : ''}</span></td>
       <td class="text-end">
         <button class="btn btn-sm btn-outline-primary me-1" onclick='openEventModal(${JSON.stringify(e)})'>
           <i class="bi bi-pencil"></i>
         </button>
-        <button class="btn btn-sm btn-outline-danger" data-perm="Voir bouton Supprimer événement" onclick="delEvent('${AUTH.esc(e.id)}')">
+        <button class="btn btn-sm btn-outline-danger" data-perm="Voir bouton Supprimer événement" data-perm-mode="action" onclick="delEvent('${AUTH.esc(e.id)}')">
           <i class="bi bi-trash"></i>
         </button>
       </td>
@@ -587,6 +728,7 @@ function renderOffersTable() {
     <tr>
       <td class="fw-semibold">${AUTH.esc(o.titre)}</td>
       <td class="text-muted small">${AUTH.esc(o.partenaire)}</td>
+      <td><span class="badge bg-light text-dark border">${AUTH.esc(DATA.getAccessLabel(o.acces))}</span></td>
       <td><span class="badge" style="background:var(--couleur-secondaire);color:#111;">${AUTH.esc(o.reduction||'—')}</span></td>
       <td class="small">${AUTH.esc(o.dateExpiration||'—')}</td>
       <td><code>${AUTH.esc(o.code||'—')}</code></td>
@@ -594,53 +736,89 @@ function renderOffersTable() {
         <button class="btn btn-sm btn-outline-primary me-1" onclick='openOfferModal(${JSON.stringify(o)})'>
           <i class="bi bi-pencil"></i>
         </button>
-        <button class="btn btn-sm btn-outline-danger" data-perm="Voir bouton Supprimer offre" onclick="delOffer('${AUTH.esc(o.id)}')">
+        <button class="btn btn-sm btn-outline-danger" data-perm="Voir bouton Supprimer offre" data-perm-mode="action" onclick="delOffer('${AUTH.esc(o.id)}')">
           <i class="bi bi-trash"></i>
         </button>
       </td>
-    </tr>`).join('') : '<tr><td colspan="6" class="text-center text-muted py-4">Aucune offre.</td></tr>';
+    </tr>`).join('') : '<tr><td colspan="7" class="text-center text-muted py-4">Aucune offre.</td></tr>';
   AUTH.applyPermissions(tbody);
 }
 
 /* ─── Modal événement ───────────────────────────────────── */
 const evtModal = new bootstrap.Modal(document.getElementById('eventModal'));
+function toggleAdminEventType() {
+  const isSpecial = document.getElementById('evt-type').value === 'journee-savoir';
+  document.querySelectorAll('.evt-standard-admin-field').forEach(el => el.classList.toggle('d-none', isSpecial));
+  document.getElementById('evt-standard-admin-header').classList.toggle('d-none', isSpecial);
+  document.getElementById('evt-special-admin-fields').classList.toggle('d-none', !isSpecial);
+}
 function openEventModal(evt) {
+  const config = typeof SPECIAL_EVENT !== 'undefined' ? SPECIAL_EVENT.normalizeConfig(evt?.specialConfig || {}) : (evt?.specialConfig || {});
   document.getElementById('eventModalLabel').textContent = evt ? "Modifier l'événement" : 'Nouvel événement';
   document.getElementById('evt-id').value          = evt?.id          || '';
   document.getElementById('evt-titre').value       = evt?.titre       || '';
   document.getElementById('evt-date').value        = evt?.date        || '';
+  document.getElementById('evt-dateFin').value     = evt?.dateFin     || evt?.date || '';
   document.getElementById('evt-heure').value       = evt?.heure       || '';
   document.getElementById('evt-lieu').value        = evt?.lieu        || '';
   document.getElementById('evt-categorie').value   = evt?.categorie   || 'sport';
   document.getElementById('evt-acces').value       = evt?.acces       || 'tous';
+  document.getElementById('evt-type').value        = evt?.eventType   || 'standard';
   document.getElementById('evt-description').value = evt?.description || '';
+  document.getElementById('evt-photo').value       = evt?.photo       || '';
   document.getElementById('evt-limitParticipation').value = evt?.dateLimitParticipation || '';
+  document.getElementById('evt-limitConfirmation').value = evt?.dateLimitConfirmation || evt?.dateLimitParticipation || '';
   document.getElementById('evt-nbMin').value    = evt?.nbMinParticipants || 0;
   document.getElementById('evt-nbMax').value    = evt?.nbMaxParticipants || 0;
   document.getElementById('evt-quotaMin').value = evt?.quotaMin || 1;
   document.getElementById('evt-quotaMax').value = evt?.quotaMax || 1;
   document.getElementById('evt-prix').value     = evt?.prixParticipant || 0;
   document.getElementById('evt-limitPaiement').value = evt?.dateLimitPaiement || '';
+  document.getElementById('evt-limitPaiementSpecial').value = evt?.dateLimitPaiement || '';
+  document.getElementById('evt-diploma-folder').value = config.diplomaFolder || 'diplome';
+  document.getElementById('evt-price-beneficiary').value = config.beneficiaryPrice || 0;
+  document.getElementById('evt-price-adherent').value = config.adherentPrice || 0;
+  document.getElementById('evt-price-family').value = config.familyPrice || 0;
+  document.getElementById('evt-price-nonadherent').value = config.nonAdherentPrice || 0;
+  document.getElementById('evt-price-direction').value = config.directionPrice || 0;
+  document.getElementById('evt-price-delegate').value = config.delegatePrice || 0;
+  document.getElementById('evt-payment-modes').value = (config.paymentModes || ['Retenue sur salaire', 'Espèces', 'Virement']).join(', ');
+  toggleAdminEventType();
   evtModal.show();
 }
 function saveEvent() {
   const titre = document.getElementById('evt-titre').value.trim();
   const date  = document.getElementById('evt-date').value;
   const lieu  = document.getElementById('evt-lieu').value.trim();
+  const type  = document.getElementById('evt-type').value;
   if (!titre || !date || !lieu) { alert('Titre, date et lieu sont requis.'); return; }
   const data = {
     titre, date, lieu,
+    dateFin:                document.getElementById('evt-dateFin').value || date,
     heure:                  document.getElementById('evt-heure').value,
     categorie:              document.getElementById('evt-categorie').value,
     acces:                  document.getElementById('evt-acces').value,
+    eventType:              type,
     description:            document.getElementById('evt-description').value.trim(),
-    dateLimitParticipation: document.getElementById('evt-limitParticipation').value,
+    photo:                  document.getElementById('evt-photo').value.trim(),
+    dateLimitParticipation: type === 'journee-savoir' ? document.getElementById('evt-limitConfirmation').value : document.getElementById('evt-limitParticipation').value,
+    dateLimitConfirmation:  type === 'journee-savoir' ? document.getElementById('evt-limitConfirmation').value : document.getElementById('evt-limitParticipation').value,
     nbMinParticipants:      parseInt(document.getElementById('evt-nbMin').value) || 0,
     nbMaxParticipants:      parseInt(document.getElementById('evt-nbMax').value) || 0,
     quotaMin:               parseInt(document.getElementById('evt-quotaMin').value) || 1,
     quotaMax:               parseInt(document.getElementById('evt-quotaMax').value) || 1,
-    prixParticipant:        parseFloat(document.getElementById('evt-prix').value) || 0,
-    dateLimitPaiement:      document.getElementById('evt-limitPaiement').value
+    prixParticipant:        type === 'journee-savoir' ? 0 : (parseFloat(document.getElementById('evt-prix').value) || 0),
+    dateLimitPaiement:      type === 'journee-savoir' ? document.getElementById('evt-limitPaiementSpecial').value : document.getElementById('evt-limitPaiement').value,
+    specialConfig:          type === 'journee-savoir' ? {
+      beneficiaryPrice: Number(document.getElementById('evt-price-beneficiary').value) || 0,
+      adherentPrice: Number(document.getElementById('evt-price-adherent').value) || 0,
+      familyPrice: Number(document.getElementById('evt-price-family').value) || 0,
+      nonAdherentPrice: Number(document.getElementById('evt-price-nonadherent').value) || 0,
+      directionPrice: Number(document.getElementById('evt-price-direction').value) || 0,
+      delegatePrice: Number(document.getElementById('evt-price-delegate').value) || 0,
+      paymentModes: document.getElementById('evt-payment-modes').value,
+      diplomaFolder: document.getElementById('evt-diploma-folder').value.trim() || 'diplome'
+    } : {}
   };
   const id = document.getElementById('evt-id').value;
   if (id) { DATA.updateEvent(id, data); LOG.add('EVENT_EDIT', { acteurId: user.id, acteurLogin: user.login, acteurRole: user.role, detail: data.titre }); }
@@ -666,7 +844,9 @@ function openOfferModal(off) {
   document.getElementById('off-reduction').value   = off?.reduction   || '';
   document.getElementById('off-code').value        = off?.code        || '';
   document.getElementById('off-expiration').value  = off?.dateExpiration || '';
+  document.getElementById('off-acces').value       = off?.acces || 'membres';
   document.getElementById('off-description').value = off?.description || '';
+  document.getElementById('off-photo').value       = off?.photo || '';
   offModal.show();
 }
 function saveOffer() {
@@ -678,7 +858,9 @@ function saveOffer() {
     reduction:      document.getElementById('off-reduction').value.trim(),
     code:           document.getElementById('off-code').value.trim(),
     dateExpiration: document.getElementById('off-expiration').value,
-    description:    document.getElementById('off-description').value.trim()
+    acces:          document.getElementById('off-acces').value,
+    description:    document.getElementById('off-description').value.trim(),
+    photo:          document.getElementById('off-photo').value.trim()
   };
   const id = document.getElementById('off-id').value;
   if (id) { DATA.updateOffer(id, data); LOG.add('OFFER_EDIT', { acteurId: user.id, acteurLogin: user.login, acteurRole: user.role, detail: data.titre }); }
@@ -729,6 +911,7 @@ function openConvModal(c) {
   document.getElementById('conv-description').value = c?.description || '';
   document.getElementById('conv-conditions').value  = c?.conditions  || '';
   document.getElementById('conv-contact').value     = c?.contact     || '';
+  document.getElementById('conv-photo').value       = c?.photo       || '';
   convModal.show();
 }
 function saveConvention() {
@@ -743,7 +926,8 @@ function saveConvention() {
     dateFin:     document.getElementById('conv-fin').value,
     description: document.getElementById('conv-description').value.trim(),
     conditions:  document.getElementById('conv-conditions').value.trim(),
-    contact:     document.getElementById('conv-contact').value.trim()
+    contact:     document.getElementById('conv-contact').value.trim(),
+    photo:       document.getElementById('conv-photo').value.trim()
   };
   const id = document.getElementById('conv-id').value;
   if (id) { CONVENTIONS.updateConvention(id, data); LOG.add('CONV_EDIT', { acteurId:user.id, acteurLogin:user.login, acteurRole:user.role, detail:data.titre }); }
@@ -757,8 +941,11 @@ function delConvention(id) {
   LOG.add('CONV_DEL', { acteurId:user.id, acteurLogin:user.login, acteurRole:user.role, detail:id });
   renderConventionsTable();
 }
-/* ─── Init ──────────────────────────────────────────────── */
-DB_READY.then(() => renderDemandes());
+/* ── Init ───────────────────────────────────────────── */
+DB_READY.then(() => {
+  renderDemandes();
+  if (typeof MEDIA_UPLOAD !== 'undefined') MEDIA_UPLOAD.prewarmDriveToken();
+});
 </script>
 </body>
 </html>

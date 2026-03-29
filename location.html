@@ -1,4 +1,4 @@
-<!DOCTYPE html>
+﻿<!DOCTYPE html>
 <html lang="fr">
 <head>
   <meta charset="UTF-8" />
@@ -75,12 +75,12 @@
           </div>
           <div class="p-3 bg-light rounded text-center">
             <small class="text-muted d-block">Montant total estimé</small>
-            <strong class="fs-4" id="bk-total">0 DA</strong>
+            <strong class="fs-4" id="bk-total">0 TND</strong>
           </div>
         </div>
         <div class="modal-footer">
           <button class="btn btn-secondary" data-bs-dismiss="modal">Annuler</button>
-          <button class="btn btn-attt" onclick="confirmBook()"><i class="bi bi-check-circle me-1"></i>Confirmer la réservation</button>
+          <button class="btn btn-attt" data-perm="Réserver location vacances" data-perm-mode="action" onclick="confirmBook()"><i class="bi bi-check-circle me-1"></i>Confirmer la réservation</button>
         </div>
       </div>
     </div>
@@ -107,6 +107,10 @@ if (!user) throw new Error();
 let _currentTranche = null;
 let _currentRental  = null;
 
+function canBookRental() {
+  return AUTH.hasPermission('Réserver location vacances', user, null, 'action');
+}
+
 DB_READY.then(() => renderRentals());
 
 function renderRentals() {
@@ -125,16 +129,18 @@ function renderRentals() {
             <div class="fw-semibold">${AUTH.esc(t.libelle)}</div>
             <small class="text-muted">
               ${AUTH.esc(t.debut)} → ${AUTH.esc(t.fin)}<br/>
-              ${t.prixUnite} DA / ${AUTH.esc(t.unite||'unité')}
+              ${t.prixUnite} TND / ${AUTH.esc(t.unite||'unité')}
               · Min ${t.minUnites||1} / Max ${t.maxUnites||1} unité(s)
             </small>
           </div>
           <div class="text-end">
             <small class="text-${dispo>0?'success':'danger'} fw-semibold d-block">${dispo} / ${t.placesTotal} disponible(s)</small>
-            ${dispo>0
-              ? `<button class="btn btn-attt btn-sm mt-1" onclick="openBook('${AUTH.esc(r.id)}','${AUTH.esc(t.id)}')">
+            ${dispo>0 && canBookRental()
+              ? `<button class="btn btn-attt btn-sm mt-1" data-perm="Réserver location vacances" data-perm-mode="action" onclick="openBook('${AUTH.esc(r.id)}','${AUTH.esc(t.id)}')">
                    <i class="bi bi-calendar-plus me-1"></i>Réserver
                  </button>`
+              : dispo>0
+              ? `<span class="badge bg-secondary mt-1">Réservation indisponible</span>`
               : `<span class="badge bg-danger mt-1">Complet</span>`}
           </div>
         </div>
@@ -149,15 +155,22 @@ function renderRentals() {
           <h5 class="fw-bold mb-1">${AUTH.esc(r.titre)}</h5>
           ${r.adresse ? `<p class="text-muted small mb-2"><i class="bi bi-geo-alt me-1"></i>${AUTH.esc(r.adresse)}</p>` : ''}
           ${r.description ? `<p class="small text-secondary mb-3">${AUTH.esc(r.description)}</p>` : ''}
+          ${r.mapUrl ? `<p class="mb-3"><a class="btn btn-sm btn-outline-primary" href="${AUTH.esc(r.mapUrl)}" target="_blank" rel="noopener"><i class="bi bi-geo-alt-fill me-1"></i>Voir l'emplacement Google Maps</a></p>` : ''}
           <hr class="my-2" />
           ${trancheCards}
         </div>
       </div>
     </div>`;
   }).join('');
+
+  AUTH.applyPermissions(grid, user);
 }
 
 function openBook(rentalId, trancheId) {
+  if (!canBookRental()) {
+    alert("Vous n'avez pas le droit d'effectuer une réservation.");
+    return;
+  }
   const rental  = RENTALS.getRental(rentalId);
   const tranche = rental?.tranches?.find(t => t.id === trancheId);
   if (!rental || !tranche) return;
@@ -169,7 +182,7 @@ function openBook(rentalId, trancheId) {
   document.getElementById('bk-tranche-id').value     = trancheId;
   document.getElementById('bk-tranche-desc').innerHTML = `
     <strong>${AUTH.esc(tranche.libelle)}</strong><br/>
-    <small>${AUTH.esc(tranche.debut)} au ${AUTH.esc(tranche.fin)} — ${tranche.prixUnite} DA/${AUTH.esc(tranche.unite||'unité')}</small>`;
+    <small>${AUTH.esc(tranche.debut)} au ${AUTH.esc(tranche.fin)} — ${tranche.prixUnite} TND/${AUTH.esc(tranche.unite||'unité')}</small>`;
   document.getElementById('bk-nb-label').textContent = `Nombre d'unités (${tranche.minUnites||1} min — ${tranche.maxUnites||1} max)`;
   const nb = document.getElementById('bk-nb');
   nb.min   = tranche.minUnites || 1;
@@ -185,10 +198,14 @@ function openBook(rentalId, trancheId) {
 function updateBookingTotal() {
   if (!_currentTranche) return;
   const nb = parseInt(document.getElementById('bk-nb').value) || 1;
-  document.getElementById('bk-total').textContent = (nb * _currentTranche.prixUnite) + ' DA';
+  document.getElementById('bk-total').textContent = (nb * _currentTranche.prixUnite) + ' TND';
 }
 
 function confirmBook() {
+  if (!canBookRental()) {
+    alert("Vous n'avez pas le droit d'effectuer une réservation.");
+    return;
+  }
   const alert   = document.getElementById('bk-alert');
   const show    = (t,m) => { alert.className='alert alert-'+t; alert.textContent=m; alert.classList.remove('d-none'); };
   const rentalId  = document.getElementById('bk-rental-id').value;

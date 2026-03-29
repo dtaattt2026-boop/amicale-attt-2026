@@ -18,7 +18,8 @@
 const BACKUP = (() => {
   const KEYS = ['attt_users', 'attt_events', 'attt_offers', 'attt_articles', 'attt_log',
                  'attt_conventions', 'attt_messages', 'attt_payments',
-                 'attt_rentals', 'attt_bookings', 'attt_participation_history', 'attt_galerie'];
+                 'attt_rentals', 'attt_bookings', 'attt_participation_history', 'attt_galerie',
+                 'attt_special_event_registrations', 'attt_role_defs', 'attt_permission_catalog', 'attt_site_settings', 'attt_home_ads'];
   const VERSION = '1.0';
 
   /* ── Statistiques de la sauvegarde actuelle ── */

@@ -76,8 +76,8 @@
             <select class="form-select form-select-sm" id="f-acces" onchange="renderConventions()">
               <option value="">Tous</option>
               <option value="tous">Tous (public)</option>
-              <option value="famille">Famille</option>
-              <option value="membres">Membres</option>
+              <option value="famille">Famille+</option>
+              <option value="membres">Membres uniquement</option>
             </select>
           </div>
           <!-- Statut -->
@@ -177,6 +177,26 @@
 
 let _vue = 'cartes';
 
+function getConventionViewer() {
+  return AUTH.getCurrentUser ? AUTH.getCurrentUser() : null;
+}
+
+function canSeeConvention(c, user = getConventionViewer()) {
+  const role = user ? (user.role || 0) : -1;
+  if (c.acces === 'tous') return true;
+  if (role < 0) return false;
+  if (!AUTH.hasPermission('Consulter conventions réservées', user, null, 'visible')) return false;
+  if (c.acces === 'famille') return role >= 0;
+  if (c.acces === 'membres') return role >= 1;
+  return false;
+}
+
+function canOpenConvention(c, user = getConventionViewer()) {
+  if (!canSeeConvention(c, user)) return false;
+  if (c.acces === 'tous') return true;
+  return AUTH.hasPermission('Voir détail convention réservée', user, null, 'action');
+}
+
 function setVue(v) {
   _vue = v;
   document.getElementById('btn-cartes').classList.toggle('active', v === 'cartes');
@@ -202,7 +222,7 @@ function _getFiltered() {
   const statut = document.getElementById('f-statut').value;
   const tri    = document.getElementById('f-tri').value;
 
-  const user   = AUTH.getCurrentUser ? AUTH.getCurrentUser() : null;
+  const user   = getConventionViewer();
   const role   = user ? (user.role || 0) : -1;
   const today  = new Date().toISOString().slice(0,10);
 
@@ -214,9 +234,7 @@ function _getFiltered() {
   items = items.filter(c => {
     if (c.acces === 'tous')    return true;
     if (role < 0)              return false;
-    if (c.acces === 'famille') return role >= 0;
-    if (c.acces === 'membres') return role >= 1;
-    return false;
+    return canSeeConvention(c, user);
   });
 
   /* Filtre accès sélectionné */
@@ -256,7 +274,8 @@ function renderConventions() {
       const catLabel = CONVENTIONS.CAT_LABELS[c.categorie] || c.categorie;
       const catColor = CONVENTIONS.CAT_COLORS[c.categorie] || 'secondary';
       const accesL   = CONVENTIONS.ACCES_LABELS[c.acces]   || c.acces;
-      return `<tr style="cursor:pointer" onclick="showConvention('${c.id}')">
+      const canOpen = canOpenConvention(c);
+      return `<tr${canOpen ? ` style="cursor:pointer" onclick="showConvention('${c.id}')"` : ''}>
         <td class="fw-semibold">${AUTH.esc(c.titre)}</td>
         <td class="text-muted small">${AUTH.esc(c.partenaire||'—')}</td>
         <td class="desc-cell small" title="${AUTH.esc(c.description||'')}">${AUTH.esc(c.description||'—')}</td>
@@ -279,9 +298,10 @@ function renderConventions() {
     const catLabel = CONVENTIONS.CAT_LABELS[c.categorie] || c.categorie;
     const accesL   = CONVENTIONS.ACCES_LABELS[c.acces]   || c.acces;
     const expired  = c.dateFin && c.dateFin < today;
+    const canOpen  = canOpenConvention(c);
     return `
     <div class="col-md-6 col-lg-4">
-      <div class="card conv-card h-100" onclick="showConvention('${c.id}')">
+      <div class="card conv-card h-100"${canOpen ? ` onclick="showConvention('${c.id}')"` : ''}>
         ${c.photo
           ? `<img src="${c.photo}" class="conv-img" alt="${AUTH.esc(c.titre)}" />`
           : `<div class="conv-img-ph"><i class="bi bi-${catIcon(c.categorie)} fs-1 text-primary opacity-25"></i></div>`}
@@ -297,7 +317,7 @@ function renderConventions() {
         </div>
         <div class="card-footer bg-transparent border-0 pt-0 pb-3 px-3 small text-muted d-flex justify-content-between">
           <span><i class="bi bi-calendar-range me-1"></i>${AUTH.esc(c.dateDebut||'?')} → ${AUTH.esc(c.dateFin||'?')}</span>
-          <span class="${expired?'expiry-exp':'expiry-ok'}"><i class="bi bi-arrow-right-circle me-1"></i>Voir</span>
+          <span class="${expired?'expiry-exp':'expiry-ok'}"><i class="bi bi-arrow-right-circle me-1"></i>${canOpen ? 'Voir' : 'Aperçu'}</span>
         </div>
       </div>
     </div>`;
@@ -312,6 +332,10 @@ function catIcon(cat) {
 function showConvention(id) {
   const c = CONVENTIONS.getConvention(id);
   if (!c) return;
+  if (!canOpenConvention(c)) {
+    alert("Vous n'avez pas le droit d'ouvrir le détail de cette convention.");
+    return;
+  }
   const catColor = CONVENTIONS.CAT_COLORS[c.categorie] || 'secondary';
   const catLabel = CONVENTIONS.CAT_LABELS[c.categorie] || c.categorie;
   const accesL   = CONVENTIONS.ACCES_LABELS[c.acces]   || c.acces;

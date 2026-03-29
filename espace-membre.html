@@ -1,4 +1,4 @@
-<!DOCTYPE html>
+﻿<!DOCTYPE html>
 <html lang="fr">
 <head>
   <meta charset="UTF-8" />
@@ -9,360 +9,544 @@
   <link href="css/style.css" rel="stylesheet" />
   <link rel="manifest" href="manifest.json" />
   <meta name="theme-color" content="#003DA6" />
+  <style>
+    /* ── Layout ──────────────────────────────────────────────── */
+    body { min-height: 100vh; display: flex; flex-direction: column; }
+    .app-shell { display: flex; flex: 1; overflow: hidden; }
+
+    /* ── Sidebar ─────────────────────────────────────────────── */
+    .sidebar-nav {
+      width: 250px; min-width: 250px;
+      background: var(--couleur-principale);
+      overflow-y: auto; padding: 0.75rem 0.5rem;
+      display: flex; flex-direction: column; gap: 0.25rem;
+    }
+    .sidebar-nav .sb-section-title {
+      font-size: .7rem; font-weight: 700; text-transform: uppercase;
+      letter-spacing: .06em; color: rgba(255,255,255,.5);
+      padding: 0.5rem 0.75rem 0.2rem; margin-bottom: 0;
+    }
+    .sidebar-nav .sb-link {
+      display: flex; align-items: center; gap: 0.6rem;
+      color: rgba(255,255,255,.8); text-decoration: none;
+      padding: 0.42rem 0.75rem; border-radius: 8px;
+      font-size: .875rem; transition: background .15s, color .15s;
+      cursor: pointer; background: none; border: none; width: 100%; text-align: left;
+    }
+    .sidebar-nav .sb-link:hover,
+    .sidebar-nav .sb-link.active { background: rgba(255,255,255,.15); color: #fff; }
+    .sidebar-nav .sb-link .badge { margin-left: auto; font-size: .68rem; }
+    .sidebar-nav .sb-divider { border-color: rgba(255,255,255,.15); margin: 0.5rem 0.75rem; }
+
+    /* ── Main content ────────────────────────────────────────── */
+    .main-area { flex: 1; overflow-y: auto; display: flex; flex-direction: column; }
+
+    /* ── Welcome bar ─────────────────────────────────────────── */
+    .welcome-bar {
+      background: linear-gradient(135deg, var(--couleur-principale), #0056cc);
+      color: white; padding: 1rem 1.5rem;
+    }
+
+    /* ── Activity tabs ───────────────────────────────────────── */
+    .act-tabs-bar {
+      background: white; border-bottom: 2px solid #e9ecef;
+      padding: 0 1rem; overflow-x: auto;
+      display: flex; gap: 0.25rem; flex-wrap: nowrap; white-space: nowrap;
+    }
+    .act-tab-btn {
+      display: inline-flex; align-items: center; gap: 0.4rem;
+      padding: 0.75rem 1rem; border: none; background: none;
+      color: #6c757d; font-weight: 500; font-size: .9rem;
+      border-bottom: 3px solid transparent; cursor: pointer;
+      transition: color .15s, border-color .15s; white-space: nowrap;
+    }
+    .act-tab-btn:hover { color: var(--couleur-principale); }
+    .act-tab-btn.active {
+      color: var(--couleur-principale);
+      border-bottom-color: var(--couleur-principale);
+    }
+    .act-tab-btn .tab-badge {
+      background: #dc3545; color: white; border-radius: 20px;
+      font-size: .65rem; font-weight: 700; padding: .15rem .45rem;
+      line-height: 1.2; min-width: 18px; text-align: center;
+    }
+    .tab-content-area { padding: 1.5rem; flex: 1; }
+
+    /* ── Cards activités ─────────────────────────────────────── */
+    .act-item-card { border-left: 4px solid var(--couleur-principale); transition: box-shadow .15s; }
+    .act-item-card:hover { box-shadow: 0 4px 16px rgba(0,61,166,.12); }
+    .date-box {
+      min-width: 52px; text-align: center; background: var(--couleur-principale);
+      color: white; border-radius: 8px; padding: 0.3rem 0.5rem;
+    }
+  </style>
 </head>
 <body>
 
-  <!-- NAVBAR -->
-  <nav class="navbar navbar-expand-lg navbar-dark">
-    <div class="container">
-      <a class="navbar-brand fw-bold d-flex align-items-center gap-2" href="index.html">
-        <i class="bi bi-people-fill fs-4"></i>Amicale ATTT
-      </a>
-      <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navMenu" aria-label="Menu">
-        <span class="navbar-toggler-icon"></span>
+  <!-- ══ NAVBAR ══════════════════════════════════════════════════ -->
+  <nav class="navbar navbar-dark py-2" style="background:var(--couleur-principale);">
+    <div class="container-fluid px-3 d-flex align-items-center gap-2">
+      <button class="btn btn-sm btn-outline-light d-md-none" data-bs-toggle="offcanvas"
+              data-bs-target="#sidebarCanvas" aria-label="Menu">
+        <i class="bi bi-list fs-5"></i>
       </button>
-      <div class="collapse navbar-collapse" id="navMenu">
-        <ul class="navbar-nav ms-auto gap-1">
-          <li class="nav-item"><a class="nav-link" href="index.html">Accueil</a></li>
-          <li class="nav-item"><a class="nav-link" href="activites.html">Activités</a></li>
-          <li class="nav-item"><a class="nav-link" href="evenements.html">Événements</a></li>
-          <li class="nav-item"><a class="nav-link" href="galerie.html">Galerie</a></li>
-          <li class="nav-item"><a class="nav-link" href="conventions.html">Conventions</a></li>
-          <li class="nav-item">
-            <a class="nav-link" href="messagerie.html">
-              <i class="bi bi-chat me-1"></i>Messages
-              <span class="badge bg-danger ms-1" id="nav-msg-badge" style="display:none"></span>
-            </a>
-          </li>
-          <li class="nav-item"><a class="nav-link fw-semibold" href="profil.html"><i class="bi bi-person-circle me-1"></i>Mon profil</a></li>
-        </ul>
+      <a href="index.html" class="navbar-brand fw-bold d-flex align-items-center gap-2 me-auto">
+        <i class="bi bi-people-fill"></i>Amicale ATTT
+      </a>
+      <div class="d-flex gap-2 align-items-center">
+        <a href="profil.html" class="btn btn-sm btn-outline-light">
+          <i class="bi bi-person-circle me-1"></i>
+          <span class="d-none d-sm-inline">Mon profil</span>
+        </a>
+        <a href="#" class="btn btn-sm btn-light text-danger fw-semibold"
+           onclick="AUTH.logout();return false;">
+          <i class="bi bi-box-arrow-right me-1"></i>
+          <span class="d-none d-sm-inline">Déconnexion</span>
+        </a>
       </div>
     </div>
   </nav>
 
-  <!-- EN-TÊTE -->
-  <div class="py-4" style="background: linear-gradient(135deg,var(--couleur-principale),#0056cc);color:white;">
-    <div class="container d-flex align-items-center justify-content-between flex-wrap gap-3">
-      <div>
-        <h1 class="fw-bold mb-0 fs-4" id="welcome-title">Mon espace membre</h1>
-        <p class="mb-0 opacity-75 small" id="welcome-sub"></p>
-      </div>
-      <a href="#" class="btn btn-outline-light btn-sm" onclick="AUTH.logout();return false;">
-        <i class="bi bi-box-arrow-right me-1"></i>Déconnexion
-      </a>
+  <!-- ══ SIDEBAR OFFCANVAS (mobile) ══════════════════════════════ -->
+  <div class="offcanvas offcanvas-start" tabindex="-1" id="sidebarCanvas"
+       style="width:265px;background:var(--couleur-principale);">
+    <div class="offcanvas-header py-2">
+      <h5 class="offcanvas-title text-white fw-bold"><i class="bi bi-list me-2"></i>Navigation</h5>
+      <button type="button" class="btn-close btn-close-white" data-bs-dismiss="offcanvas"></button>
     </div>
+    <div class="offcanvas-body p-0" id="sidebar-mobile-body"></div>
   </div>
 
-  <main class="py-5">
-    <div class="container">
+  <!-- ══ APP SHELL ════════════════════════════════════════════════ -->
+  <div class="app-shell">
 
-      <!-- RACCOURCIS RAPIDES -->
-      <div class="row g-3 mb-4">
-        <div class="col-6 col-sm-3">
-          <a href="profil.html" class="card text-decoration-none h-100 p-3 text-center hover-lift">
-            <i class="bi bi-person-circle fs-2 text-primary mb-1"></i>
-            <div class="small fw-semibold">Mon profil</div>
-          </a>
+    <!-- SIDEBAR DESKTOP -->
+    <aside class="sidebar-nav d-none d-md-flex" id="sidebar-desktop"></aside>
+
+    <!-- MAIN AREA -->
+    <div class="main-area">
+
+      <!-- WELCOME BAR -->
+      <div class="welcome-bar d-flex align-items-center justify-content-between flex-wrap gap-2">
+        <div>
+          <h1 class="fw-bold mb-0 fs-5" id="welcome-title">Mon espace</h1>
+          <p class="mb-0 opacity-75 small" id="welcome-sub"></p>
         </div>
-        <div class="col-6 col-sm-3">
-          <a href="messagerie.html" class="card text-decoration-none h-100 p-3 text-center hover-lift position-relative">
-            <i class="bi bi-chat-text-fill fs-2 text-primary mb-1"></i>
-            <div class="small fw-semibold">Messagerie</div>
-            <span class="badge bg-danger position-absolute top-0 end-0 m-2" id="shortcut-msg-badge" style="display:none"></span>
-          </a>
-        </div>
-        <div class="col-6 col-sm-3">
-          <a href="conventions.html" class="card text-decoration-none h-100 p-3 text-center hover-lift">
-            <i class="bi bi-award-fill fs-2 text-primary mb-1"></i>
-            <div class="small fw-semibold">Conventions</div>
-          </a>
-        </div>
-        <div class="col-6 col-sm-3">
-          <a href="location.html" class="card text-decoration-none h-100 p-3 text-center hover-lift">
-            <i class="bi bi-house-fill fs-2 text-primary mb-1"></i>
-            <div class="small fw-semibold">Locations vacances</div>
-          </a>
+        <a href="messagerie.html" class="btn btn-outline-light btn-sm position-relative">
+          <i class="bi bi-chat-text me-1"></i>Messages
+          <span class="badge bg-danger position-absolute top-0 end-0 translate-middle"
+                id="msg-count-badge" style="display:none;font-size:.6rem;"></span>
+        </a>
+      </div>
+
+      <!-- TABS BAND -->
+      <div class="act-tabs-bar" role="tablist">
+        <button class="act-tab-btn active" data-tab="events" onclick="showTab('events',this)">
+          <i class="bi bi-calendar-event"></i>Événements
+          <span class="tab-badge d-none" id="badge-events"></span>
+        </button>
+        <button class="act-tab-btn" data-tab="offres" onclick="showTab('offres',this)">
+          <i class="bi bi-tag"></i>Offres
+          <span class="tab-badge d-none" id="badge-offres"></span>
+        </button>
+        <button class="act-tab-btn" data-tab="special" onclick="showTab('special',this)">
+          <i class="bi bi-star"></i>Évt. spécial
+          <span class="tab-badge d-none" id="badge-special"></span>
+        </button>
+        <button class="act-tab-btn" data-tab="voyages" onclick="showTab('voyages',this)">
+          <i class="bi bi-compass"></i>Voyages
+          <span class="tab-badge d-none" id="badge-voyages"></span>
+        </button>
+        <button class="act-tab-btn" data-tab="conventions" onclick="showTab('conventions',this)">
+          <i class="bi bi-award"></i>Conventions
+          <span class="tab-badge d-none" id="badge-conventions"></span>
+        </button>
+        <button class="act-tab-btn" data-tab="locations" onclick="showTab('locations',this)">
+          <i class="bi bi-house"></i>Locations
+          <span class="tab-badge d-none" id="badge-locations"></span>
+        </button>
+        <button class="act-tab-btn" data-tab="votes" onclick="showTab('votes',this)">
+          <i class="bi bi-check2-square"></i>Vote
+          <span class="tab-badge d-none" id="badge-votes"></span>
+        </button>
+      </div>
+
+      <!-- TAB CONTENTS -->
+      <div class="tab-content-area" id="tab-content">
+        <div class="text-center text-muted py-5">
+          <i class="bi bi-hourglass-split fs-2 d-block mb-2 opacity-50"></i>Chargement…
         </div>
       </div>
 
-      <!-- ONGLETS -->
-      <ul class="nav nav-pills mb-5 gap-2" id="mainTabs" role="tablist">
-        <li class="nav-item">
-          <button class="nav-link active" data-bs-toggle="pill" data-bs-target="#tab-event" type="button">
-            <i class="bi bi-calendar-event me-1"></i>Événements
-          </button>
-        </li>
-        <li class="nav-item">
-          <button class="nav-link" data-bs-toggle="pill" data-bs-target="#tab-offers" type="button">
-            <i class="bi bi-tag-fill me-1"></i>Offres exclusives
-          </button>
-        </li>
-        <li class="nav-item">
-          <button class="nav-link" data-bs-toggle="pill" data-bs-target="#tab-profile" type="button">
-            <i class="bi bi-person-gear me-1"></i>Mon compte
-          </button>
-        </li>
-      </ul>
+    </div><!-- /main-area -->
+  </div><!-- /app-shell -->
 
-      <div class="tab-content">
+  <!-- SCRIPTS -->
+  <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js"></script>
+  <script src="https://www.gstatic.com/firebasejs/10.14.1/firebase-app-compat.js"></script>
+  <script src="https://www.gstatic.com/firebasejs/10.14.1/firebase-firestore-compat.js"></script>
+  <script src="js/firebase-config.js"></script>
+  <script src="js/db.js"></script>
+  <script src="js/auth.js"></script>
+  <script src="js/data.js"></script>
+  <script src="js/messages.js"></script>
+  <script src="js/profile.js"></script>
+  <script src="js/special-events.js"></script>
+  <script src="js/conventions.js"></script>
+  <script src="js/rentals.js"></script>
+  <script src="js/voyages.js"></script>
+  <script src="js/votes.js"></script>
 
-        <!-- ═══ ÉVÉNEMENTS ═══ -->
-        <div class="tab-pane fade show active" id="tab-event">
-          <div class="d-flex align-items-center justify-content-between mb-3">
-            <h2 class="section-titre mb-0">Événements à venir</h2>
-            <a href="evenements.html" class="btn btn-outline-attt btn-sm">Voir tous <i class="bi bi-arrow-right ms-1"></i></a>
-          </div>
-          <div id="events-container" class="row g-4"></div>
-        </div>
+  <script>
+  'use strict';
 
-        <!-- ═══ OFFRES ═══ -->
-        <div class="tab-pane fade" id="tab-offers">
-          <h2 class="section-titre">Offres & avantages membres</h2>
-          <p class="text-muted mb-4">Ces offres sont réservées aux membres de l'Amicale ATTT. Présentez votre code lors de votre visite.</p>
-          <div id="offers-container" class="row g-4"></div>
-        </div>
+  const user = AUTH.requireAuth('famille');
+  if (!user) throw new Error('Non autorisé');
 
-        <!-- ═══ COMPTE ═══ -->
-        <div class="tab-pane fade" id="tab-profile">
-          <div class="row g-4">
-            <div class="col-lg-5">
-              <div class="card p-4 mb-3">
-                <h2 class="section-titre">Mes informations</h2>
-                <table class="table table-borderless mb-3" id="profile-table">
-                  <tbody>
-                    <tr><th class="text-muted fw-normal" style="width:40%">Nom</th><td id="p-nom">—</td></tr>
-                    <tr><th class="text-muted fw-normal">Prénom</th><td id="p-prenom">—</td></tr>
-                    <tr><th class="text-muted fw-normal">Login</th><td id="p-login">—</td></tr>
-                    <tr><th class="text-muted fw-normal">E-mail</th><td id="p-email">—</td></tr>
-                    <tr><th class="text-muted fw-normal">Téléphone</th><td id="p-tel">—</td></tr>
-                    <tr><th class="text-muted fw-normal">Rôle</th><td id="p-role">—</td></tr>
-                    <tr><th class="text-muted fw-normal">Membre depuis</th><td id="p-date">—</td></tr>
-                  </tbody>
-                </table>
-                <a href="profil.html" class="btn btn-attt w-100">
-                  <i class="bi bi-person-gear me-1"></i>Modifier mon profil complet
-                </a>
-              </div>
-            </div>
-            <div class="col-lg-5">
-              <div class="card p-4">
-                <h3 class="h6 fw-bold mb-3">Changer mon mot de passe</h3>
-                <div id="pwd-alert" class="alert d-none"></div>
-                <div class="mb-3">
-                  <label class="form-label fw-semibold small">Mot de passe actuel</label>
-                  <input type="password" class="form-control" id="old-pwd" />
-                </div>
-                <div class="mb-3">
-                  <label class="form-label fw-semibold small">Nouveau mot de passe</label>
-                  <input type="password" class="form-control" id="new-pwd" minlength="6" />
-                </div>
-                <div class="mb-3">
-                  <label class="form-label fw-semibold small">Confirmer</label>
-                  <input type="password" class="form-control" id="new-pwd2" />
-                </div>
-                <button class="btn btn-attt" onclick="changePwd()">
-                  <i class="bi bi-shield-check me-1"></i>Enregistrer
-                </button>
-              </div>
-            </div>
-          </div>
-        </div>
+  const MOIS = ['Jan','Fév','Mar','Avr','Mai','Juin','Juil','Août','Sep','Oct','Nov','Déc'];
+  const CAT_COLORS = { sport:'primary', culture:'warning', famille:'success', autre:'secondary' };
 
-      </div>
-    </div>
-  </main>
+  /* ══════════════════════════════════════════════════════════
+     SIDEBAR
+  ══════════════════════════════════════════════════════════ */
+  function buildSidebarHTML() {
+    const can = p => AUTH.can(p);
+    const lnk = (icon, label, href) =>
+      `<a href="${href}" class="sb-link"><i class="bi ${icon}"></i>${escH(label)}</a>`;
 
-  <!-- FOOTER minimal -->
-  <footer class="py-3 text-white text-center small">
-    <div class="container">
-      <p class="mb-0 opacity-75">&copy; 2026 Amicale ATTT — Espace membres</p>
-    </div>
-  </footer>
+    let h = '';
 
-<script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js"></script>
-<!-- Firebase SDK (Base de données Cloud) -->
-<script src="https://www.gstatic.com/firebasejs/10.14.1/firebase-app-compat.js"></script>
-<script src="https://www.gstatic.com/firebasejs/10.14.1/firebase-firestore-compat.js"></script>
-<script src="js/firebase-config.js"></script>
-<script src="js/db.js"></script>
-<script src="js/auth.js"></script>
-<script src="js/data.js"></script>
-<script src="js/messages.js"></script>
-<script src="js/profile.js"></script>
-<script>
-'use strict';
+    // ── MON ESPACE ──────────────────────────────────────────
+    h += `<div class="sb-section-title">Mon espace</div>
+      ${lnk('bi-person-circle','Mon profil','profil.html')}
+      <a href="messagerie.html" class="sb-link">
+        <i class="bi bi-chat-text"></i>Messagerie
+        <span class="badge bg-danger ms-auto d-none" id="sb-msg-badge"></span>
+      </a>
+      ${lnk('bi-newspaper','Actualités','actualites.html')}
+      ${lnk('bi-images','Galerie','galerie.html')}
+      <hr class="sb-divider" />`;
 
-/* ─── Garde d'accès ─────────────────────────────────────── */
-const user = AUTH.requireAuth('membre');
-if (!user) throw new Error('Non autorisé');
-
-/* ─── En-tête ───────────────────────────────────────────── */
-const roleLabels = AUTH.ROLE_LABELS;  /* Délégué, Direction, Maître */
-document.getElementById('welcome-title').textContent = 'Bonjour, ' + user.prenom + ' !';
-document.getElementById('welcome-sub').textContent   = 'Rôle : ' + (roleLabels[user.role] || user.role) + ' — Membre depuis le ' + user.dateInscription;
-
-/* ─── Profil ────────────────────────────────────────────── */
-document.getElementById('p-nom').textContent    = user.nom;
-document.getElementById('p-prenom').textContent = user.prenom;
-document.getElementById('p-login').textContent  = user.login;
-document.getElementById('p-email').textContent  = user.email || '(non renseigné)';
-document.getElementById('p-tel').textContent    = user.telephone || '(non renseigné)';
-document.getElementById('p-role').innerHTML     = `<span class="badge bg-primary">${roleLabels[user.role] || user.role}</span>`;
-document.getElementById('p-date').textContent   = user.dateInscription;
-
-/* ─── Changement de mot de passe ─────────────────────────── */
-function changePwd() {
-  const alert  = document.getElementById('pwd-alert');
-  const show   = (type, msg) => { alert.className = 'alert alert-' + type; alert.textContent = msg; alert.classList.remove('d-none'); };
-  const oldPwd = document.getElementById('old-pwd').value;
-  const newPwd = document.getElementById('new-pwd').value;
-  const newPwd2= document.getElementById('new-pwd2').value;
-
-  if (!oldPwd || !newPwd) return show('warning', 'Tous les champs sont requis.');
-  if (newPwd.length < 6)  return show('warning', 'Le nouveau mot de passe doit faire au moins 6 caractères.');
-  if (newPwd !== newPwd2) return show('danger', 'Les nouveaux mots de passe ne correspondent pas.');
-
-  /* Vérification ancien mot de passe via re-login */
-  const check = AUTH.login(user.login, oldPwd);
-  if (!check.ok) return show('danger', 'Mot de passe actuel incorrect.');
-
-  /* Calcul du hash via login (on doit recréer l'entrée) */
-  const users = AUTH.getUsers();
-  const idx = users.findIndex(u => u.id === user.id);
-  if (idx === -1) return;
-  /* On passe par updateUser avec le hash recalculé manuellement — on utilise register trick */
-  /* Simple : on force la mise à jour en passant par une inscription temporaire virtuelle */
-  const tmpResult = (function() {
-    const salt = 'ATTT_AMICALE_DZ_2026';
-    const s = newPwd + salt;
-    let h = 2166136261;
-    for (let i = 0; i < s.length; i++) { h ^= s.charCodeAt(i); h = Math.imul(h, 16777619) >>> 0; }
-    return h.toString(16).padStart(8, '0');
-  })();
-  AUTH.updateUser(user.id, { passwordHash: tmpResult });
-  show('success', 'Mot de passe mis à jour avec succès.');
-  document.getElementById('old-pwd').value = '';
-  document.getElementById('new-pwd').value = '';
-  document.getElementById('new-pwd2').value = '';
-}
-
-/* ─── Rendu des événements ──────────────────────────────── */
-function renderEvents() {
-  const container = document.getElementById('events-container');
-  const now       = new Date().toISOString().split('T')[0];
-  const events    = DATA.getEvents()
-    .filter(e => e.date >= now)
-    .sort((a, b) => a.date.localeCompare(b.date));
-
-  if (!events.length) {
-    container.innerHTML = '<div class="col-12"><p class="text-muted">Aucun événement à venir.</p></div>';
-    return;
-  }
-
-  const catColors = { sport: 'primary', culture: 'warning', famille: 'success' };
-  const accesIcons = { membres: '<span class="badge bg-warning text-dark ms-1"><i class="bi bi-star-fill"></i> Membres</span>', tous: '' };
-
-  container.innerHTML = events.map(e => {
-    const d = new Date(e.date);
-    const day   = d.getDate().toString().padStart(2,'0');
-    const month = d.toLocaleDateString('fr-FR',{month:'short'}).toUpperCase();
-    const participants = PROFILE.getEventParticipants(e.id);
-    const count = participants.length;
-    const max   = Number(e.nbMaxParticipants) || 0;
-    const isInscrit = participants.some(p => p.userId === user.id);
-    const limitDep  = e.dateLimitParticipation && now > e.dateLimitParticipation;
-    const complet   = max > 0 && count >= max && !isInscrit;
-    const prixHtml  = e.prixParticipant > 0 ? ` &middot; ${Number(e.prixParticipant).toLocaleString('fr')} DA` : '';
-    let btnHtml;
-    if (isInscrit) {
-      btnHtml = `<button class="btn btn-sm btn-outline-success mt-2" onclick="annulerParticipEsp('${e.id}')">
-                   <i class="bi bi-check-circle me-1"></i>Inscrit &middot; Annuler
-                 </button>`;
-    } else if (limitDep) {
-      btnHtml = `<span class="badge bg-secondary mt-2"><i class="bi bi-calendar-x me-1"></i>Inscriptions ferm&eacute;es</span>`;
-    } else if (complet) {
-      btnHtml = `<span class="badge bg-danger mt-2">Complet</span>`;
-    } else {
-      btnHtml = `<button class="btn btn-attt btn-sm mt-2" onclick="participerEsp('${e.id}')">
-                   <i class="bi bi-calendar-check me-1"></i>Participer${prixHtml}
-                 </button>`;
+    // ── PROGRAMMER UNE ACTIVITÉ ─────────────────────────────
+    const hasAct = can('Voir bouton Ajouter événement') || can('Voir bouton Ajouter offre')
+      || can('Voir bouton Ajouter voyage') || can('Voir bouton Ajouter convention') || can('Voir bouton Créer vote');
+    if (hasAct) {
+      h += `<div class="sb-section-title">Programmer une activité</div>`;
+      if (can('Voir bouton Ajouter événement')) h += lnk('bi-calendar-plus','Événements','evenements.html');
+      if (can('Voir bouton Ajouter offre'))     h += lnk('bi-tag-fill','Offres','offres.html');
+      if (can('Voir bouton Ajouter événement')) h += lnk('bi-star-fill','Évènement spécial','evenements.html');
+      if (can('Voir bouton Ajouter voyage'))    h += lnk('bi-compass','Voyages','voyages.html');
+      if (can('Voir bouton Ajouter convention'))h += lnk('bi-award-fill','Conventions','conventions.html');
+      h += lnk('bi-house-fill','Locations maisons été','location.html');
+      if (can('Voir bouton Créer vote'))        h += lnk('bi-check2-square','Vote','votes.html');
+      h += `<hr class="sb-divider" />`;
     }
-    const placesHtml = max > 0 ? `<small class="text-muted ms-2">${count}/${max}</small>` : (count > 0 ? `<small class="text-muted ms-2">${count} inscrit${count>1?'s':''}</small>` : '');
-    return `
-      <div class="col-md-6 col-lg-4">
-        <div class="card h-100 p-3">
-          <div class="d-flex gap-3">
-            <div class="text-center rounded-3 px-2 py-1 flex-shrink-0 text-white" style="background:var(--couleur-principale);min-width:54px;">
-              <div class="fw-bold fs-5 lh-1">${AUTH.esc(day)}</div>
-              <div class="small">${AUTH.esc(month)}</div>
-            </div>
-            <div>
-              <span class="badge bg-${catColors[e.categorie]||'secondary'} mb-1">${AUTH.esc(e.categorie)}</span>
-              ${accesIcons[e.acces]||''}
-              <h3 class="h6 fw-bold mb-1">${AUTH.esc(e.titre)}</h3>
-              <p class="text-muted small mb-1"><i class="bi bi-geo-alt me-1"></i>${AUTH.esc(e.lieu)}</p>
-              <p class="text-muted small mb-0"><i class="bi bi-clock me-1"></i>${AUTH.esc(e.heure||'')}</p>
-            </div>
+
+    // ── UTILISATEURS ────────────────────────────────────────
+    if (can('Valider inscription (en attente)')) {
+      const pending = AUTH.getUsers().filter(u => u.statut === 'en_attente').length;
+      h += `<div class="sb-section-title">Utilisateurs</div>
+        <a href="master.html" class="sb-link">
+          <i class="bi bi-hourglass-split"></i>En attente validation
+          ${pending > 0 ? `<span class="badge bg-warning text-dark ms-auto">${pending}</span>` : ''}
+        </a>
+        ${lnk('bi-people-fill','Membres validés','master.html')}
+        ${lnk('bi-diagram-3','Liaisons famille & délégués','master.html')}
+        ${lnk('bi-credit-card','Suivi des paiements','master.html')}
+        ${lnk('bi-person-badge-fill','Gestion des délégués','master.html')}
+        <hr class="sb-divider" />`;
+    }
+
+    // ── PAGE D'ACCUEIL PUBLIC ────────────────────────────────
+    if (can('Accéder page Paramètres site') || can('Accéder page Publicités accueil') || can('Accéder page Actualités')) {
+      h += `<div class="sb-section-title">Page d'accueil public</div>`;
+      if (can('Accéder page Paramètres site'))     h += lnk('bi-sliders','Coordonnées & paramètres','parametres.html');
+      if (can('Accéder page Publicités accueil'))  h += lnk('bi-megaphone-fill','Publicités','publicites.html');
+      if (can('Accéder page Actualités'))          h += lnk('bi-file-richtext-fill','Articles & actualités','contenu-admin.html');
+      h += lnk('bi-info-circle-fill','À propos de l\'amicale','a-propos.html');
+      h += `<hr class="sb-divider" />`;
+    }
+
+    // ── ADMINISTRATION ───────────────────────────────────────
+    if (can('Accéder page Droits') || can('Accéder page Journal') || can('Accéder page Guide technique')) {
+      h += `<div class="sb-section-title">Administration</div>`;
+      if (can('Accéder page Droits'))           h += lnk('bi-shield-lock-fill','Rôles et droits','droits.html');
+      h +=                                           lnk('bi-arrow-repeat','Gestion des versions','guide.html');
+      if (can('Accéder page Guide technique'))  h += lnk('bi-book-fill','Guide technique','guide.html');
+      if (can('Accéder page Journal'))          h += lnk('bi-journal-text','Journal des opérations','journal.html');
+    }
+
+    return h;
+  }
+
+  /* ══════════════════════════════════════════════════════════
+     BADGE COUNTS
+  ══════════════════════════════════════════════════════════ */
+  function computeBadges() {
+    const today = new Date().toISOString().split('T')[0];
+    const showB = (id, n) => { const el = document.getElementById(id); if (!el) return; if (n > 0) { el.textContent = n; el.classList.remove('d-none'); } else el.classList.add('d-none'); };
+
+    showB('badge-events',      DATA.getEvents().filter(e => DATA.canUserAccess(e.acces,user) && e.date >= today && !SPECIAL_EVENT.isSpecialEvent(e)).length);
+    showB('badge-special',     DATA.getEvents().filter(e => DATA.canUserAccess(e.acces,user) && e.date >= today && SPECIAL_EVENT.isSpecialEvent(e)).length);
+    showB('badge-offres',      DATA.getOffers().filter(o => DATA.canUserAccess(o.acces,user) && (!o.dateExpiration || o.dateExpiration >= today)).length);
+    showB('badge-voyages',     VOYAGES.getVoyages().filter(v => VOYAGES.isAvailable(v.id)).length);
+    showB('badge-conventions', CONVENTIONS.getConventions({ actif:true, enCours:true }).length);
+    showB('badge-locations',   RENTALS.getRentals({ actif:true }).length);
+    showB('badge-votes',       VOTES.getSubjects().filter(s => VOTES.isActive(s) && VOTES.isEligible(s,user) && !VOTES.getBallot(s.id, user.id||user.login)).length);
+  }
+
+  /* ══════════════════════════════════════════════════════════
+     TABS
+  ══════════════════════════════════════════════════════════ */
+  let _tab = 'events';
+
+  function showTab(tabId, btnEl) {
+    _tab = tabId;
+    document.querySelectorAll('.act-tab-btn').forEach(b => b.classList.remove('active'));
+    (btnEl || document.querySelector(`.act-tab-btn[data-tab="${tabId}"]`))?.classList.add('active');
+    document.getElementById('tab-content').innerHTML = renderTab(tabId);
+  }
+
+  function escH(s) {
+    return String(s||'').replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;');
+  }
+
+  function tabHdr(titre, href, lbl) {
+    return `<div class="d-flex align-items-center justify-content-between mb-4 flex-wrap gap-2">
+      <h2 class="section-titre mb-0">${titre}</h2>
+      <a href="${href}" class="btn btn-outline-attt btn-sm">${lbl} <i class="bi bi-arrow-right ms-1"></i></a>
+    </div>`;
+  }
+  function empty(icon, msg) {
+    return `<div class="text-center text-muted py-5"><i class="bi ${icon} fs-2 d-block mb-2 opacity-50"></i><p>${msg}</p></div>`;
+  }
+
+  /* ── TAB: ÉVÉNEMENTS ─────────────────────────────────────── */
+  function renderTab(id) {
+    const today = new Date().toISOString().split('T')[0];
+    switch (id) {
+
+    case 'events': {
+      const evts = DATA.getEvents()
+        .filter(e => DATA.canUserAccess(e.acces,user) && e.date >= today && !SPECIAL_EVENT.isSpecialEvent(e))
+        .sort((a,b) => a.date.localeCompare(b.date)).slice(0,6);
+      if (!evts.length) return tabHdr('Événements à venir','evenements.html','Tous') + empty('bi-calendar-x','Aucun événement à venir.');
+      return tabHdr('Événements à venir','evenements.html','Tous')
+        + '<div class="row g-3">' + evts.map(evtCard).join('') + '</div>';
+    }
+
+    case 'offres': {
+      const offs = DATA.getOffers()
+        .filter(o => DATA.canUserAccess(o.acces,user) && (!o.dateExpiration || o.dateExpiration >= today))
+        .slice(0,6);
+      if (!offs.length) return tabHdr('Offres & avantages','offres.html','Toutes') + empty('bi-tag','Aucune offre disponible.');
+      return tabHdr('Offres & avantages','offres.html','Toutes')
+        + '<div class="row g-3">' + offs.map(o => `
+        <div class="col-md-6 col-xl-4"><div class="card act-item-card h-100 p-3">
+          <div class="mb-2"><span class="badge fs-5 px-3 py-1" style="background:var(--couleur-secondaire);color:#111;">${escH(o.reduction)}</span></div>
+          <h3 class="h6 fw-bold mb-1">${escH(o.titre)}</h3>
+          <p class="text-muted small mb-1"><i class="bi bi-building me-1"></i>${escH(o.partenaire)}</p>
+          <p class="text-muted small flex-grow-1">${escH(o.description||'').substring(0,100)}</p>
+          <div class="mt-2 p-2 rounded-2 text-center" style="background:#f0f4ff;border:1px dashed #003DA6;">
+            <small class="text-muted d-block">Code</small>
+            <strong style="color:var(--couleur-principale);letter-spacing:.1em;">${escH(o.code||'—')}</strong>
           </div>
-          <p class="small text-muted mt-3 mb-0">${AUTH.esc(e.description||'')}</p>
-          <div class="mt-2 d-flex align-items-center gap-2 flex-wrap">${btnHtml}${placesHtml}</div>
-        </div>
-      </div>`;
-  }).join('');
-}
+        </div></div>`).join('') + '</div>';
+    }
 
-/* ─── Rendu des offres ──────────────────────────────────── */
-function renderOffers() {
-  const container = document.getElementById('offers-container');
-  const now       = new Date().toISOString().split('T')[0];
-  const offers    = DATA.getOffers()
-    .filter(o => !o.dateExpiration || o.dateExpiration >= now);
+    case 'special': {
+      const sps = DATA.getEvents()
+        .filter(e => DATA.canUserAccess(e.acces,user) && e.date >= today && SPECIAL_EVENT.isSpecialEvent(e))
+        .sort((a,b) => a.date.localeCompare(b.date)).slice(0,4);
+      if (!sps.length) return tabHdr('Évènement spécial','evenements.html','Voir les événements') + empty('bi-star','Aucun événement spécial à venir.');
+      return tabHdr('Évènement spécial','evenements.html','Voir les événements')
+        + '<div class="row g-3">' + sps.map(e => {
+          const d = new Date(e.date + 'T00:00:00');
+          const isInscrit = PROFILE.getEventParticipants(e.id).some(p => p.userId === user.id);
+          return `<div class="col-md-6"><div class="card act-item-card h-100 p-3" style="border-left-color:#7a1f1f;">
+            <div class="d-flex gap-3"><div class="date-box flex-shrink-0" style="background:#7a1f1f;">
+              <div class="fw-bold fs-5 lh-1">${String(d.getDate()).padStart(2,'0')}</div><div class="small">${MOIS[d.getMonth()]}</div>
+            </div><div>
+              <span class="badge mb-1" style="background:#7a1f1f">Spécial</span>
+              <h3 class="h6 fw-bold mb-1">${escH(e.titre)}</h3>
+              <p class="text-muted small mb-0"><i class="bi bi-geo-alt me-1"></i>${escH(e.lieu)}</p>
+            </div></div>
+            ${e.description ? `<p class="small text-muted mt-2 mb-0">${escH(e.description).substring(0,120)}</p>` : ''}
+            <div class="mt-2">
+              ${isInscrit ? `<span class="badge bg-success"><i class="bi bi-check-circle me-1"></i>Dossier déposé</span>`
+                : `<a href="evenements.html" class="btn btn-sm btn-attt"><i class="bi bi-file-earmark-text me-1"></i>Déposer un dossier</a>`}
+            </div>
+          </div></div>`;
+        }).join('') + '</div>';
+    }
 
-  if (!offers.length) {
-    container.innerHTML = '<div class="col-12"><p class="text-muted">Aucune offre disponible actuellement.</p></div>';
-    return;
+    case 'voyages': {
+      const voys = VOYAGES.getVoyages().filter(v => VOYAGES.isAvailable(v.id)).slice(0,4);
+      if (!voys.length) return tabHdr('Voyages & sorties','voyages.html','Tous les voyages') + empty('bi-compass','Aucun voyage disponible.');
+      const types = VOYAGES.getTypes();
+      return tabHdr('Voyages & sorties','voyages.html','Tous les voyages')
+        + '<div class="row g-3">' + voys.map(v => {
+          const t = types[v.type] || types.interne;
+          const places = VOYAGES.getPlacesRestantes(v.id);
+          const myReg = VOYAGES.getUserRegistration(v.id, user.id||user.login);
+          const dD = v.dateDepart ? new Date(v.dateDepart + 'T00:00:00') : null;
+          const prix = v.prixAdherent > 0 ? `${v.prixAdherent.toLocaleString('fr-TN')} TND` : '—';
+          const btn = myReg ? (() => { const sm = VOYAGES.getStatusMeta(myReg.status); return `<span class="badge bg-${sm.cls}"><i class="bi ${sm.icon} me-1"></i>${sm.label}</span>`; })()
+            : `<a href="voyages.html" class="btn btn-sm btn-attt"><i class="bi bi-person-plus me-1"></i>S'inscrire</a>`;
+          return `<div class="col-md-6"><div class="card act-item-card h-100 p-3">
+            <div class="d-flex gap-3"><div class="date-box flex-shrink-0">
+              ${dD ? `<div class="fw-bold fs-5 lh-1">${String(dD.getDate()).padStart(2,'0')}</div><div class="small">${MOIS[dD.getMonth()]}</div>` : `<i class="bi bi-compass fs-3"></i>`}
+            </div><div class="flex-grow-1">
+              <span class="badge mb-1" style="background:${t.color||'#17a2b8'}">${t.label}</span>
+              <h3 class="h6 fw-bold mb-1">${escH(v.titre)}</h3>
+              <p class="text-muted small mb-0"><i class="bi bi-geo-alt me-1"></i>${escH(v.destination)}</p>
+              <p class="text-muted small mb-0"><i class="bi bi-people me-1"></i>${places > 0 ? places + ' places' : 'Complet'} · <strong>${prix}</strong></p>
+            </div></div>
+            <div class="mt-2">${btn}</div>
+          </div></div>`;
+        }).join('') + '</div>';
+    }
+
+    case 'conventions': {
+      const convs = CONVENTIONS.getConventions({ actif:true, enCours:true }).slice(0,6);
+      if (!convs.length) return tabHdr('Conventions partenaires','conventions.html','Toutes') + empty('bi-award','Aucune convention active.');
+      return tabHdr('Conventions partenaires','conventions.html','Toutes')
+        + '<div class="row g-3">' + convs.map(c => {
+          const cls = CONVENTIONS.CAT_COLORS[c.categorie] || 'secondary';
+          return `<div class="col-md-6 col-xl-4"><div class="card act-item-card h-100 p-3">
+            <span class="badge bg-${cls} mb-2">${escH(CONVENTIONS.CAT_LABELS[c.categorie]||c.categorie)}</span>
+            <h3 class="h6 fw-bold mb-1">${escH(c.titre)}</h3>
+            <p class="text-muted small mb-1"><i class="bi bi-building me-1"></i>${escH(c.partenaire)}</p>
+            <p class="text-muted small flex-grow-1">${escH(c.description||'').substring(0,100)}</p>
+            ${c.conditions ? `<p class="small mb-0 fw-semibold" style="color:var(--couleur-principale)">${escH(c.conditions).substring(0,80)}</p>` : ''}
+          </div></div>`;
+        }).join('') + '</div>';
+    }
+
+    case 'locations': {
+      const rents = RENTALS.getRentals({ actif:true }).slice(0,4);
+      if (!rents.length) return tabHdr('Locations maisons été','location.html','Voir les locations') + empty('bi-house','Aucune location disponible.');
+      return tabHdr('Locations maisons été','location.html','Voir les locations')
+        + '<div class="row g-3">' + rents.map(r => {
+          const ft = r.tranches && r.tranches.length ? r.tranches[0] : null;
+          const prix = ft ? `${ft.prixUnite.toLocaleString('fr-TN')} TND / ${ft.unite}` : '—';
+          return `<div class="col-md-6 col-xl-4"><div class="card act-item-card h-100 p-3">
+            <h3 class="h6 fw-bold mb-1"><i class="bi bi-house me-1"></i>${escH(r.titre)}</h3>
+            <p class="text-muted small mb-1"><i class="bi bi-geo-alt me-1"></i>${escH(r.adresse||'')}</p>
+            <p class="text-muted small mb-1"><i class="bi bi-people me-1"></i>Capacité : ${r.capacite||'—'} personnes</p>
+            <p class="mb-1 fw-semibold" style="color:var(--couleur-principale)">${prix}</p>
+            <p class="text-muted small flex-grow-1">${escH(r.description||'').substring(0,100)}</p>
+            <div class="mt-2"><a href="location.html" class="btn btn-sm btn-attt"><i class="bi bi-calendar-check me-1"></i>Réserver</a></div>
+          </div></div>`;
+        }).join('') + '</div>';
+    }
+
+    case 'votes': {
+      const actifs = VOTES.getSubjects().filter(s => VOTES.isActive(s) && VOTES.isEligible(s, user));
+      const clos   = VOTES.getSubjects().filter(s => s.status === 'clos')
+                       .sort((a,b) => b.createdAt - a.createdAt).slice(0,2);
+      if (!actifs.length && !clos.length) return tabHdr('Votes & Scrutins','votes.html','Tous les votes') + empty('bi-check2-square','Aucun vote ouvert pour vous.');
+
+      let h = tabHdr('Votes & Scrutins','votes.html','Tous les votes');
+      if (actifs.length) {
+        h += `<h6 class="fw-semibold text-success mb-3"><i class="bi bi-check-circle me-1"></i>Votes en cours</h6>
+          <div class="row g-3 mb-4">` + actifs.map(s => {
+            const voted = !!VOTES.getBallot(s.id, user.id||user.login);
+            const total = VOTES.getResults(s.id)?.totalVoters || 0;
+            return `<div class="col-md-6"><div class="card act-item-card h-100 p-3">
+              <div class="d-flex align-items-start justify-content-between mb-2">
+                <h3 class="h6 fw-bold mb-0">${escH(s.titre)}</h3>
+                <span class="badge bg-success ms-2">Ouvert</span>
+              </div>
+              ${s.description ? `<p class="text-muted small mb-2">${escH(s.description).substring(0,100)}</p>` : ''}
+              <small class="text-muted"><i class="bi bi-people me-1"></i>${total} votant${total!==1?'s':''} · max ${s.maxChoix} choix</small>
+              <div class="mt-2">
+                ${voted ? `<span class="badge bg-success-subtle text-success border border-success-subtle p-2"><i class="bi bi-check-circle-fill me-1"></i>J'ai voté</span>`
+                  : `<a href="votes.html#${s.id}" class="btn btn-sm btn-attt"><i class="bi bi-check2-square me-1"></i>Voter (${s.choices.length} options)</a>`}
+              </div>
+            </div></div>`;
+          }).join('') + '</div>';
+      }
+      if (clos.length) {
+        h += `<h6 class="fw-semibold text-muted mb-3"><i class="bi bi-lock me-1"></i>Résultats récents</h6>
+          <div class="row g-3">` + clos.map(s => {
+            const top = VOTES.getResults(s.id)?.choices?.[0];
+            return `<div class="col-md-6"><div class="card act-item-card h-100 p-3" style="border-left-color:#6c757d;">
+              <div class="d-flex align-items-start justify-content-between mb-2">
+                <h3 class="h6 fw-bold mb-0">${escH(s.titre)}</h3>
+                <span class="badge bg-secondary ms-2">Clos</span>
+              </div>
+              ${top ? `<p class="small mb-0">Résultat : <strong>${escH(top.label)}</strong> · ${top.percent}%</p>` : ''}
+              <div class="mt-2"><a href="votes.html#${s.id}" class="btn btn-sm btn-outline-secondary"><i class="bi bi-bar-chart me-1"></i>Résultats</a></div>
+            </div></div>`;
+          }).join('') + '</div>';
+      }
+      return h;
+    }
+
+    default: return '';
+    }
   }
 
-  container.innerHTML = offers.map(o => `
-    <div class="col-md-6 col-lg-4">
-      <div class="card h-100 p-4">
-        <div class="d-flex justify-content-between align-items-start mb-2">
-          <span class="badge fs-5 px-3 py-2" style="background:var(--couleur-secondaire);color:#111;">${AUTH.esc(o.reduction)}</span>
-          <span class="badge bg-light text-dark border"><i class="bi bi-clock me-1"></i>Exp. ${AUTH.esc(o.dateExpiration||'—')}</span>
-        </div>
-        <h3 class="h5 fw-bold mb-1">${AUTH.esc(o.titre)}</h3>
-        <p class="text-muted small mb-2"><i class="bi bi-building me-1"></i>${AUTH.esc(o.partenaire)}</p>
-        <p class="text-muted small flex-grow-1">${AUTH.esc(o.description)}</p>
-        <div class="mt-3 p-2 rounded-2 text-center" style="background:#f0f4ff;border:1px dashed #003DA6;">
-          <small class="text-muted d-block">Code à présenter</small>
-          <strong style="color:var(--couleur-principale);font-size:1.1rem;letter-spacing:0.1em;">${AUTH.esc(o.code||'—')}</strong>
-        </div>
-      </div>
-    </div>`).join('');
-}
-
-DB_READY.then(() => {
-  renderEvents(); renderOffers();
-  /* Badge messages non lus */
-  const unread = MESSAGES.unreadCount(user.id);
-  if (unread > 0) {
-    const nb = document.getElementById('nav-msg-badge');
-    const sc = document.getElementById('shortcut-msg-badge');
-    if (nb) { nb.textContent = unread; nb.style.display = ''; }
-    if (sc) { sc.textContent = unread; sc.style.display = ''; }
+  /* ══════════════════════════════════════════════════════════
+     INIT
+  ══════════════════════════════════════════════════════════ */
+  function evtCard(e) {
+    const d = new Date(e.date + 'T00:00:00');
+    const now = new Date().toISOString().split('T')[0];
+    const parts = PROFILE.getEventParticipants(e.id);
+    const isInscrit = parts.some(p => p.userId === user.id);
+    const max = Number(e.nbMaxParticipants) || 0;
+    const complet = max > 0 && parts.length >= max && !isInscrit;
+    const limitDep = e.dateLimitParticipation && now > e.dateLimitParticipation;
+    const prixTxt = e.prixParticipant > 0 ? ` · ${Number(e.prixParticipant).toLocaleString('fr-TN')} TND` : '';
+    let btn;
+    if (isInscrit)   btn = `<button class="btn btn-sm btn-outline-success" onclick="cancelEvt('${e.id}')"><i class="bi bi-check-circle me-1"></i>Inscrit · Annuler</button>`;
+    else if(limitDep) btn = `<span class="badge bg-secondary">Inscriptions fermées</span>`;
+    else if(complet)  btn = `<span class="badge bg-danger">Complet</span>`;
+    else              btn = `<button class="btn btn-sm btn-attt" onclick="joinEvt('${e.id}')"><i class="bi bi-calendar-check me-1"></i>Participer${escH(prixTxt)}</button>`;
+    return `<div class="col-md-6 col-xl-4"><div class="card act-item-card h-100 p-3">
+      <div class="d-flex gap-3"><div class="date-box flex-shrink-0">
+        <div class="fw-bold fs-5 lh-1">${String(d.getDate()).padStart(2,'0')}</div>
+        <div class="small">${MOIS[d.getMonth()]}</div>
+      </div><div class="flex-grow-1">
+        <span class="badge bg-${CAT_COLORS[e.categorie]||'secondary'} mb-1">${escH(e.categorie)}</span>
+        <h3 class="h6 fw-bold mb-1">${escH(e.titre)}</h3>
+        <p class="text-muted small mb-0"><i class="bi bi-geo-alt me-1"></i>${escH(e.lieu)}</p>
+        ${e.heure ? `<p class="text-muted small mb-0"><i class="bi bi-clock me-1"></i>${escH(e.heure)}</p>` : ''}
+      </div></div>
+      ${e.description ? `<p class="small text-muted mt-2 mb-0">${escH(e.description).substring(0,100)}</p>` : ''}
+      <div class="mt-2">${btn}</div>
+    </div></div>`;
   }
-});
 
-/* ── Participer / Annuler depuis espace-membre ─────────── */
-function participerEsp(eventId) {
-  PROFILE.recordParticipation(user.id, eventId);
-  renderEvents();
-}
-function annulerParticipEsp(eventId) {
-  if (!confirm('Annuler votre participation à cet événement ?')) return;
-  PROFILE.cancelParticipation(user.id, eventId);
-  renderEvents();
-}
-</script>
+  function joinEvt(id)   { PROFILE.recordParticipation(user.id, id); showTab(_tab, null); }
+  function cancelEvt(id) { if (!confirm('Annuler votre participation ?')) return; PROFILE.cancelParticipation(user.id, id); showTab(_tab, null); }
+
+  document.addEventListener('DOMContentLoaded', async () => {
+    await DB_READY;
+    const roleLabels = AUTH.ROLE_LABELS || {};
+    document.getElementById('welcome-title').textContent = `Bonjour, ${user.prenom || user.nom} !`;
+    document.getElementById('welcome-sub').textContent =
+      `Rôle : ${roleLabels[user.role] || user.role} — Membre depuis le ${user.dateInscription || '—'}`;
+
+    // Messages
+    const unread = typeof MESSAGES !== 'undefined' ? MESSAGES.unreadCount(user.id) : 0;
+    if (unread > 0) {
+      const badge = document.getElementById('msg-count-badge');
+      if (badge) { badge.textContent = unread; badge.style.display = ''; }
+    }
+
+    // Sidebar
+    const sHTML = buildSidebarHTML();
+    document.getElementById('sidebar-desktop').innerHTML = sHTML;
+    document.getElementById('sidebar-mobile-body').innerHTML = `<nav class="px-1 py-2">${sHTML}</nav>`;
+    if (unread > 0) document.querySelectorAll('#sb-msg-badge').forEach(el => { el.textContent = unread; el.classList.remove('d-none'); });
+
+    // Badges + premier onglet
+    computeBadges();
+    showTab('events', null);
+  });
+  </script>
 </body>
 </html>

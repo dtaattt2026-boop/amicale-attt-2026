@@ -7,6 +7,8 @@
   <meta name="description" content="Galerie photos des événements et activités de l'Amicale de l'ATTT." />
   <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css" rel="stylesheet" />
   <link href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.3/font/bootstrap-icons.css" rel="stylesheet" />
+  <!-- jQuery (requis par Lightbox2) -->
+  <script src="https://cdn.jsdelivr.net/npm/jquery@3.7.1/dist/jquery.min.js"></script>
   <!-- Lightbox2 -->
   <link href="https://cdn.jsdelivr.net/npm/lightbox2@2.11.4/dist/css/lightbox.min.css" rel="stylesheet" />
   <link href="css/style.css" rel="stylesheet" />
@@ -92,7 +94,7 @@
         <div id="album-filters" class="d-flex flex-wrap gap-2"></div>
         <div class="ms-auto d-flex gap-2">
           <input type="search" class="form-control form-control-sm" id="galerie-search" placeholder="Rechercher…" oninput="renderGalerie()" style="min-width:150px;" />
-          <button id="btn-add-photo" class="btn btn-sm btn-attt d-none" onclick="openAddPhotoModal()">
+          <button id="btn-add-photo" class="btn btn-sm btn-attt" style="display:none" onclick="openAddPhotoModal()">
             <i class="bi bi-plus-lg me-1"></i>Ajouter des photos
           </button>
         </div>
@@ -117,7 +119,7 @@
     <div class="modal-dialog modal-lg">
       <div class="modal-content rounded-4">
         <div class="modal-header text-white" style="background:var(--couleur-principale);">
-          <h2 class="modal-title h5" id="addPhotoModalLabel"><i class="bi bi-image me-2"></i>Ajouter des photos</h2>
+          <h2 class="modal-title h5" id="addPhotoModalLabel"><i class="bi bi-image me-2"></i>Ajouter des médias</h2>
           <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal"></button>
         </div>
         <div class="modal-body p-4">
@@ -132,16 +134,17 @@
               <input type="text" class="form-control" id="photo-caption" placeholder="Description de la photo" maxlength="100" />
             </div>
             <div class="col-12">
-              <label class="form-label fw-semibold">Photos <span class="text-danger">*</span></label>
-              <input type="file" class="form-control" id="photo-files" accept="image/*" multiple />
-              <div class="form-text">Formats acceptés : JPG, PNG, WebP. Max 2 Mo par photo. Plusieurs photos possibles.</div>
+              <label class="form-label fw-semibold">Photos &amp; vidéos <span class="text-danger">*</span></label>
+              <input type="file" class="form-control" id="photo-files" accept="image/*,video/*" multiple />
+              <div class="form-text">Formats acceptés : JPG, PNG, WebP (max 50 Mo) · MP4, WebM, MOV… (max 500 Mo). Les fichiers seront envoyés vers le stockage distant.</div>
             </div>
             <div id="photo-preview" class="col-12 d-flex flex-wrap gap-2"></div>
+            <div class="col-12"><div id="photo-upload-state" class="small text-muted"></div></div>
           </div>
         </div>
         <div class="modal-footer">
           <button class="btn btn-secondary" data-bs-dismiss="modal">Annuler</button>
-          <button class="btn btn-attt" onclick="savePhotos()"><i class="bi bi-upload me-1"></i>Enregistrer</button>
+          <button class="btn btn-attt" id="btn-save-photos" onclick="savePhotos()"><i class="bi bi-upload me-1"></i>Enregistrer</button>
         </div>
       </div>
     </div>
@@ -173,10 +176,12 @@
   <script src="https://cdn.jsdelivr.net/npm/lightbox2@2.11.4/dist/js/lightbox.min.js"></script>
   <script src="https://www.gstatic.com/firebasejs/10.14.1/firebase-app-compat.js"></script>
   <script src="https://www.gstatic.com/firebasejs/10.14.1/firebase-firestore-compat.js"></script>
+  <script src="https://www.gstatic.com/firebasejs/10.14.1/firebase-storage-compat.js"></script>
   <script src="js/firebase-config.js"></script>
   <script src="js/db.js"></script>
   <script src="js/auth.js"></script>
   <script src="js/log.js"></script>
+  <script src="js/media-upload.js"></script>
   <script src="js/version-check.js"></script>
   <script src="js/main.js"></script>
   <script>
@@ -185,8 +190,19 @@
   const K_GALERIE = 'attt_galerie';
   let _filterAlbum = '';
 
+  function getGalleryUser() {
+    return typeof AUTH.getCurrentUser === 'function' ? AUTH.getCurrentUser() : null;
+  }
+
+  function initLightbox() {
+    if (typeof lightbox !== 'undefined' && lightbox && typeof lightbox.option === 'function') {
+      lightbox.option({ resizeDuration: 200, wrapAround: true, albumLabel: 'Photo %1 sur %2' });
+    }
+  }
+
   /* ── Storage galerie ─────────────────────────────────── */
   function _getPhotos()  { try { return JSON.parse(localStorage.getItem(K_GALERIE) || '[]'); } catch { return []; } }
+  function _isVideo(p) { return p.mediaType ? p.mediaType.startsWith('video/') : /\.(mp4|webm|ogg|mov|avi|mkv|m4v)(\?|$)/i.test(p.src || ''); }
   function _savePhotos(p){ localStorage.setItem(K_GALERIE, JSON.stringify(p)); if (typeof DB !== 'undefined') DB.push(K_GALERIE, p); }
 
   /* ── Filtre album ────────────────────────────────────── */
@@ -199,9 +215,9 @@
 
   /* ── Rendu principal ─────────────────────────────────── */
   function renderGalerie() {
-    lightbox.option({ resizeDuration: 200, wrapAround: true, albumLabel: 'Photo %1 sur %2' });
-    const user     = AUTH.getUser();
-    const isAdmin  = user && AUTH.hasRole(user, 'admin');
+    initLightbox();
+    const user     = getGalleryUser();
+    const isAdmin  = user && AUTH.hasPermission('Ajouter photo galerie', user);
     const search   = (document.getElementById('galerie-search')?.value || '').toLowerCase().trim();
     let photos     = _getPhotos();
     if (_filterAlbum) photos = photos.filter(p => p.album === _filterAlbum);
@@ -210,7 +226,8 @@
     );
 
     /* Bouton ajout */
-    document.getElementById('btn-add-photo').style.display = isAdmin ? '' : 'none';
+    const btnAdd = document.getElementById('btn-add-photo');
+    if (btnAdd) btnAdd.style.display = isAdmin ? '' : 'none';
 
     /* Filtres albums */
     const allAlbums = [...new Set(_getPhotos().map(p => p.album))];
@@ -235,26 +252,41 @@
     const byAlbum = {};
     photos.forEach(p => { (byAlbum[p.album] = byAlbum[p.album] || []).push(p); });
 
-    grid.innerHTML = Object.entries(byAlbum).map(([album, items]) => `
+    grid.innerHTML = Object.entries(byAlbum).map(([album, items]) => {
+      const total = items.length;
+      const nbVideos = items.filter(p => _isVideo(p)).length;
+      const label = total === 1 ? '1 média' :
+        `${total} médias${nbVideos ? ` (${nbVideos} vidéo${nbVideos > 1 ? 's' : ''})` : ''}`;
+      return `
       <div class="col-12 mb-2">
         <div class="d-flex align-items-center gap-3">
           <h3 class="h5 fw-bold mb-0" style="color:var(--couleur-principale)"><i class="bi bi-images me-2"></i>${album}</h3>
-          <span class="badge bg-light text-dark border">${items.length} photo${items.length>1?'s':''}</span>
-          ${isAdmin ? `<button class="btn btn-sm btn-outline-danger ms-auto" onclick="deleteAlbum('${album.replace(/'/g,"\\'")}')" title="Supprimer l'album"><i class="bi bi-trash"></i></button>` : ''}
+          <span class="badge bg-light text-dark border">${label}</span>
+          ${isAdmin ? `<button class="btn btn-sm btn-outline-danger ms-auto" onclick="deleteAlbum('${album.replace(/'/g, "\\'")}')"><i class="bi bi-trash"></i></button>` : ''}
         </div>
       </div>
-      ${items.map(p => `
+      ${items.map(p => {
+        const isVid = _isVideo(p);
+        const thumb = isVid
+          ? `<div class="galerie-item" style="background:#111;display:flex;align-items:center;justify-content:center;height:200px">
+               <video src="${p.src}" style="width:100%;height:200px;object-fit:cover" preload="metadata" muted playsinline></video>
+               <div class="galerie-overlay"><i class="bi bi-play-circle-fill" style="font-size:2.5rem"></i></div>
+             </div>`
+          : `<div class="galerie-item">
+               <img src="${p.src}" alt="${p.caption||album}" loading="lazy" />
+               <div class="galerie-overlay"><i class="bi bi-zoom-in"></i></div>
+             </div>`;
+        const wrapper = isVid
+          ? `<a href="${p.src}" target="_blank" rel="noopener" style="text-decoration:none">${thumb}</a>`
+          : `<a href="${p.src}" data-lightbox="${album}" data-title="${p.caption||album}">${thumb}</a>`;
+        return `
         <div class="col-6 col-md-4 col-lg-3">
-          <a href="${p.src}" data-lightbox="${album}" data-title="${p.caption||album}">
-            <div class="galerie-item">
-              <img src="${p.src}" alt="${p.caption||album}" loading="lazy" />
-              <div class="galerie-overlay"><i class="bi bi-zoom-in"></i></div>
-            </div>
-          </a>
+          ${wrapper}
           ${isAdmin ? `<button class="btn btn-sm btn-outline-danger w-100 mt-1" onclick="deletePhoto('${p.id}')"><i class="bi bi-trash me-1"></i>Suppr.</button>` : ''}
-        </div>`).join('')}
-      <div class="col-12 mb-3"></div>
-    `).join('');
+        </div>`;
+      }).join('')}
+      <div class="col-12 mb-3"></div>`;
+    }).join('');
   }
 
   /* ── Modal ajout ─────────────────────────────────────── */
@@ -263,6 +295,9 @@
     document.getElementById('photo-caption').value = '';
     document.getElementById('photo-files').value   = '';
     document.getElementById('photo-preview').innerHTML = '';
+    document.getElementById('photo-upload-state').textContent = MEDIA_UPLOAD.isAvailable()
+      ? 'Prêt pour l\'envoi.'
+      : 'Stockage non configuré.';
     new bootstrap.Modal(document.getElementById('addPhotoModal')).show();
   }
 
@@ -272,45 +307,94 @@
       const preview = document.getElementById('photo-preview');
       preview.innerHTML = '';
       [...this.files].forEach(file => {
-        if (!file.type.startsWith('image/')) return;
-        const reader = new FileReader();
-        reader.onload = e => {
-          const img = document.createElement('img');
-          img.src = e.target.result;
-          img.style.cssText = 'height:80px;width:80px;object-fit:cover;border-radius:8px;border:2px solid var(--couleur-principale)';
-          preview.appendChild(img);
-        };
-        reader.readAsDataURL(file);
+        const wrap = document.createElement('div');
+        wrap.style.cssText = 'position:relative;height:80px;width:80px;border-radius:8px;border:2px solid var(--couleur-principale);overflow:hidden;flex-shrink:0';
+        if (file.type.startsWith('video/')) {
+          const vid = document.createElement('video');
+          vid.src = URL.createObjectURL(file);
+          vid.style.cssText = 'height:100%;width:100%;object-fit:cover';
+          vid.muted = true;
+          vid.preload = 'metadata';
+          const icon = document.createElement('i');
+          icon.className = 'bi bi-play-circle-fill';
+          icon.style.cssText = 'position:absolute;inset:0;display:flex;align-items:center;justify-content:center;font-size:1.6rem;color:white;text-shadow:0 1px 4px rgba(0,0,0,.6);pointer-events:none';
+          // Fix: i element can't flex by itself — wrap in div
+          const iconWrap = document.createElement('div');
+          iconWrap.style.cssText = 'position:absolute;inset:0;display:flex;align-items:center;justify-content:center';
+          iconWrap.appendChild(icon);
+          wrap.appendChild(vid);
+          wrap.appendChild(iconWrap);
+        } else if (file.type.startsWith('image/')) {
+          const reader = new FileReader();
+          reader.onload = e => {
+            const img = document.createElement('img');
+            img.src = e.target.result;
+            img.style.cssText = 'height:100%;width:100%;object-fit:cover';
+            wrap.appendChild(img);
+          };
+          reader.readAsDataURL(file);
+        }
+        preview.appendChild(wrap);
       });
     });
   });
 
-  function savePhotos() {
+  async function savePhotos() {
     const album   = document.getElementById('photo-album').value.trim();
     const caption = document.getElementById('photo-caption').value.trim();
-    const files   = document.getElementById('photo-files').files;
+    const files   = [...document.getElementById('photo-files').files];
+    const status  = document.getElementById('photo-upload-state');
+    const saveBtn = document.getElementById('btn-save-photos');
     if (!album) { alert('Veuillez saisir un nom d\'album.'); return; }
-    if (!files.length) { alert('Veuillez choisir au moins une photo.'); return; }
+    if (!files.length) { alert('Veuillez choisir au moins un fichier.'); return; }
+    if (!MEDIA_UPLOAD.isAvailable()) { alert('Stockage distant indisponible.'); return; }
 
-    const user = AUTH.getUser();
-    let loaded = 0;
-    const photos = _getPhotos();
+    /* Validation des tailles avant tout envoi */
+    for (const file of files) {
+      const maxMo = file.type.startsWith('video/') ? 500 : 50;
+      if (file.size > maxMo * 1024 * 1024) {
+        alert(`${file.name} dépasse la limite de ${maxMo} Mo.`);
+        return;
+      }
+    }
 
-    [...files].forEach(file => {
-      if (file.size > 2 * 1024 * 1024) { alert(`${file.name} dépasse 2 Mo.`); return; }
-      const reader = new FileReader();
-      reader.onload = e => {
-        photos.push({ id: 'ph_' + Date.now() + '_' + Math.random().toString(36).slice(2,6), album, caption, src: e.target.result, auteurId: user?.id, date: new Date().toISOString().split('T')[0] });
-        loaded++;
-        if (loaded === files.length) {
-          _savePhotos(photos);
-          if (typeof LOG !== 'undefined') LOG.add(user?.id, `Photos ajoutées : album "${album}" (${files.length})`);
-          bootstrap.Modal.getInstance(document.getElementById('addPhotoModal'))?.hide();
-          renderGalerie();
-        }
-      };
-      reader.readAsDataURL(file);
-    });
+    const user = getGalleryUser();
+    if (saveBtn) { saveBtn.disabled = true; saveBtn.textContent = 'Envoi en cours…'; }
+    let done = 0;
+    status.textContent = `Envoi de ${files.length} fichier(s) en parallèle…`;
+
+    try {
+      /* Upload parallèle */
+      const results = await Promise.all(files.map(async file => {
+        const result = await MEDIA_UPLOAD.uploadFile(file, `gallery/${album}`);
+        done += 1;
+        status.textContent = `${done}/${files.length} téléversé(s)…`;
+        return {
+          id: 'ph_' + Date.now() + '_' + Math.random().toString(36).slice(2, 6),
+          album,
+          caption,
+          src: result.url,
+          mediaType: file.type || '',
+          auteurId: user?.id,
+          date: new Date().toISOString().split('T')[0],
+          provider: result.provider || '',
+          path: result.path || ''
+        };
+      }));
+
+      const photos = _getPhotos();
+      results.forEach(entry => photos.push(entry));
+      _savePhotos(photos);
+      if (typeof LOG !== 'undefined') LOG.add(user?.id, `Médias ajoutés : album "${album}" (${files.length})`);
+      status.textContent = `${files.length} fichier(s) enregistré(s) avec succès.`;
+      bootstrap.Modal.getInstance(document.getElementById('addPhotoModal'))?.hide();
+      renderGalerie();
+    } catch (error) {
+      status.textContent = error.message || 'Échec du téléversement.';
+      alert('Impossible d\'envoyer les fichiers : ' + (error.message || error));
+    } finally {
+      if (saveBtn) { saveBtn.disabled = false; saveBtn.innerHTML = '<i class="bi bi-upload me-1"></i>Enregistrer'; }
+    }
   }
 
   function deletePhoto(photoId) {
@@ -327,148 +411,11 @@
   }
 
   /* ── Init ────────────────────────────────────────────── */
-  DB_READY.then(renderGalerie);
-  </script>
-</body>
-      <h2 class="section-titre">Tournoi de football 2025</h2>
-      <div class="row g-3 mb-5">
-        <div class="col-6 col-md-4 col-lg-3">
-          <a href="img/galerie/football-01.jpg" data-lightbox="football2025" data-title="Tournoi de football 2025">
-            <div class="galerie-item">
-              <div class="img-placeholder" style="height:200px;"><i class="bi bi-image fs-2"></i></div>
-              <div class="galerie-overlay"><i class="bi bi-zoom-in"></i></div>
-            </div>
-          </a>
-        </div>
-        <div class="col-6 col-md-4 col-lg-3">
-          <a href="img/galerie/football-02.jpg" data-lightbox="football2025" data-title="Tournoi de football 2025">
-            <div class="galerie-item">
-              <div class="img-placeholder" style="height:200px;"><i class="bi bi-image fs-2"></i></div>
-              <div class="galerie-overlay"><i class="bi bi-zoom-in"></i></div>
-            </div>
-          </a>
-        </div>
-        <div class="col-6 col-md-4 col-lg-3">
-          <a href="img/galerie/football-03.jpg" data-lightbox="football2025" data-title="Remise des trophées">
-            <div class="galerie-item">
-              <div class="img-placeholder" style="height:200px;"><i class="bi bi-image fs-2"></i></div>
-              <div class="galerie-overlay"><i class="bi bi-zoom-in"></i></div>
-            </div>
-          </a>
-        </div>
-        <div class="col-6 col-md-4 col-lg-3">
-          <a href="img/galerie/football-04.jpg" data-lightbox="football2025" data-title="Tournoi de football 2025">
-            <div class="galerie-item">
-              <div class="img-placeholder" style="height:200px;"><i class="bi bi-image fs-2"></i></div>
-              <div class="galerie-overlay"><i class="bi bi-zoom-in"></i></div>
-            </div>
-          </a>
-        </div>
-      </div>
-
-      <!-- ALBUM : Arbre de Noël 2025 -->
-      <h2 class="section-titre">Arbre de Noël 2025</h2>
-      <div class="row g-3 mb-5">
-        <div class="col-6 col-md-4 col-lg-3">
-          <a href="img/galerie/noel-01.jpg" data-lightbox="noel2025" data-title="Arbre de Noël 2025">
-            <div class="galerie-item">
-              <div class="img-placeholder" style="height:200px;"><i class="bi bi-image fs-2"></i></div>
-              <div class="galerie-overlay"><i class="bi bi-zoom-in"></i></div>
-            </div>
-          </a>
-        </div>
-        <div class="col-6 col-md-4 col-lg-3">
-          <a href="img/galerie/noel-02.jpg" data-lightbox="noel2025" data-title="Remise de cadeaux">
-            <div class="galerie-item">
-              <div class="img-placeholder" style="height:200px;"><i class="bi bi-image fs-2"></i></div>
-              <div class="galerie-overlay"><i class="bi bi-zoom-in"></i></div>
-            </div>
-          </a>
-        </div>
-        <div class="col-6 col-md-4 col-lg-3">
-          <a href="img/galerie/noel-03.jpg" data-lightbox="noel2025" data-title="Animation enfants">
-            <div class="galerie-item">
-              <div class="img-placeholder" style="height:200px;"><i class="bi bi-image fs-2"></i></div>
-              <div class="galerie-overlay"><i class="bi bi-zoom-in"></i></div>
-            </div>
-          </a>
-        </div>
-      </div>
-
-      <!-- ALBUM : Excursion Tipaza 2025 -->
-      <h2 class="section-titre">Excursion Tipaza 2025</h2>
-      <div class="row g-3 mb-5">
-        <div class="col-6 col-md-4 col-lg-3">
-          <a href="img/galerie/tipaza-01.jpg" data-lightbox="tipaza2025" data-title="Sites archéologiques de Tipaza">
-            <div class="galerie-item">
-              <div class="img-placeholder" style="height:200px;"><i class="bi bi-image fs-2"></i></div>
-              <div class="galerie-overlay"><i class="bi bi-zoom-in"></i></div>
-            </div>
-          </a>
-        </div>
-        <div class="col-6 col-md-4 col-lg-3">
-          <a href="img/galerie/tipaza-02.jpg" data-lightbox="tipaza2025" data-title="Pique-nique en groupe">
-            <div class="galerie-item">
-              <div class="img-placeholder" style="height:200px;"><i class="bi bi-image fs-2"></i></div>
-              <div class="galerie-overlay"><i class="bi bi-zoom-in"></i></div>
-            </div>
-          </a>
-        </div>
-        <div class="col-6 col-md-4 col-lg-3">
-          <a href="img/galerie/tipaza-03.jpg" data-lightbox="tipaza2025" data-title="Vue panoramique">
-            <div class="galerie-item">
-              <div class="img-placeholder" style="height:200px;"><i class="bi bi-image fs-2"></i></div>
-              <div class="galerie-overlay"><i class="bi bi-zoom-in"></i></div>
-            </div>
-          </a>
-        </div>
-        <div class="col-6 col-md-4 col-lg-3">
-          <a href="img/galerie/tipaza-04.jpg" data-lightbox="tipaza2025" data-title="Photo de groupe">
-            <div class="galerie-item">
-              <div class="img-placeholder" style="height:200px;"><i class="bi bi-image fs-2"></i></div>
-              <div class="galerie-overlay"><i class="bi bi-zoom-in"></i></div>
-            </div>
-          </a>
-        </div>
-      </div>
-
-      <div class="alert alert-info small" role="alert">
-        <i class="bi bi-info-circle me-2"></i>
-        Pour ajouter vos photos, placez-les dans le dossier <code>img/galerie/</code> et ajoutez les balises correspondantes dans ce fichier HTML.
-      </div>
-
-    </div>
-  </main>
-
-  <!-- FOOTER -->
-  <footer class="py-4 text-white">
-    <div class="container">
-      <div class="row align-items-center">
-        <div class="col-md-6 text-center text-md-start mb-3 mb-md-0">
-          <p class="mb-1 fw-semibold">Amicale de l'ATTT</p>
-          <p class="mb-0 small opacity-75">Association du personnel — Agence Technique des Transports Terrestres</p>
-        </div>
-        <div class="col-md-6 text-center text-md-end">
-          <div class="d-flex justify-content-center justify-content-md-end gap-3 mb-2 flex-wrap">
-            <a href="a-propos.html">L'association</a>
-            <a href="actualites.html">Actualités</a>
-            <a href="activites.html">Activités</a>
-            <a href="contact.html">Contact</a>
-          </div>
-          <p class="mb-0 small opacity-50">&copy; 2026 Amicale ATTT — Tous droits réservés</p>
-          <p class="mb-0 mt-1"><a href="hebergement.html" class="small opacity-40">Guide webmaster</a></p>
-        </div>
-      </div>
-    </div>
-  </footer>
-
-  <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js"></script>
-  <script src="https://cdn.jsdelivr.net/npm/lightbox2@2.11.4/dist/js/lightbox.min.js"></script>
-  <script src="js/auth.js"></script>
-  <script src="js/version-check.js"></script>
-  <script src="js/main.js"></script>
-  <script>
-    lightbox.option({ resizeDuration: 200, wrapAround: true, albumLabel: 'Photo %1 sur %2' });
+  DB_READY.then(() => {
+    initLightbox();
+    renderGalerie();
+    if (typeof MEDIA_UPLOAD !== 'undefined') MEDIA_UPLOAD.prewarmDriveToken();
+  });
   </script>
 </body>
 </html>

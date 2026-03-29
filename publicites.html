@@ -1,0 +1,337 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Amicale ATTT - Publicites accueil</title>
+  <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css" rel="stylesheet" />
+  <link href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.3/font/bootstrap-icons.css" rel="stylesheet" />
+  <link href="css/style.css" rel="stylesheet" />
+  <style>
+    .thumb-preview { width: 100%; max-height: 220px; object-fit: cover; border-radius: 14px; }
+    .video-preview { width: 100%; height: 220px; border: 0; border-radius: 14px; }
+  </style>
+</head>
+<body>
+  <nav class="navbar navbar-dark py-2" style="background:var(--couleur-principale);">
+    <div class="container-fluid px-3 d-flex justify-content-between">
+      <a class="navbar-brand fw-bold d-flex align-items-center gap-2 fs-6" href="index.html">
+        <i class="bi bi-people-fill"></i>Amicale ATTT
+        <span class="badge bg-light text-dark">Publicites</span>
+      </a>
+      <div class="d-flex align-items-center gap-2">
+        <span class="text-white-50 small d-none d-md-block" id="topbar-user"></span>
+        <a href="#" id="back-btn" class="btn btn-outline-light btn-sm"><i class="bi bi-arrow-left me-1"></i>Retour</a>
+      </div>
+    </div>
+  </nav>
+
+  <main class="py-4">
+    <div class="container">
+      <div class="d-flex justify-content-between align-items-center flex-wrap gap-3 mb-4">
+        <div>
+          <h1 class="h4 section-titre mb-1">Publicites de la page accueil</h1>
+          <p class="text-muted mb-0">Ajoutez des images ou videos promotionnelles pour la page d'accueil.</p>
+          <p class="small mb-0 mt-2" id="ads-storage-note"></p>
+        </div>
+        <button class="btn btn-attt" data-perm="Voir bouton Ajouter publicité accueil" data-perm-mode="action" data-bs-toggle="modal" data-bs-target="#adModal" onclick="openAdModal()">
+          <i class="bi bi-plus-lg me-1"></i>Ajouter une pub
+        </button>
+      </div>
+
+      <div class="card p-0 overflow-hidden">
+        <div class="table-responsive">
+          <table class="table table-hover align-middle mb-0">
+            <thead class="table-light">
+              <tr>
+                <th>Média</th>
+                <th>Titre</th>
+                <th>Taille</th>
+                <th>Accès</th>
+                <th>Ordre</th>
+                <th>Statut</th>
+                <th>Destination</th>
+                <th class="text-end">Actions</th>
+              </tr>
+            </thead>
+            <tbody id="ads-tbody"></tbody>
+          </table>
+        </div>
+      </div>
+    </div>
+  </main>
+
+  <div class="modal fade" id="adModal" tabindex="-1">
+    <div class="modal-dialog modal-lg">
+      <div class="modal-content rounded-4">
+        <div class="modal-header" style="background:var(--couleur-principale);color:white;">
+          <h2 class="modal-title h5" id="ad-modal-title">Nouvelle publicite</h2>
+          <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal"></button>
+        </div>
+        <div class="modal-body p-4">
+          <input type="hidden" id="ad-id" />
+          <div class="row g-3">
+            <div class="col-md-7">
+              <label class="form-label fw-semibold">Titre</label>
+              <input class="form-control" id="ad-title" maxlength="120" />
+            </div>
+            <div class="col-md-5">
+              <label class="form-label fw-semibold">Type de média</label>
+              <select class="form-select" id="ad-media-type" onchange="renderAdPreview()">
+                <option value="image">Image</option>
+                <option value="video">Vidéo</option>
+              </select>
+            </div>
+            <div class="col-12">
+              <label class="form-label fw-semibold">URL du média</label>
+              <input class="form-control" id="ad-media-url" placeholder="https://..." oninput="renderAdPreview()" />
+              <div class="form-text">Collez un lien direct vers une image ou une vidéo publique.</div>
+            </div>
+            <div class="col-12">
+              <label class="form-label fw-semibold">Ou téléverser un fichier</label>
+              <div class="d-flex gap-2 flex-wrap align-items-center">
+                <input class="form-control" type="file" id="ad-media-file" accept="image/*,video/*" style="max-width:340px;" />
+                <button class="btn btn-outline-primary" type="button" onclick="uploadAdMedia()">
+                  <i class="bi bi-cloud-upload me-1"></i>Téléverser
+                </button>
+                <span class="small text-muted" id="ad-upload-state"></span>
+              </div>
+              <div class="form-text">Le fichier sera enregistré et un lien sera conservé dans le site.</div>
+            </div>
+            <div class="col-md-6">
+              <label class="form-label fw-semibold">Miniature optionnelle</label>
+              <input class="form-control" id="ad-thumb-url" placeholder="https://..." oninput="renderAdPreview()" />
+            </div>
+            <div class="col-md-6">
+              <label class="form-label fw-semibold">Lien de destination</label>
+              <input class="form-control" id="ad-target-url" placeholder="contact.html, actualites.html, https://..." />
+            </div>
+            <div class="col-md-4">
+              <label class="form-label fw-semibold">Taille du média</label>
+              <input class="form-control" id="ad-media-size" placeholder="Ex: 4.8 Mo" />
+            </div>
+            <div class="col-md-4">
+              <label class="form-label fw-semibold">Accès</label>
+              <select class="form-select" id="ad-access">
+                <option value="tous">Tous</option>
+                <option value="famille">Famille+</option>
+                <option value="membres">Membres uniquement</option>
+              </select>
+            </div>
+            <div class="col-md-4">
+              <label class="form-label fw-semibold">Ordre</label>
+              <input class="form-control" id="ad-order" type="number" min="0" value="1" />
+            </div>
+            <div class="col-md-4 d-flex align-items-end">
+              <div class="form-check form-switch">
+                <input class="form-check-input" type="checkbox" id="ad-active" checked />
+                <label class="form-check-label" for="ad-active">Pub active</label>
+              </div>
+            </div>
+            <div class="col-12">
+              <label class="form-label fw-semibold">Description</label>
+              <textarea class="form-control" id="ad-description" rows="3"></textarea>
+            </div>
+            <div class="col-12">
+              <div class="border rounded-4 p-3 bg-light">
+                <div class="small fw-semibold mb-2">Aperçu</div>
+                <div id="ad-preview" class="text-muted small">Ajoutez une URL média pour prévisualiser.</div>
+              </div>
+            </div>
+          </div>
+        </div>
+        <div class="modal-footer">
+          <button class="btn btn-secondary" data-bs-dismiss="modal">Annuler</button>
+          <button class="btn btn-attt" onclick="saveAd()"><i class="bi bi-check-lg me-1"></i>Enregistrer</button>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js"></script>
+  <script src="https://www.gstatic.com/firebasejs/10.14.1/firebase-app-compat.js"></script>
+  <script src="https://www.gstatic.com/firebasejs/10.14.1/firebase-firestore-compat.js"></script>
+  <script src="https://www.gstatic.com/firebasejs/10.14.1/firebase-storage-compat.js"></script>
+  <script src="js/firebase-config.js"></script>
+  <script src="js/db.js"></script>
+  <script src="js/auth.js"></script>
+  <script src="js/log.js"></script>
+  <script src="js/media-upload.js"></script>
+  <script src="js/publicites.js"></script>
+  <script>
+  'use strict';
+  const user = AUTH.requireAuth();
+  if (!user) throw new Error();
+  if (!AUTH.hasPermission('Accéder page Publicités accueil', user)) {
+    alert('Acces refuse a la page Publicites.');
+    history.back();
+    throw new Error('Permission refusee');
+  }
+  document.getElementById('topbar-user').textContent = user.prenom + ' ' + user.nom;
+  document.getElementById('back-btn').href = AUTH.dashUrl(user);
+  const adModal = new bootstrap.Modal(document.getElementById('adModal'));
+
+  function renderStorageNote() {
+    const note = document.getElementById('ads-storage-note');
+    const ok = typeof MEDIA_UPLOAD !== 'undefined' && MEDIA_UPLOAD.isAvailable && MEDIA_UPLOAD.isAvailable();
+    note.className = ok ? 'small text-success mb-0 mt-2' : 'small text-warning mb-0 mt-2';
+    note.textContent = ok ? 'Stockage des médias opérationnel.' : 'Stockage des médias non configuré.';
+  }
+
+  function renderAds() {
+    const ads = PUBLICITES.getAds();
+    const tbody = document.getElementById('ads-tbody');
+    if (!ads.length) {
+      tbody.innerHTML = '<tr><td colspan="8" class="text-center text-muted py-4">Aucune publicité enregistrée.</td></tr>';
+      return;
+    }
+    tbody.innerHTML = ads.map(ad => `
+      <tr>
+        <td style="width:140px;">
+          ${ad.mediaType === 'video'
+            ? '<span class="badge bg-dark"><i class="bi bi-play-btn me-1"></i>Vidéo</span>'
+            : ad.thumbnailUrl || ad.mediaUrl
+              ? '<img src="' + AUTH.esc(ad.thumbnailUrl || ad.mediaUrl) + '" alt="" style="width:120px;height:68px;object-fit:cover;border-radius:12px;">'
+              : '<span class="text-muted small">Aperçu indisponible</span>'}
+        </td>
+        <td>
+          <div class="fw-semibold">${AUTH.esc(ad.titre)}</div>
+          <div class="small text-muted">${AUTH.esc(ad.description || '—')}</div>
+        </td>
+        <td class="small text-muted">${AUTH.esc(ad.mediaSize || '—')}</td>
+        <td><span class="badge bg-light text-dark border">${AUTH.esc(PUBLICITES.getAccessLabel(ad.access))}</span></td>
+        <td>${AUTH.esc(ad.ordre)}</td>
+        <td>${ad.actif ? '<span class="badge bg-success">Active</span>' : '<span class="badge bg-secondary">Inactive</span>'}</td>
+        <td class="small text-muted">${AUTH.esc(ad.targetUrl || '—')}</td>
+        <td class="text-end">
+          <button class="btn btn-sm btn-outline-primary me-1" onclick="openAdModal('${AUTH.esc(ad.id)}')"><i class="bi bi-pencil"></i></button>
+          <button class="btn btn-sm btn-outline-danger" data-perm="Supprimer publicité accueil" data-perm-mode="action" onclick="deleteAd('${AUTH.esc(ad.id)}')"><i class="bi bi-trash"></i></button>
+        </td>
+      </tr>`).join('');
+    AUTH.applyPermissions(tbody, user);
+  }
+
+  function openAdModal(id) {
+    const ad = id ? PUBLICITES.getAd(id) : null;
+    document.getElementById('ad-modal-title').textContent = ad ? 'Modifier la publicite' : 'Nouvelle publicite';
+    document.getElementById('ad-id').value = ad?.id || '';
+    document.getElementById('ad-title').value = ad?.titre || '';
+    document.getElementById('ad-media-type').value = ad?.mediaType || 'image';
+    document.getElementById('ad-media-url').value = ad?.mediaUrl || '';
+    document.getElementById('ad-thumb-url').value = ad?.thumbnailUrl || '';
+    document.getElementById('ad-target-url').value = ad?.targetUrl || '';
+    document.getElementById('ad-media-size').value = ad?.mediaSize || '';
+    document.getElementById('ad-access').value = ad?.access || 'tous';
+    document.getElementById('ad-order').value = ad?.ordre || 1;
+    document.getElementById('ad-active').checked = ad?.actif !== false;
+    document.getElementById('ad-description').value = ad?.description || '';
+    renderAdPreview();
+    adModal.show();
+  }
+
+  function renderAdPreview() {
+    const mediaType = document.getElementById('ad-media-type').value;
+    const mediaUrl = PUBLICITES.normalizeMediaUrl(document.getElementById('ad-media-url').value.trim(), mediaType);
+    const thumbUrl = PUBLICITES.normalizeMediaUrl(document.getElementById('ad-thumb-url').value.trim(), 'image');
+    const preview = document.getElementById('ad-preview');
+    if (!mediaUrl && !thumbUrl) {
+      preview.innerHTML = 'Ajoutez une URL média pour prévisualiser.';
+      return;
+    }
+    if (mediaType === 'video') {
+      const src = mediaUrl;
+      preview.innerHTML = src
+        ? '<iframe class="video-preview" src="' + AUTH.esc(src) + '" allow="autoplay; encrypted-media" allowfullscreen></iframe>'
+        : 'URL vidéo invalide.';
+      return;
+    }
+    preview.innerHTML = '<img class="thumb-preview" src="' + AUTH.esc(thumbUrl || mediaUrl) + '" alt="Aperçu de la publicité">';
+  }
+
+  async function uploadAdMedia() {
+    const input = document.getElementById('ad-media-file');
+    const state = document.getElementById('ad-upload-state');
+    const file = input.files?.[0];
+    if (!file) {
+      state.textContent = 'Choisissez un fichier.';
+      return;
+    }
+    if (!MEDIA_UPLOAD.isAvailable()) {
+      state.textContent = 'Stockage distant indisponible.';
+      return;
+    }
+    state.textContent = 'Téléversement en cours…';
+    try {
+      const result = await MEDIA_UPLOAD.uploadFile(file, 'home-ads');
+      document.getElementById('ad-media-url').value = result.url;
+      if (file.type.startsWith('image/') && !document.getElementById('ad-thumb-url').value.trim()) {
+        document.getElementById('ad-thumb-url').value = result.url;
+      }
+      document.getElementById('ad-media-size').value = (result.size / (1024 * 1024)).toFixed(2) + ' Mo';
+      state.textContent = 'Fichier téléversé.';
+      renderAdPreview();
+    } catch (error) {
+      state.textContent = 'Échec du téléversement.';
+      alert('Téléversement impossible : ' + error.message);
+    }
+  }
+
+  function saveAd() {
+    if (!AUTH.hasPermission('Ajouter / modifier publicité accueil', user)) {
+      alert('Droits insuffisants pour enregistrer une publicité.');
+      return;
+    }
+    const titre = document.getElementById('ad-title').value.trim();
+    const mediaType = document.getElementById('ad-media-type').value;
+    const mediaUrl = document.getElementById('ad-media-url').value.trim();
+    if (!titre || !mediaUrl) {
+      alert('Titre et URL média requis.');
+      return;
+    }
+    const payload = {
+      titre,
+      mediaType,
+      mediaUrl,
+      thumbnailUrl: document.getElementById('ad-thumb-url').value.trim(),
+      targetUrl: document.getElementById('ad-target-url').value.trim(),
+      mediaSize: document.getElementById('ad-media-size').value.trim(),
+      access: document.getElementById('ad-access').value,
+      ordre: Number(document.getElementById('ad-order').value) || 0,
+      actif: document.getElementById('ad-active').checked,
+      description: document.getElementById('ad-description').value.trim(),
+      auteurId: user.id,
+      auteurLogin: user.login
+    };
+    const id = document.getElementById('ad-id').value;
+    if (id) {
+      PUBLICITES.updateAd(id, payload);
+      if (typeof LOG !== 'undefined') LOG.add('HOME_AD_EDIT', { acteurId:user.id, acteurLogin:user.login, acteurRole:user.role, detail:titre });
+    } else {
+      PUBLICITES.addAd(payload);
+      if (typeof LOG !== 'undefined') LOG.add('HOME_AD_ADD', { acteurId:user.id, acteurLogin:user.login, acteurRole:user.role, detail:titre });
+    }
+    adModal.hide();
+    renderAds();
+  }
+
+  function deleteAd(id) {
+    if (!AUTH.hasPermission('Supprimer publicité accueil', user)) {
+      alert('Droits insuffisants pour supprimer cette publicité.');
+      return;
+    }
+    const ad = PUBLICITES.getAd(id);
+    if (!confirm('Supprimer cette publicité ?')) return;
+    PUBLICITES.deleteAd(id);
+    if (typeof LOG !== 'undefined') LOG.add('HOME_AD_DELETE', { acteurId:user.id, acteurLogin:user.login, acteurRole:user.role, detail:ad?.titre || id });
+    renderAds();
+  }
+
+  DB_READY.then(() => {
+    AUTH.applyPermissions(document, user);
+    renderStorageNote();
+    renderAds();
+    if (typeof MEDIA_UPLOAD !== 'undefined') MEDIA_UPLOAD.prewarmDriveToken();
+  });
+  </script>
+</body>
+</html>
