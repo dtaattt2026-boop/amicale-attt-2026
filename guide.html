@@ -279,14 +279,14 @@
             <div class="card border-0 shadow-sm p-4">
               <div class="d-flex align-items-center justify-content-between mb-3">
                 <h2 class="h6 fw-bold mb-0"><i class="bi bi-rocket-takeoff me-2 text-danger"></i>Publier sur internet</h2>
-                <a href="https://amicale-attt.web.app" target="_blank" rel="noopener" class="btn btn-outline-secondary btn-sm">
+              <a href="https://dtaattt2026-boop.github.io/amicale-attt-2026/" target="_blank" rel="noopener" class="btn btn-outline-secondary btn-sm">
                   <i class="bi bi-box-arrow-up-right me-1"></i>Voir le site
                 </a>
               </div>
               <div class="card bg-light border-0 p-3 mb-3 small">
                 <div class="row g-2">
-                  <div class="col-6"><span class="text-muted">Projet Firebase :</span><br/><strong>amicale-attt</strong></div>
-                  <div class="col-6"><span class="text-muted">URL publique :</span><br/><strong>amicale-attt.web.app</strong></div>
+                  <div class="col-6"><span class="text-muted">Méthode :</span><br/><strong>GitHub Pages</strong></div>
+                  <div class="col-6"><span class="text-muted">URL publique :</span><br/><a href="https://dtaattt2026-boop.github.io/amicale-attt-2026/" target="_blank" class="fw-bold text-primary">dtaattt2026-boop.github.io/amicale-attt-2026/</a></div>
                   <div class="col-6"><span class="text-muted">Dernier deploiement :</span><br/><strong id="last-deploy-date">—</strong></div>
                   <div class="col-6"><span class="text-muted">Statut :</span><br/><span id="last-deploy-status">—</span></div>
                 </div>
@@ -340,7 +340,8 @@
   const user = AUTH.requireAuth('superviseur');
   if (!user) throw new Error('Non autorise');
 
-  const DEPLOY_API = 'http://127.0.0.1:8081';
+    const DEPLOY_API  = 'http://127.0.0.1:8081';
+    const SITE_URL    = 'https://dtaattt2026-boop.github.io/amicale-attt-2026/';
   const K_VER      = 'attt_site_version';
   const K_HIST     = 'attt_version_history';
 
@@ -647,7 +648,7 @@
     btn.innerHTML = '<span class="spinner-border spinner-border-sm me-2"></span>Deploiement en cours...';
     document.getElementById('deploy-console').innerHTML = '';
     try {
-      const resp = await fetch(DEPLOY_API + '/api/deploy', { method: 'POST' });
+      const resp = await fetch(DEPLOY_API + '/api/deploy', { method: 'POST', headers: {'Content-Type':'application/json'}, body: JSON.stringify({ comment }) });
       const reader = resp.body.getReader();
       const dec = new TextDecoder();
       let buf = '';
@@ -665,7 +666,7 @@
             appendConsole(msg.data, cls);
             if (msg.type === 'done') {
               document.getElementById('last-deploy-date').textContent = new Date().toLocaleString('fr-TN');
-              document.getElementById('last-deploy-status').innerHTML = '<span class="badge bg-success">Succes</span>';
+              document.getElementById('last-deploy-status').innerHTML = '<a href="' + SITE_URL + '" target="_blank" class="badge bg-success text-white text-decoration-none"><i class="bi bi-box-arrow-up-right me-1"></i>En ligne ✔</a>';
               localStorage.setItem('attt_last_deploy', JSON.stringify({ date: new Date().toISOString(), status: 'success' }));
             } else if (msg.type === 'error') {
               document.getElementById('last-deploy-status').innerHTML = '<span class="badge bg-danger">Echec</span>';
@@ -720,6 +721,11 @@
     loadLastDeploy();
     checkServer();
     setInterval(checkServer, 15000);
+    if (document.getElementById('last-deploy-status').textContent === '—') {
+      document.getElementById('last-deploy-status').innerHTML =
+        '<a href="' + SITE_URL + '" target="_blank" class="badge bg-success text-white text-decoration-none">' +
+        '<i class="bi bi-box-arrow-up-right me-1"></i>En ligne</a>';
+    }
   });
   </script>
 </body>
