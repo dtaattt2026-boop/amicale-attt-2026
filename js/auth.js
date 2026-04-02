@@ -658,6 +658,11 @@ const AUTH = (() => {
     return Array.isArray(rows) && rows.some(row => Array.isArray(row) && row[0] === 'Promouvoir → Maître');
   }
 
+  function _isAllDenied(state) {
+    const normalized = _normalizePermissionValue(state);
+    return normalized.visible === '—' && normalized.action === '—';
+  }
+
   function _syncRightsMatrix(rows) {
     const visibleRoles = getVisibleMatrixRoles();
     const legacyMode = _isLegacyRightsMatrix(rows);
@@ -669,7 +674,16 @@ const AUTH = (() => {
       const saved = savedMap.get(defaultRow.label);
       const values = {};
       visibleRoles.forEach(role => {
-        values[role.id] = _normalizePermissionValue(saved?.values?.[role.id] || defaultRow.values[role.id] || '—');
+        const savedValue = _normalizePermissionValue(saved?.values?.[role.id] || '—');
+        const defaultValue = _normalizePermissionValue(defaultRow.values?.[role.id] || '—');
+
+        // Migration douce: une ancienne ligne dynamique de type "Accéder page ..."
+        // pouvait être enregistrée en tout refusé. On réapplique alors le défaut système.
+        const isPageAccess = String(defaultRow.label || '').startsWith('Accéder page ');
+        const shouldUseDefault = isPageAccess && _isAllDenied(savedValue) && !_isAllDenied(defaultValue);
+
+        values[role.id] = shouldUseDefault ? defaultValue :
+          _normalizePermissionValue(saved?.values?.[role.id] || defaultRow.values[role.id] || '—');
       });
       return { label: defaultRow.label, values };
     });
