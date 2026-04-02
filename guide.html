@@ -291,6 +291,26 @@
                   <div class="col-6"><span class="text-muted">Statut :</span><br/><span id="last-deploy-status">—</span></div>
                 </div>
               </div>
+              <div class="card border-0 shadow-sm p-3 mb-3 small" style="background:#f8fafc;">
+                <div class="d-flex align-items-center justify-content-between mb-2">
+                  <strong><i class="bi bi-link-45deg me-1 text-primary"></i>URLs de reference</strong>
+                  <button class="btn btn-outline-primary btn-sm" onclick="openVersionNoCache()">
+                    <i class="bi bi-arrow-repeat me-1"></i>Tester version (no-cache)
+                  </button>
+                </div>
+                <div class="mb-2">
+                  <span class="text-muted">Site public :</span><br/>
+                  <a href="https://dtaattt2026-boop.github.io/amicale-attt-2026/" target="_blank" rel="noopener">https://dtaattt2026-boop.github.io/amicale-attt-2026/</a>
+                </div>
+                <div class="mb-2">
+                  <span class="text-muted">Version publiee (smartphone lit cette URL) :</span><br/>
+                  <a href="https://dtaattt2026-boop.github.io/amicale-attt-2026/assets/version.json" target="_blank" rel="noopener">https://dtaattt2026-boop.github.io/amicale-attt-2026/assets/version.json</a>
+                </div>
+                <div>
+                  <span class="text-muted">Source GitHub (branche master) :</span><br/>
+                  <a href="https://raw.githubusercontent.com/dtaattt2026-boop/amicale-attt-2026/master/assets/version.json" target="_blank" rel="noopener">https://raw.githubusercontent.com/dtaattt2026-boop/amicale-attt-2026/master/assets/version.json</a>
+                </div>
+              </div>
               <button class="btn btn-danger w-100 fw-semibold mb-3" onclick="startDeploy()" id="btn-deploy">
                 <i class="bi bi-rocket-takeoff me-2"></i>Lancer la mise a jour
               </button>
@@ -339,11 +359,23 @@
   'use strict';
   const user = AUTH.requireAuth('superviseur');
   if (!user) throw new Error('Non autorise');
+  if (!AUTH.hasPermission('Accéder page Guide technique', user, null, 'action')) {
+    alert('Accès refusé à la page Guide technique.');
+    history.back();
+    throw new Error('Permission refusée');
+  }
 
     const DEPLOY_API  = 'http://127.0.0.1:8081';
     const SITE_URL    = 'https://dtaattt2026-boop.github.io/amicale-attt-2026/';
+    const VERSION_URL = SITE_URL + 'assets/version.json';
+    const RAW_VERSION_URL = 'https://raw.githubusercontent.com/dtaattt2026-boop/amicale-attt-2026/master/assets/version.json';
   const K_VER      = 'attt_site_version';
   const K_HIST     = 'attt_version_history';
+
+  function openVersionNoCache() {
+    const u = VERSION_URL + '?nocache=' + Date.now();
+    window.open(u, '_blank', 'noopener');
+  }
 
   // ── TABLES ────────────────────────────────────────────────────
   const TABLES = [

@@ -65,6 +65,8 @@ const AUTH = (() => {
     ['Supprimer publicité accueil',           '✓','✓','✓','—'],
     ['Voir bouton Ajouter publicité accueil', '✓','✓','✓','—'],
     ['Accéder page Actualités',               '✓','✓','✓','—'],
+    ['Accéder page Superviseur',              '✓','✓','—','—'],
+    ['Accéder page Admin',                    '✓','✓','✓','—'],
     ['Réserver location vacances',            '✓','✓','✓','✓'],
     ['Voir colonne E-mail',                   '✓','✓','✓','—'],
     ['Voir colonne Inscrits',                 '✓','✓','✓','—'],
@@ -136,6 +138,18 @@ const AUTH = (() => {
         'Publier article avec photo',
         'Modifier / supprimer article'
       ]
+    },
+    {
+      id: 'superviseur',
+      label: 'Superviseur',
+      path: 'superviseur.html',
+      permissions: ['Accéder page Superviseur']
+    },
+    {
+      id: 'admin-page',
+      label: 'Administration',
+      path: 'admin.html',
+      permissions: ['Accéder page Admin']
     },
     {
       id: 'utilisateurs',
@@ -239,6 +253,12 @@ const AUTH = (() => {
   const LEGACY_ROLE_IDS = ['superviseur', 'admin', 'membre', 'famille'];
   const SYMBOL_PRIORITY = { '—': 0, '⚠': 1, '✓': 2 };
   const PERMISSION_AXES = ['visible', 'action'];
+  const PERMISSION_ALIASES = {
+    'Créer vote': 'Voir bouton Créer vote',
+    'Creer vote': 'Voir bouton Créer vote',
+    'Acceder page Superviseur': 'Accéder page Superviseur',
+    'Acceder page Admin': 'Accéder page Admin'
+  };
 
   function _hash(str) {
     const salt = 'ATTT_AMICALE_DZ_2026';
@@ -625,6 +645,23 @@ const AUTH = (() => {
     return actorOrRole ? _normalizeUser(actorOrRole) : (getCurrentUser() || { roles: ['membre'], role: 'membre' });
   }
 
+  function _normalizePermissionLabel(label) {
+    const raw = String(label || '').trim();
+    if (!raw) return raw;
+
+    const normalized = PERMISSION_ALIASES[raw] || raw;
+    const rows = _getRightsMatrix();
+    if (rows.find(item => item.label === normalized)) return normalized;
+
+    const simplify = value => String(value || '')
+      .normalize('NFD').replace(/[\u0300-\u036f]/g, '')
+      .toLowerCase().replace(/\s+/g, ' ').trim();
+
+    const target = simplify(normalized);
+    const match = rows.find(item => simplify(item.label) === target);
+    return match ? match.label : normalized;
+  }
+
   function _canActOnTarget(actor, targetUser) {
     if (!targetUser) return true;
     if (targetUser.login === '347') return false;
@@ -635,7 +672,8 @@ const AUTH = (() => {
   function getPermissionState(label, actorOrRole) {
     const actor = _resolveActor(actorOrRole);
     if (hasImplicitAllRole(actor)) return { visible: '✓', action: '✓' };
-    const row = _getRightsMatrix().find(item => item.label === label);
+    const resolvedLabel = _normalizePermissionLabel(label);
+    const row = _getRightsMatrix().find(item => item.label === resolvedLabel);
     if (!row) return { visible: '—', action: '—' };
     return getUserRoles(actor).reduce((best, roleId) => {
       const current = _normalizePermissionValue(row.values?.[roleId]);
@@ -661,6 +699,14 @@ const AUTH = (() => {
 
   function canViewPermission(label, actorOrRole, subjectUser) {
     return hasPermission(label, actorOrRole, subjectUser, 'visible');
+  }
+
+  function currentUser() {
+    return getCurrentUser();
+  }
+
+  function can(label, actorOrRole, subjectUser, axis = 'action') {
+    return hasPermission(label, actorOrRole, subjectUser, axis);
   }
 
   function _permissionAxisForElement(el) {
@@ -1053,11 +1099,11 @@ const AUTH = (() => {
 
   return {
     init, login, logout, register,
-    getCurrentUser, getUsers,
+    getCurrentUser, currentUser, getUsers,
     getPendingMembers, getMembersByValidateur,
     validateMember, rejectMember,
     hasRole, userHasExactRole, requireAuth,
-    getPermissionState, getPermissionSymbol, hasPermission, canViewPermission, applyPermissions,
+    getPermissionState, getPermissionSymbol, hasPermission, canViewPermission, can, applyPermissions,
     updateUser, softDeleteUser, deleteUser, dashUrl,
     getRoles, getRoleDefinition, getRoleLevel, getRoleLabel,
     getUserRoles, getPrimaryRole, getHighestPrivilegeLevel, getAssignableRoles,

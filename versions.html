@@ -589,7 +589,9 @@
   'use strict';
   const user = AUTH.requireAuth();
   if (!user) throw new Error('Non authentifié');
-  if (!AUTH.hasPermission('Accéder page Droits', user) && user.role !== 'direction' && user.role !== 'admin') {
+  if (!AUTH.hasPermission('Accéder page Guide technique', user, null, 'action')
+      && !AUTH.hasPermission('Accéder page Droits', user, null, 'action')
+      && !AUTH.hasRole(user, 'admin')) {
     alert('Accès refusé.'); history.back(); throw new Error('Refusé');
   }
 

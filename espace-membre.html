@@ -445,7 +445,7 @@ function renderVotesTab(area) {
   let html = `<div class="d-flex justify-content-between align-items-center mb-4 flex-wrap gap-2">
     <h2 class="h5 fw-bold mb-0">Votes &amp; Élections</h2>`;
 
-  if (AUTH.hasPermission && AUTH.hasPermission('Créer vote', user)) {
+  if (AUTH.hasPermission && AUTH.hasPermission('Voir bouton Créer vote', user)) {
     html += `<button class="btn btn-attt btn-sm" onclick="openNewVote()">
       <i class="bi bi-plus-circle me-1"></i>Créer un vote
     </button>`;

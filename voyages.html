@@ -430,18 +430,19 @@
   /* ─── Init ─── */
   document.addEventListener('DOMContentLoaded', async () => {
     await DB_READY;
-    const user = AUTH.currentUser();
+    const user = AUTH.requireAuth('famille');
+    if (!user) return;
 
     // Permissions
-    AUTH.applyPermissions();
+    AUTH.applyPermissions(document, user);
 
     // Bouton flottant
-    if (AUTH.can('Voir bouton Ajouter voyage')) {
+    if (AUTH.hasPermission('Voir bouton Ajouter voyage', user, null, 'action')) {
       document.getElementById('btn-create-voyage').style.display = '';
     }
 
     // Stats admin
-    if (AUTH.can('Gérer inscriptions voyage')) {
+    if (AUTH.hasPermission('Gérer inscriptions voyage', user, null, 'action')) {
       document.querySelectorAll('[data-perm="Gérer inscriptions voyage"]')
         .forEach(el => el.classList.remove('d-none'));
       renderStats();
@@ -463,7 +464,7 @@
   function renderVoyages() {
     const q = (document.getElementById('search-voyage')?.value || '').toLowerCase();
     const voyages = VOYAGES.getVoyages().filter(v => {
-      if (v.statut === 'archive') return AUTH.can('Gérer inscriptions voyage');
+      if (v.statut === 'archive') return AUTH.hasPermission('Gérer inscriptions voyage');
       if (_currentFilter && v.type !== _currentFilter) return false;
       if (q && ![v.titre, v.destination, v.description].some(s => s.toLowerCase().includes(q))) return false;
       return true;
@@ -487,7 +488,7 @@
     const t = types[v.type] || types.interne;
     const places = VOYAGES.getPlacesRestantes(v.id);
     const statMeta = VOYAGES.getStatutMeta(v.statut);
-    const user = AUTH.currentUser();
+    const user = AUTH.getCurrentUser();
     const myReg = user ? VOYAGES.getUserRegistration(v.id, user.id || user.login) : null;
 
     // Dates
@@ -523,7 +524,7 @@
     }
 
     // Admin actions
-    const isAdmin = AUTH.can('Créer / modifier voyage');
+    const isAdmin = AUTH.hasPermission('Créer / modifier voyage');
     const adminBtns = isAdmin
       ? `<div class="d-flex gap-1 mt-2">
            <button class="btn btn-xs btn-outline-secondary flex-fill" onclick="openVoyageForm('${v.id}')">
@@ -579,7 +580,7 @@
   let _inscVoyage = null;
 
   function openInscription(voyageId) {
-    const user = AUTH.currentUser();
+    const user = AUTH.getCurrentUser();
     if (!user) { window.location.href = 'login.html'; return; }
 
     _inscVoyage = VOYAGES.getVoyage(voyageId);
@@ -646,7 +647,7 @@
   function calcMontant() {
     if (!_inscVoyage) return;
     const nb = parseInt(document.getElementById('insc-nb')?.value) || 1;
-    const user = AUTH.currentUser();
+    const user = AUTH.getCurrentUser();
     let prixUnit = _inscVoyage.prixAdherent || 0;
     if (user) {
       const role = user.role || '';
@@ -659,7 +660,7 @@
   }
 
   function submitInscription() {
-    const user = AUTH.currentUser();
+    const user = AUTH.getCurrentUser();
     if (!user || !_inscVoyage) return;
 
     const voyageId  = document.getElementById('insc-voyage-id').value;
@@ -690,7 +691,7 @@
     }
 
     renderVoyages();
-    if (AUTH.can('Gérer inscriptions voyage')) { renderStats(); renderAdminRegs(); }
+    if (AUTH.hasPermission('Gérer inscriptions voyage')) { renderStats(); renderAdminRegs(); }
 
     showToast(`Inscription enregistrée pour «&nbsp;${escHtml(_inscVoyage.titre)}&nbsp;». En attente de validation.`, 'success');
   }
@@ -753,7 +754,7 @@
       LOG.add(id ? 'Modification voyage' : 'Création voyage', result.titre);
     }
     renderVoyages();
-    if (AUTH.can('Gérer inscriptions voyage')) { renderStats(); renderAdminRegs(); }
+    if (AUTH.hasPermission('Gérer inscriptions voyage')) { renderStats(); renderAdminRegs(); }
     showToast(id ? 'Voyage modifié.' : 'Voyage créé avec succès.', 'success');
   }
 
@@ -764,7 +765,7 @@
     VOYAGES.deleteVoyage(id);
     if (typeof LOG !== 'undefined') LOG.add('Suppression voyage', v.titre);
     renderVoyages();
-    if (AUTH.can('Gérer inscriptions voyage')) { renderStats(); renderAdminRegs(); }
+    if (AUTH.hasPermission('Gérer inscriptions voyage')) { renderStats(); renderAdminRegs(); }
     showToast('Voyage supprimé.', 'warning');
   }
 

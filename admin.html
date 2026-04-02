@@ -486,6 +486,11 @@
 'use strict';
 const user = AUTH.requireAuth('admin');
 if (!user) throw new Error();
+if (!AUTH.hasPermission('Accéder page Admin', user, null, 'action')) {
+  alert('Accès refusé à la page Admin.');
+  history.back();
+  throw new Error('Permission refusée');
+}
 document.getElementById('topbar-user').textContent = user.prenom + ' ' + user.nom;
 
 async function uploadMediaField(fileInputId, urlInputId, statusId, folder) {

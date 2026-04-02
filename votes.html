@@ -273,15 +273,16 @@
 
   document.addEventListener('DOMContentLoaded', async () => {
     await DB_READY;
-    _user = AUTH.currentUser();
-    AUTH.applyPermissions();
+    _user = AUTH.requireAuth('famille');
+    if (!_user) return;
+    AUTH.applyPermissions(document, _user);
 
     // Bouton créer
-    if (AUTH.can('Voir bouton Créer vote'))
+    if (AUTH.hasPermission('Voir bouton Créer vote', _user, null, 'action'))
       document.getElementById('btn-create-vote').style.display = '';
 
     // Sections admin
-    if (AUTH.can('Gérer votes')) {
+    if (AUTH.hasPermission('Gérer votes', _user, null, 'action')) {
       document.querySelectorAll('[data-perm="Gérer votes"]').forEach(el => el.classList.remove('d-none'));
       document.getElementById('btn-flt-draft')?.classList.remove('d-none');
       renderStats();
@@ -306,7 +307,7 @@
   /* ─── Rendu grille ─── */
   function renderVotes() {
     const q = (document.getElementById('search-vote')?.value || '').toLowerCase();
-    const canAdmin = AUTH.can('Gérer votes');
+    const canAdmin = AUTH.hasPermission('Gérer votes');
 
     let subjects = VOTES.getSubjects().filter(s => {
       if (s.status === 'brouillon' && !canAdmin) return false;
@@ -473,7 +474,7 @@
     bootstrap.Modal.getInstance(document.getElementById('modalVoter'))?.hide();
     if (typeof LOG !== 'undefined') LOG.add('Vote', `${_user.login || _user.nom} → ${_voteSubject.titre}`);
     renderVotes();
-    if (AUTH.can('Gérer votes')) renderStats();
+    if (AUTH.hasPermission('Gérer votes')) renderStats();
     showToast('Vote enregistré avec succès.', 'success');
   }
 
