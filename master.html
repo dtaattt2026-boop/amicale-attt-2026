@@ -626,6 +626,11 @@
 'use strict';
 const user = AUTH.requireAuth('master');
 if (!user) throw new Error();
+if (!AUTH.hasPermission('Accéder page Master', user, null, 'action')) {
+  alert('Accès refusé à la page Master.');
+  history.back();
+  throw new Error('Permission refusée');
+}
 document.getElementById('topbar-user').textContent = user.prenom + ' ' + user.nom;
 
 async function uploadMediaField(fileInputId, urlInputId, statusId, folder) {

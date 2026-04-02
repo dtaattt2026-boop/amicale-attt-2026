@@ -67,6 +67,14 @@ const AUTH = (() => {
     ['Accéder page Actualités',               '✓','✓','✓','—'],
     ['Accéder page Superviseur',              '✓','✓','—','—'],
     ['Accéder page Admin',                    '✓','✓','✓','—'],
+    ['Accéder page Master',                   '✓','—','—','—'],
+    ['Accéder page Espace membre',            '✓','✓','✓','✓'],
+    ['Accéder page Profil',                   '✓','✓','✓','✓'],
+    ['Accéder page Messagerie',               '✓','✓','✓','✓'],
+    ['Accéder page Locations',                '✓','✓','✓','✓'],
+    ['Accéder page Voyages',                  '✓','✓','✓','✓'],
+    ['Accéder page Votes',                    '✓','✓','✓','✓'],
+    ['Accéder page Versions',                 '✓','✓','✓','—'],
     ['Réserver location vacances',            '✓','✓','✓','✓'],
     ['Voir colonne E-mail',                   '✓','✓','✓','—'],
     ['Voir colonne Inscrits',                 '✓','✓','✓','—'],
@@ -150,6 +158,54 @@ const AUTH = (() => {
       label: 'Administration',
       path: 'admin.html',
       permissions: ['Accéder page Admin']
+    },
+    {
+      id: 'master-page',
+      label: 'Panneau maître',
+      path: 'master.html',
+      permissions: ['Accéder page Master']
+    },
+    {
+      id: 'espace-membre-page',
+      label: 'Espace membre',
+      path: 'espace-membre.html',
+      permissions: ['Accéder page Espace membre']
+    },
+    {
+      id: 'profil-page',
+      label: 'Profil',
+      path: 'profil.html',
+      permissions: ['Accéder page Profil']
+    },
+    {
+      id: 'messagerie-page',
+      label: 'Messagerie',
+      path: 'messagerie.html',
+      permissions: ['Accéder page Messagerie']
+    },
+    {
+      id: 'locations-page',
+      label: 'Locations',
+      path: 'location.html',
+      permissions: ['Accéder page Locations', 'Réserver location vacances']
+    },
+    {
+      id: 'voyages-page',
+      label: 'Voyages',
+      path: 'voyages.html',
+      permissions: ['Accéder page Voyages', 'Consulter voyages', 'Créer / modifier voyage', 'Supprimer voyage', 'S\'inscrire voyage', 'Gérer inscriptions voyage', 'Voir bouton Ajouter voyage']
+    },
+    {
+      id: 'votes-page',
+      label: 'Votes',
+      path: 'votes.html',
+      permissions: ['Accéder page Votes', 'Consulter votes', 'Créer / modifier vote', 'Supprimer vote', 'Participer au vote', 'Voir résultats vote', 'Gérer votes', 'Voir bouton Créer vote']
+    },
+    {
+      id: 'versions-page',
+      label: 'Versions',
+      path: 'versions.html',
+      permissions: ['Accéder page Versions']
     },
     {
       id: 'utilisateurs',

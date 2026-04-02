@@ -196,6 +196,11 @@
 
 const user = AUTH.requireAuth('famille');
 if (!user) throw new Error();
+if (!AUTH.hasPermission('Accéder page Messagerie', user, null, 'action')) {
+  alert('Accès refusé à la page Messagerie.');
+  history.back();
+  throw new Error('Permission refusée');
+}
 
 DB_READY.then(() => {
   loadDestinataires();

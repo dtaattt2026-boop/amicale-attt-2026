@@ -105,6 +105,11 @@
 
 const user = AUTH.requireAuth('famille');
 if (!user) throw new Error();
+if (!AUTH.hasPermission('Accéder page Locations', user, null, 'action')) {
+  alert('Accès refusé à la page Locations.');
+  history.back();
+  throw new Error('Permission refusée');
+}
 
 let _currentTranche = null;
 let _currentRental  = null;

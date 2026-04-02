@@ -432,6 +432,11 @@
     await DB_READY;
     const user = AUTH.requireAuth('famille');
     if (!user) return;
+    if (!AUTH.hasPermission('Accéder page Voyages', user, null, 'action')) {
+      alert('Accès refusé à la page Voyages.');
+      history.back();
+      return;
+    }
     if (!AUTH.hasPermission('Consulter voyages', user, null, 'visible')) {
       alert('Accès refusé à la page Voyages.');
       history.back();

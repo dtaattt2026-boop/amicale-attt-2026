@@ -176,6 +176,11 @@
 
 const user = AUTH.requireAuth('famille');
 if (!user) throw new Error('Non authentifié');
+if (!AUTH.hasPermission('Accéder page Espace membre', user, null, 'action')) {
+  alert('Accès refusé à la page Espace membre.');
+  history.back();
+  throw new Error('Permission refusée');
+}
 
 /* ═══════════════════════════════════════════════════════
    SIDEBAR BUILDER

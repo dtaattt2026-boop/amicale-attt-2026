@@ -169,6 +169,11 @@
 'use strict';
 const user = AUTH.requireAuth('famille');
 if (!user) throw new Error('Non authentifié');
+if (!AUTH.hasPermission('Accéder page Profil', user, null, 'action')) {
+  alert('Accès refusé à la page Profil.');
+  history.back();
+  throw new Error('Permission refusée');
+}
 
 let _currentTab = 'infos';
 let _allUsers = [];
