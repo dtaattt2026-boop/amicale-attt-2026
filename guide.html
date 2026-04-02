@@ -45,7 +45,7 @@
   <nav class="navbar navbar-dark py-2" style="background:var(--couleur-principale);">
     <div class="container-fluid px-3 d-flex justify-content-between align-items-center">
       <a class="navbar-brand fw-bold d-flex align-items-center gap-2 fs-6" href="index.html">
-        <i class="bi bi-people-fill"></i>Amicale ATTT
+        <img src="img/logo_attt.jpeg" alt="Logo" style="height:32px;border-radius:6px;" onerror="this.style.display='none'">Amicale ATTT
         <span class="badge bg-warning text-dark ms-2">Admin</span>
       </a>
       <div class="d-flex gap-2">
@@ -498,17 +498,34 @@
   }
 
   // ── VERSION ────────────────────────────────────────────────────
-  function loadVersion() {
-    const v = getData(K_VER);
-    const ver = v?.version || '1.0.0';
+  async function loadVersion() {
+    const v = getData(K_VER) || { autoIncrement: false };
+    let ver = v.version || '1.0.0';
+    let publishedDate = v.date || null;
+
+    try {
+      const r = await fetch('assets/version.json?_=' + Date.now(), { cache: 'no-store' });
+      if (r.ok) {
+        const serverV = await r.json();
+        if (serverV?.version) ver = serverV.version;
+        if (serverV?.datePublication) publishedDate = serverV.datePublication;
+      }
+    } catch {}
+
     document.getElementById('ver-display').textContent = ver;
     document.getElementById('ver-input').value = ver;
     document.getElementById('ver-date').textContent =
-      v?.date ? 'Mise a jour : ' + new Date(v.date).toLocaleDateString('fr-TN') : 'Version initiale';
-    document.getElementById('auto-inc').checked = v?.autoIncrement ?? false;
+      publishedDate ? 'Mise a jour : ' + new Date(publishedDate).toLocaleDateString('fr-TN') : 'Version initiale';
+    document.getElementById('auto-inc').checked = v.autoIncrement ?? false;
+
+    localStorage.setItem(K_VER, JSON.stringify({
+      version: ver,
+      date: publishedDate ? new Date(publishedDate).toISOString() : new Date().toISOString(),
+      autoIncrement: v.autoIncrement ?? false
+    }));
   }
 
-  function saveVersion(versionOverride, commentOverride) {
+  async function saveVersion(versionOverride, commentOverride) {
     const inp = versionOverride || document.getElementById('ver-input').value.trim();
     if (!inp || !/^\d+\.\d+\.\d+$/.test(inp)) {
       alert('Format invalide. Utilisez X.Y.Z (ex: 2.0.5)');
@@ -516,15 +533,32 @@
     }
     const autoInc = document.getElementById('auto-inc').checked;
     localStorage.setItem(K_VER, JSON.stringify({ version: inp, date: new Date().toISOString(), autoIncrement: autoInc }));
+
+    if (_srvOk) {
+      try {
+        const r = await fetch(DEPLOY_API + '/api/version', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({
+            version: inp,
+            changelog: commentOverride || document.getElementById('ver-comment').value.trim() || 'Mise a jour version depuis guide'
+          })
+        });
+        if (!r.ok) throw new Error('HTTP ' + r.status);
+      } catch (e) {
+        alert('Version locale enregistrée, mais assets/version.json non mis à jour: ' + e.message);
+      }
+    }
+
     addHistory(inp, commentOverride || 'Enregistre manuellement');
-    loadVersion();
+    await loadVersion();
     buildDbGrid();
     return true;
   }
 
   function incrVersion() {
-    const v = getData(K_VER);
-    const parts = (v?.version || '1.0.0').split('.').map(Number);
+    const current = document.getElementById('ver-input').value.trim() || (getData(K_VER)?.version || '1.0.0');
+    const parts = current.split('.').map(Number);
     parts[2]++;
     return parts.join('.');
   }
@@ -637,9 +671,7 @@
     const comment = document.getElementById('ver-comment').value.trim() || 'Deploiement automatique';
     if (autoInc) {
       const nv = incrVersion();
-      localStorage.setItem(K_VER, JSON.stringify({ version: nv, date: new Date().toISOString(), autoIncrement: true }));
-      addHistory(nv, comment);
-      loadVersion();
+      await saveVersion(nv, comment);
       buildDbGrid();
     }
     _deploying = true;
@@ -714,7 +746,7 @@
     await DB_READY;
     // Init version
     if (!getData(K_VER)) localStorage.setItem(K_VER, JSON.stringify({ version: '1.0.0', date: new Date().toISOString(), autoIncrement: false }));
-    loadVersion();
+    await loadVersion();
     renderHistory();
     buildDbGrid();
     buildJsGrid();

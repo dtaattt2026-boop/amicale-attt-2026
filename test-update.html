@@ -1,0 +1,92 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+  <meta charset="UTF-8">
+  <title>Test Mise à Jour Automatique</title>
+  <style>
+    body { font-family: system-ui, -apple-system, sans-serif; max-width: 900px; margin: 2rem auto; padding: 1rem; }
+    .test { margin: 1rem 0; padding: 1rem; border: 1px solid #ddd; border-radius: 8px; }
+    .pass { background: #d4edda; border-color: #28a745; }
+    .fail { background: #f8d7da; border-color: #dc3545; }
+    .pending { background: #fff3cd; border-color: #ffc107; }
+    h2 { color: #333; }
+    code { background: #f4f4f4; padding: 0.2em 0.4em; border-radius: 3px; }
+  </style>
+</head>
+<body>
+  <h1>🔄 Test Mise à Jour Automatique</h1>
+  
+  <div id="results"></div>
+
+  <script>
+    const results = [];
+    
+    function addResult(name, passed, details = '') {
+      results.push({ name, passed, details });
+      const container = document.getElementById('results');
+      const div = document.createElement('div');
+      const cls = passed ? 'pass' : (details ? 'fail' : 'pending');
+      div.className = `test ${cls}`;
+      div.innerHTML = `
+        <h3>${passed ? '✅' : '❌'} ${name}</h3>
+        ${details ? `<p><small>${details}</small></p>` : ''}
+      `;
+      container.appendChild(div);
+    }
+
+    // Test 1: Version.json accessible
+    (async () => {
+      try {
+        const r = await fetch('assets/version.json?_=' + Date.now(), { cache: 'no-store' });
+        if (r.ok) {
+          const data = await r.json();
+          addResult(
+            'Version JSON accessible',
+            true,
+            `Version: <code>${data.version}</code> | Plateforme PWA: <code>${data.platforms?.pwa?.version || 'N/A'}</code>`
+          );
+        } else {
+          addResult('Version JSON accessible', false, `HTTP ${r.status}`);
+        }
+      } catch (err) {
+        addResult('Version JSON accessible', false, err.message);
+      }
+    })();
+
+    // Test 2: Service Worker support
+    const swSupported = 'serviceWorker' in navigator;
+    addResult('Service Worker supporté', swSupported, swSupported ? 'navigator.serviceWorker ✅' : 'Non disponible');
+
+    // Test 3: VERSION_CHECK loaded
+    setTimeout(() => {
+      const versionCheckLoaded = typeof VERSION_CHECK !== 'undefined';
+      addResult('VERSION_CHECK chargé', versionCheckLoaded, 
+        versionCheckLoaded ? `checkAndNotify disponible: ${typeof VERSION_CHECK.checkAndNotify === 'function'}` : 'Non trouvé');
+    }, 100);
+
+    // Test 4: UPDATE_MANAGER loaded
+    setTimeout(() => {
+      const updateMgrLoaded = typeof UPDATE_MANAGER !== 'undefined';
+      addResult('UPDATE_MANAGER chargé', updateMgrLoaded,
+        updateMgrLoaded ? `init() disponible: ${typeof UPDATE_MANAGER.init === 'function'}` : 'Non trouvé');
+    }, 200);
+
+    // Test 5: HTTPS (requis pour SW)
+    const isHttps = window.location.protocol === 'https:' || window.location.hostname === 'localhost';
+    addResult('HTTPS enabled', isHttps, isHttps ? 'HTTPS ou localhost ✅' : 'Service Worker requires HTTPS');
+
+    // Test 6: Manifest
+    const hasManifest = !!document.querySelector('link[rel="manifest"]');
+    addResult('Manifest présent', hasManifest, hasManifest ? 'manifest.json lié ✅' : 'manifest.json non trouvé');
+
+    // Test 7: Cache API
+    const cacheSupported = 'caches' in window;
+    addResult('Cache API supportée', cacheSupported, cacheSupported ? 'window.caches ✅' : 'Non supporté');
+
+  </script>
+
+  <!-- Charger les scripts de mise à jour -->
+  <script src="js/version-check.js"></script>
+  <script src="js/update-manager.js"></script>
+</body>
+</html>

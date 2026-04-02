@@ -17,7 +17,7 @@
   <nav class="navbar navbar-expand-lg navbar-dark">
     <div class="container">
       <a class="navbar-brand fw-bold d-flex align-items-center gap-2" href="index.html">
-        <i class="bi bi-people-fill fs-4"></i>Amicale ATTT
+        <img src="img/logo_attt.jpeg" alt="Logo" style="height:32px;border-radius:6px;" onerror="this.style.display='none'">Amicale ATTT
       </a>
       <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navMenu" aria-controls="navMenu" aria-expanded="false" aria-label="Menu de navigation">
         <span class="navbar-toggler-icon"></span>
@@ -66,7 +66,7 @@
             <strong>Message envoyé !</strong> Nous vous répondrons sous 48h ouvrées.
           </div>
 
-          <form id="contact-form" data-site-setting="contact-form" action="https://formspree.io/f/VOTRE_ID_FORMSPREE" method="POST" novalidate>
+          <form id="contact-form" novalidate>
 
             <div class="row g-3 mb-3">
               <div class="col-sm-6">
@@ -227,6 +227,7 @@
   <script src="js/auth.js"></script>
   <script src="js/site-settings.js"></script>
   <script src="js/version-check.js"></script>
+  <script src="js/update-manager.js"></script>
   <script src="js/main.js"></script>
   <script>
     if (typeof DB_READY !== 'undefined' && DB_READY && typeof DB_READY.then === 'function') {
@@ -234,15 +235,40 @@
     } else {
       SITE_SETTINGS.applyContactPage();
     }
-    /* Validation Bootstrap côté client */
+    /* Soumission du formulaire — sauvegarde dans Firestore/localStorage */
     const form = document.getElementById('contact-form');
     if (form) {
       form.addEventListener('submit', function (e) {
+        e.preventDefault();
+        e.stopPropagation();
         if (!form.checkValidity()) {
-          e.preventDefault();
-          e.stopPropagation();
+          form.classList.add('was-validated');
+          return;
         }
         form.classList.add('was-validated');
+        /* Honeypot anti-spam */
+        const hp = form.querySelector('[name="_gotcha"]');
+        if (hp && hp.value) return;
+        const msg = {
+          id:      'cm_' + Date.now() + '_' + Math.random().toString(36).slice(2, 7),
+          nom:     document.getElementById('nom').value.trim(),
+          prenom:  document.getElementById('prenom').value.trim(),
+          email:   document.getElementById('email').value.trim(),
+          sujet:   document.getElementById('sujet').value,
+          message: document.getElementById('message').value.trim(),
+          sentAt:  new Date().toISOString()
+        };
+        try {
+          const list = JSON.parse(localStorage.getItem('attt_contact_messages') || '[]');
+          list.unshift(msg);
+          localStorage.setItem('attt_contact_messages', JSON.stringify(list));
+          if (typeof DB !== 'undefined' && DB.isEnabled()) DB.push('attt_contact_messages', list);
+        } catch { /* silencieux */ }
+        const successDiv = document.getElementById('success-message');
+        if (successDiv) successDiv.classList.remove('d-none');
+        form.reset();
+        form.classList.remove('was-validated');
+        form.style.display = 'none';
       });
     }
   </script>

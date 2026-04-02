@@ -25,7 +25,7 @@
   <nav class="navbar navbar-dark py-2" style="background:var(--couleur-principale);">
     <div class="container-fluid px-3 d-flex justify-content-between">
       <a class="navbar-brand fw-bold d-flex align-items-center gap-2 fs-6" href="index.html">
-        <i class="bi bi-people-fill"></i>Amicale ATTT
+        <img src="img/logo_attt.jpeg" alt="Logo" style="height:32px;border-radius:6px;" onerror="this.style.display='none'">Amicale ATTT
         <span class="badge bg-warning text-dark ms-2">Direction</span>
       </a>
       <div class="d-flex align-items-center gap-2">
@@ -76,6 +76,12 @@
           <li class="nav-item">
             <button class="nav-link w-100 text-start" id="btn-offers" onclick="showSection('offers')">
               <i class="bi bi-tag me-2"></i>Offres
+            </button>
+          </li>
+          <li class="nav-item">
+            <button class="nav-link w-100 text-start d-flex justify-content-between align-items-center" id="btn-contact-msgs" onclick="showSection('contact-msgs')">
+              <span><i class="bi bi-envelope me-2"></i>Messages contact</span>
+              <span id="contact-msgs-badge" class="badge bg-danger d-none">0</span>
             </button>
           </li>
           <li class="nav-item">
@@ -213,6 +219,30 @@
           </div>
         </div>
 
+        <!-- ════ MESSAGES DE CONTACT ════ -->
+        <div id="section-contact-msgs" class="d-none">
+          <h1 class="h4 section-titre">Messages de contact</h1>
+          <p class="text-muted mb-4">Messages reçus via le formulaire de contact public du site.</p>
+          <div id="contact-msgs-content"></div>
+        </div>
+
+      </div>
+    </div>
+  </div>
+
+  <!-- MODAL MESSAGE DE CONTACT -->
+  <div class="modal fade" id="contactMsgModal" tabindex="-1">
+    <div class="modal-dialog">
+      <div class="modal-content rounded-4">
+        <div class="modal-header" style="background:var(--couleur-principale);color:white;">
+          <h2 class="modal-title h5"><i class="bi bi-envelope me-2"></i>Message de contact</h2>
+          <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal"></button>
+        </div>
+        <div class="modal-body p-4" id="contact-msg-detail"></div>
+        <div class="modal-footer">
+          <button class="btn btn-outline-danger btn-sm" id="contact-msg-del-btn"><i class="bi bi-trash me-1"></i>Supprimer</button>
+          <button class="btn btn-secondary" data-bs-dismiss="modal">Fermer</button>
+        </div>
       </div>
     </div>
   </div>
@@ -468,7 +498,7 @@ function countUsersWithRole(users, roleId) {
 }
 
 /* ─── Navigation ──────────────────────────────────── */
-const SECTIONS = ['dashboard','delegues','membres','attente','events','offers'];
+const SECTIONS = ['dashboard','delegues','membres','attente','events','offers','contact-msgs'];
 function showSection(name) {
   SECTIONS.forEach(s => {
     document.getElementById('section-' + s).classList.toggle('d-none', s !== name);
@@ -480,6 +510,7 @@ function showSection(name) {
   if (name === 'attente')   renderAttente();
   if (name === 'events')    renderEventsTable();
   if (name === 'offers')    renderOffersTable();
+  if (name === 'contact-msgs') renderContactMsgs();
 }
 
 /* ─── Badge en attente ────────────────────────────── */
@@ -1055,10 +1086,80 @@ function softDeleteManagedUser(id, name) {
   renderMembres();
 }
 
+/* ─── Messages de contact ──────────────────────────── */
+const K_CONTACT = 'attt_contact_messages';
+function _loadContactMsgs() {
+  try { return JSON.parse(localStorage.getItem(K_CONTACT) || '[]'); } catch { return []; }
+}
+function _updateContactBadge() {
+  const cnt   = _loadContactMsgs().length;
+  const badge = document.getElementById('contact-msgs-badge');
+  if (cnt > 0) { badge.textContent = cnt; badge.classList.remove('d-none'); }
+  else badge.classList.add('d-none');
+}
+function renderContactMsgs() {
+  _updateContactBadge();
+  const msgs = _loadContactMsgs();
+  const container = document.getElementById('contact-msgs-content');
+  if (!msgs.length) {
+    container.innerHTML = `<div class="empty-state"><i class="bi bi-envelope"></i><p class="fw-semibold">Aucun message reçu</p></div>`;
+    return;
+  }
+  container.innerHTML = `
+    <div class="card p-0 overflow-hidden">
+      <div class="table-responsive">
+        <table class="table table-hover align-middle mb-0">
+          <thead class="table-light">
+            <tr><th>Date</th><th>Nom &amp; Prénom</th><th>E-mail</th><th>Sujet</th><th class="text-end">Actions</th></tr>
+          </thead>
+          <tbody>
+            ${msgs.map(m => `
+              <tr>
+                <td class="small text-muted">${AUTH.esc(new Date(m.sentAt).toLocaleDateString('fr-FR'))}</td>
+                <td class="fw-semibold">${AUTH.esc(m.nom)} ${AUTH.esc(m.prenom)}</td>
+                <td class="small"><a href="mailto:${AUTH.esc(m.email)}">${AUTH.esc(m.email)}</a></td>
+                <td class="small">${AUTH.esc(m.sujet || '—')}</td>
+                <td class="text-end">
+                  <button class="btn btn-sm btn-outline-primary" onclick="openContactMsg('${AUTH.esc(m.id)}')">
+                    <i class="bi bi-eye"></i>
+                  </button>
+                </td>
+              </tr>`).join('')}
+          </tbody>
+        </table>
+      </div>
+    </div>`;
+}
+const contactMsgModal = new bootstrap.Modal(document.getElementById('contactMsgModal'));
+function openContactMsg(id) {
+  const m = _loadContactMsgs().find(x => x.id === id);
+  if (!m) return;
+  document.getElementById('contact-msg-detail').innerHTML = `
+    <dl class="row mb-0">
+      <dt class="col-sm-3">De</dt><dd class="col-sm-9">${AUTH.esc(m.nom)} ${AUTH.esc(m.prenom)}</dd>
+      <dt class="col-sm-3">E-mail</dt><dd class="col-sm-9"><a href="mailto:${AUTH.esc(m.email)}">${AUTH.esc(m.email)}</a></dd>
+      <dt class="col-sm-3">Sujet</dt><dd class="col-sm-9">${AUTH.esc(m.sujet || '—')}</dd>
+      <dt class="col-sm-3">Date</dt><dd class="col-sm-9">${AUTH.esc(new Date(m.sentAt).toLocaleString('fr-FR'))}</dd>
+    </dl>
+    <hr />
+    <p style="white-space:pre-wrap">${AUTH.esc(m.message)}</p>`;
+  document.getElementById('contact-msg-del-btn').onclick = () => deleteContactMsg(id);
+  contactMsgModal.show();
+}
+function deleteContactMsg(id) {
+  if (!confirm('Supprimer ce message ?')) return;
+  const list = _loadContactMsgs().filter(x => x.id !== id);
+  localStorage.setItem(K_CONTACT, JSON.stringify(list));
+  if (typeof DB !== 'undefined') DB.push(K_CONTACT, list);
+  contactMsgModal.hide();
+  renderContactMsgs();
+}
+
 /* ─── Init ─────────────────────────────────────────── */
 DB_READY.then(() => {
   renderDashboard();
   updateAttenteBadge();
+  _updateContactBadge();
   if (typeof MEDIA_UPLOAD !== 'undefined') MEDIA_UPLOAD.prewarmDriveToken();
 });
 </script>

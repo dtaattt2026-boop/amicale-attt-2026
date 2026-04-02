@@ -1,4 +1,4 @@
-﻿<!DOCTYPE html>
+<!DOCTYPE html>
 <html lang="fr">
 <head>
   <meta charset="UTF-8" />
@@ -10,773 +10,661 @@
   <link href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.3/font/bootstrap-icons.css" rel="stylesheet" />
   <link href="css/style.css" rel="stylesheet" />
   <style>
-    .avatar-wrap { position:relative; display:inline-block; }
-    .avatar-img  { width:120px; height:120px; object-fit:cover; border-radius:50%; border:4px solid var(--couleur-principale); }
-    .avatar-edit { position:absolute; bottom:2px; right:2px; background:var(--couleur-principale); color:#fff; border:none; border-radius:50%; width:32px; height:32px; display:flex; align-items:center; justify-content:center; cursor:pointer; }
-    .family-img  { width:160px; height:110px; object-fit:cover; border-radius:10px; border:2px solid #dee2e6; }
-    .notif-bell  { font-size:2rem; }
-    .tab-pane    { animation: fadeIn .2s ease; }
-    @keyframes fadeIn { from { opacity:0; transform:translateY(6px); } to { opacity:1; transform:translateY(0); } }
-    .relation-badge { font-size:.72rem; }
+    :root { --cp:#003DA6; }
+    body { background:#f0f2f8; min-height:100vh; }
+
+    /* NAV */
+    .top-nav { background:var(--cp); padding:.55rem 1.25rem; display:flex; align-items:center; gap:1rem; }
+    .brand { color:#fff; font-weight:800; font-size:1.05rem; text-decoration:none; display:flex; align-items:center; gap:.5rem; flex:1; }
+    .btn-nav { border:1px solid rgba(255,255,255,.3); color:#fff!important; border-radius:8px; padding:.35rem .75rem; font-size:.82rem; font-weight:600; background:transparent; text-decoration:none; transition:background .15s; display:inline-flex; align-items:center; gap:.3rem; }
+    .btn-nav:hover { background:rgba(255,255,255,.15); }
+    .btn-logout { background:#dc3545; border-color:#dc3545; }
+    .btn-logout:hover { background:#c82333; }
+
+    /* HERO */
+    .profile-hero { background:linear-gradient(135deg,var(--cp),#0056cc); color:white; padding:2.5rem 1.5rem; }
+    .avatar-ring { width:100px; height:100px; border-radius:50%; border:4px solid rgba(255,255,255,.4); object-fit:cover; }
+    .avatar-placeholder { width:100px; height:100px; border-radius:50%; border:4px solid rgba(255,255,255,.4); background:rgba(255,255,255,.18); display:flex; align-items:center; justify-content:center; font-size:2.5rem; color:rgba(255,255,255,.7); }
+
+    /* TABS */
+    .profile-tabs { background:#fff; border-bottom:2px solid #e9ecef; overflow-x:auto; display:flex; gap:.15rem; padding:0 1rem; flex-shrink:0; }
+    .ptab { border:none; background:none; padding:.75rem 1.1rem; font-size:.88rem; font-weight:600; color:#6c757d; border-bottom:3px solid transparent; cursor:pointer; white-space:nowrap; transition:color .15s,border-color .15s; }
+    .ptab:hover { color:var(--cp); }
+    .ptab.active { color:var(--cp); border-bottom-color:var(--cp); }
+
+    /* CONTENT */
+    .profile-content { padding:1.5rem; max-width:900px; margin:0 auto; }
+
+    /* CARDS */
+    .info-card { background:#fff; border-radius:16px; box-shadow:0 2px 12px rgba(0,0,0,.07); padding:1.5rem; margin-bottom:1.25rem; }
+    .info-card h3 { font-weight:800; font-size:1rem; margin-bottom:1rem; color:#0d1b2a; }
+
+    /* DELEGUE CARD */
+    .delegue-card { background:linear-gradient(135deg,#e8efff,#d0e0ff); border:1.5px solid #b3ccff; border-radius:14px; padding:1.25rem; }
+
+    /* FAMILY MEMBER */
+    .fam-item { display:flex; align-items:center; gap:.85rem; padding:.75rem; border:1px solid #e9ecef; border-radius:12px; margin-bottom:.5rem; background:#fff; }
+    .fam-avatar { width:44px; height:44px; border-radius:50%; background:var(--cp); color:#fff; display:flex; align-items:center; justify-content:center; font-weight:700; font-size:.95rem; flex-shrink:0; }
+
+    /* HISTORY */
+    .hist-item { display:flex; align-items:flex-start; gap:1rem; padding:.9rem; border-left:4px solid var(--cp); border-radius:0 10px 10px 0; background:#fff; margin-bottom:.6rem; box-shadow:0 1px 6px rgba(0,0,0,.05); }
+    .hist-icon { width:40px; height:40px; border-radius:10px; background:#e8efff; display:flex; align-items:center; justify-content:center; font-size:1.1rem; flex-shrink:0; }
+
+    /* MESSAGING */
+    .msg-item { padding:.85rem 1rem; border:1px solid #e9ecef; border-radius:12px; margin-bottom:.5rem; background:#fff; cursor:pointer; transition:box-shadow .15s; }
+    .msg-item:hover { box-shadow:0 3px 12px rgba(0,61,166,.1); }
+    .msg-item.unread { border-left:4px solid var(--cp); background:#f5f8ff; }
+    .msg-item .msg-from { font-weight:700; font-size:.88rem; }
+    .msg-item .msg-sub  { font-size:.83rem; color:#6c757d; }
+    .msg-item .msg-date { font-size:.75rem; color:#adb5bd; }
+    .user-select-item { display:flex; align-items:center; gap:.6rem; padding:.5rem .75rem; border-radius:9px; cursor:pointer; transition:background .15s; }
+    .user-select-item:hover { background:#f0f4ff; }
+    .user-select-item .u-avatar { width:34px; height:34px; border-radius:50%; background:var(--cp); color:#fff; display:flex; align-items:center; justify-content:center; font-size:.8rem; font-weight:700; flex-shrink:0; }
+    .selected-user { background:#e0eaff; border:1.5px solid var(--cp); border-radius:999px; padding:.2rem .65rem .2rem .4rem; display:inline-flex; align-items:center; gap:.3rem; font-size:.82rem; margin:.15rem; }
+
+    /* BTN */
+    .btn-attt { background:var(--cp); color:#fff; border:none; border-radius:9px; font-weight:700; padding:.55rem 1.4rem; transition:background .2s; }
+    .btn-attt:hover { background:#004fd6; color:#fff; }
+    .btn-oa { border:2px solid var(--cp); color:var(--cp); border-radius:9px; font-weight:700; padding:.5rem 1.2rem; background:transparent; transition:all .2s; }
+    .btn-oa:hover { background:var(--cp); color:#fff; }
+
+    @keyframes fadeIn { from{opacity:0;transform:translateY(5px);}to{opacity:1;transform:translateY(0);} }
+    .tab-pane-anim { animation:fadeIn .2s ease; }
   </style>
 </head>
 <body>
 
-  <!-- NAVBAR -->
-  <nav class="navbar navbar-expand-lg navbar-dark">
-    <div class="container">
-      <a class="navbar-brand fw-bold d-flex align-items-center gap-2" href="index.html">
-        <i class="bi bi-people-fill fs-4"></i>Amicale ATTT
-      </a>
-      <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navMenu" aria-label="Menu">
-        <span class="navbar-toggler-icon"></span>
-      </button>
-      <div class="collapse navbar-collapse" id="navMenu">
-        <ul class="navbar-nav ms-auto gap-1">
-          <li class="nav-item"><a class="nav-link" href="espace-membre.html">Mon espace</a></li>
-          <li class="nav-item"><a class="nav-link" href="messagerie.html"><i class="bi bi-chat me-1"></i><span id="nav-unread"></span>Messages</a></li>
-          <li class="nav-item"><a class="nav-link" href="conventions.html">Conventions</a></li>
-        </ul>
-      </div>
-    </div>
-  </nav>
+  <!-- NAV -->
+  <div class="top-nav">
+    <a href="espace-membre.html" class="brand"><img src="img/logo_attt.jpeg" alt="Logo" style="height:30px;border-radius:6px;" onerror="this.style.display='none'">Amicale ATTT</a>
+    <a href="espace-membre.html" class="btn-nav"><i class="bi bi-house"></i><span class="d-none d-sm-inline">Mon espace</span></a>
+    <a href="messagerie.html" class="btn-nav"><i class="bi bi-chat-text"></i><span class="d-none d-sm-inline">Messages</span></a>
+    <a href="#" class="btn-nav btn-logout" onclick="AUTH.logout();return false;"><i class="bi bi-box-arrow-right"></i></a>
+  </div>
 
-  <!-- EN-TÊTE PROFIL -->
-  <div class="py-5" style="background:linear-gradient(135deg,var(--couleur-principale),#0056cc);color:white;">
+  <!-- HERO PROFIL -->
+  <div class="profile-hero">
     <div class="container">
       <div class="d-flex align-items-center gap-4 flex-wrap">
-        <div class="avatar-wrap">
-          <img id="avatar-img" src="img/icon.svg" class="avatar-img" alt="Photo de profil" />
-          <button class="avatar-edit" onclick="document.getElementById('avatar-file').click()" title="Changer la photo">
-            <i class="bi bi-camera-fill" style="font-size:.85rem;"></i>
-          </button>
-          <input type="file" id="avatar-file" accept="image/*" class="d-none" onchange="uploadAvatar(this)" />
+        <div id="avatar-wrap">
+          <div class="avatar-placeholder"><i class="bi bi-person-fill"></i></div>
         </div>
         <div>
-          <h1 class="fw-bold mb-1 fs-3" id="header-nom">—</h1>
-          <p class="mb-1 opacity-80" id="header-role"></p>
-          <p class="mb-0 small opacity-65" id="header-lieu"></p>
+          <h1 class="fw-black mb-0 fs-3" id="hdr-nom">—</h1>
+          <p class="mb-0 mt-1 opacity-80" id="hdr-role"></p>
+          <p class="mb-0 small opacity-65" id="hdr-lieu"></p>
         </div>
         <div class="ms-auto d-flex gap-2 flex-wrap">
-          <a href="espace-membre.html" class="btn btn-outline-light btn-sm">
-            <i class="bi bi-house me-1"></i>Mon espace
-          </a>
-          <button class="btn btn-outline-light btn-sm" onclick="AUTH.logout()">
-            <i class="bi bi-box-arrow-right me-1"></i>Déconnexion
-          </button>
+          <span class="badge bg-warning text-dark fw-bold px-3 py-2 fs-6" id="hdr-role-badge"></span>
         </div>
       </div>
-
-      <!-- Notifications anniversaires -->
-      <div id="notif-anniversaires" class="mt-3"></div>
     </div>
   </div>
 
-  <main class="py-4">
-    <div class="container">
+  <!-- TABS -->
+  <div class="profile-tabs">
+    <button class="ptab active" onclick="switchTab('infos',this)"><i class="bi bi-person me-1"></i>Mes informations</button>
+    <button class="ptab" onclick="switchTab('delegue',this)"><i class="bi bi-person-badge me-1"></i>Mon délégué</button>
+    <button class="ptab" onclick="switchTab('famille',this)"><i class="bi bi-people me-1"></i>Ma famille</button>
+    <button class="ptab" onclick="switchTab('historique',this)"><i class="bi bi-calendar-check me-1"></i>Mes participations</button>
+    <button class="ptab" onclick="switchTab('messages',this)"><i class="bi bi-chat-text me-1"></i>Messagerie
+      <span id="msg-unread-badge" class="badge bg-danger ms-1 d-none" style="font-size:.65rem;"></span>
+    </button>
+    <button class="ptab" onclick="switchTab('paiements',this)"><i class="bi bi-credit-card me-1"></i>Paiements</button>
+    <button class="ptab" onclick="switchTab('securite',this)"><i class="bi bi-shield-lock me-1"></i>Sécurité</button>
+  </div>
 
-      <!-- ONGLETS -->
-      <ul class="nav nav-pills mb-4 gap-2 flex-wrap" id="profileTabs" role="tablist">
-        <li class="nav-item">
-          <button class="nav-link active" data-bs-toggle="pill" data-bs-target="#tab-infos" type="button">
-            <i class="bi bi-person me-1"></i>Mes informations
-          </button>
-        </li>
-        <li class="nav-item">
-          <button class="nav-link" data-bs-toggle="pill" data-bs-target="#tab-famille" type="button">
-            <i class="bi bi-people me-1"></i>Ma famille
-          </button>
-        </li>
-        <li class="nav-item">
-          <button class="nav-link" data-bs-toggle="pill" data-bs-target="#tab-historique" type="button">
-            <i class="bi bi-calendar-check me-1"></i>Mes participations
-          </button>
-        </li>
-        <li class="nav-item">
-          <button class="nav-link" data-bs-toggle="pill" data-bs-target="#tab-paiements" type="button">
-            <i class="bi bi-credit-card me-1"></i>Mes paiements
-          </button>
-        </li>
-        <li class="nav-item">
-          <button class="nav-link" data-bs-toggle="pill" data-bs-target="#tab-locations" type="button">
-            <i class="bi bi-house-door me-1"></i>Mes locations
-          </button>
-        </li>
-        <li class="nav-item">
-          <button class="nav-link" data-bs-toggle="pill" data-bs-target="#tab-notifs" type="button">
-            <i class="bi bi-bell me-1"></i>Notifications
-          </button>
-        </li>
-        <li class="nav-item">
-          <button class="nav-link" data-bs-toggle="pill" data-bs-target="#tab-securite" type="button">
-            <i class="bi bi-shield-lock me-1"></i>Sécurité
-          </button>
-        </li>
-      </ul>
+  <!-- CONTENT -->
+  <div class="profile-content" id="profile-content">
+    <div class="text-center text-muted py-5"><i class="bi bi-hourglass-split me-2"></i>Chargement…</div>
+  </div>
 
-      <div class="tab-content">
-
-        <!-- ═══ INFORMATIONS PERSONNELLES ═══ -->
-        <div class="tab-pane fade show active" id="tab-infos">
-          <div class="row g-4">
-            <div class="col-lg-8">
-              <div class="card p-4">
-                <h2 class="h5 fw-bold mb-4"><i class="bi bi-person-lines-fill me-2 text-primary"></i>Informations personnelles</h2>
-                <div id="info-alert" class="alert d-none mb-3"></div>
-                <div class="row g-3">
-                  <div class="col-sm-6">
-                    <label class="form-label fw-semibold small">Nom</label>
-                    <input type="text" class="form-control" id="f-nom" />
-                  </div>
-                  <div class="col-sm-6">
-                    <label class="form-label fw-semibold small">Prénom</label>
-                    <input type="text" class="form-control" id="f-prenom" />
-                  </div>
-                  <div class="col-sm-6">
-                    <label class="form-label fw-semibold small">Date de naissance</label>
-                    <input type="date" class="form-control" id="f-dateNaissance" />
-                  </div>
-                  <div class="col-sm-6">
-                    <label class="form-label fw-semibold small">Téléphone</label>
-                    <input type="tel" class="form-control" id="f-telephone" placeholder="0XXX XXX XXX" />
-                  </div>
-                  <div class="col-sm-6">
-                    <label class="form-label fw-semibold small">E-mail</label>
-                    <input type="email" class="form-control" id="f-email" />
-                  </div>
-                  <div class="col-sm-6">
-                    <label class="form-label fw-semibold small">Lieu de travail</label>
-                    <select class="form-select" id="f-lieuTravail">
-                      <option value="">— Choisir —</option>
-                    </select>
-                  </div>
-                  <div class="col-12">
-                    <label class="form-label fw-semibold small">Adresse</label>
-                    <textarea class="form-control" id="f-adresse" rows="2" placeholder="N° rue, quartier, ville, wilaya…"></textarea>
-                  </div>
-                </div>
-                <button class="btn btn-attt mt-4" onclick="saveInfos()">
-                  <i class="bi bi-check-circle me-1"></i>Enregistrer
-                </button>
-              </div>
-            </div>
-            <div class="col-lg-4">
-              <!-- Photo de famille -->
-              <div class="card p-4 text-center">
-                <h3 class="h6 fw-bold mb-3"><i class="bi bi-image me-1 text-primary"></i>Photo de famille</h3>
-                <img id="family-photo-img" src="" class="family-img mb-3 mx-auto d-block" style="display:none!important;" alt="Photo de famille" />
-                <div id="family-photo-placeholder" class="family-img mb-3 mx-auto d-flex align-items-center justify-content-center bg-light text-muted rounded-3">
-                  <i class="bi bi-people fs-1 opacity-25"></i>
-                </div>
-                <input type="file" id="family-photo-file" accept="image/*" class="d-none" onchange="uploadFamilyPhoto(this)" />
-                <button class="btn btn-outline-primary btn-sm w-100" onclick="document.getElementById('family-photo-file').click()">
-                  <i class="bi bi-upload me-1"></i>Changer la photo de famille
-                </button>
-              </div>
-            </div>
-          </div>
+  <!-- MODAL MESSAGE -->
+  <div class="modal fade" id="msgModal" tabindex="-1">
+    <div class="modal-dialog modal-lg">
+      <div class="modal-content rounded-4">
+        <div class="modal-header" style="background:var(--cp);color:white;">
+          <h5 class="modal-title fw-bold">Nouveau message</h5>
+          <button class="btn-close btn-close-white" data-bs-dismiss="modal"></button>
         </div>
-
-        <!-- ═══ FAMILLE ═══ -->
-        <div class="tab-pane fade" id="tab-famille">
-          <div class="row g-4">
-            <div class="col-lg-7">
-              <div class="card p-4">
-                <div class="d-flex justify-content-between align-items-center mb-3">
-                  <h2 class="h5 fw-bold mb-0"><i class="bi bi-people me-2 text-primary"></i>Membres de ma famille</h2>
-                  <button class="btn btn-attt btn-sm" data-bs-toggle="modal" data-bs-target="#modalFamille">
-                    <i class="bi bi-plus-circle me-1"></i>Ajouter
-                  </button>
-                </div>
-                <div id="famille-list"></div>
-              </div>
-            </div>
-            <div class="col-lg-5">
-              <!-- Code de partage famille -->
-              <div class="card p-4">
-                <h3 class="h6 fw-bold mb-3"><i class="bi bi-share me-1 text-primary"></i>Partage famille</h3>
-                <p class="text-muted small mb-3">
-                  Partagez ce code ou le QR code avec vos proches pour qu'ils puissent demander un compte famille lié au vôtre.
-                </p>
-                <div id="share-code-block" class="text-center">
-                  <div class="p-3 bg-light rounded-3 mb-2">
-                    <code id="share-code-val" class="fs-4 fw-bold" style="letter-spacing:.12em">—</code>
-                  </div>
-                  <div class="bg-white border rounded-3 p-2 mb-2 d-inline-block">
-                    <img id="share-qr-img" src="" alt="QR code partage famille" style="width:168px;height:168px;display:none;" />
-                    <div id="share-qr-empty" class="text-muted small px-4 py-5">Générez un code pour afficher le QR</div>
-                  </div>
-                  <button class="btn btn-outline-secondary btn-sm me-1" onclick="copyShareCode()">
-                    <i class="bi bi-clipboard me-1"></i>Copier
-                  </button>
-                  <button class="btn btn-outline-secondary btn-sm me-1" onclick="copyShareLink()">
-                    <i class="bi bi-link-45deg me-1"></i>Copier le lien
-                  </button>
-                  <button class="btn btn-primary btn-sm" onclick="genShareCode()">
-                    <i class="bi bi-arrow-repeat me-1"></i>Régénérer
-                  </button>
-                </div>
-                <p class="text-muted small mt-3 mb-0">
-                  <i class="bi bi-info-circle me-1"></i>Après inscription, le compte reste en attente jusqu'à votre validation.
-                </p>
-              </div>
-              <div class="card p-4 mt-4">
-                <h3 class="h6 fw-bold mb-3"><i class="bi bi-person-check me-1 text-primary"></i>Demandes famille à activer</h3>
-                <div id="family-requests-list"></div>
-              </div>
-            </div>
-          </div>
-        </div>
-
-        <!-- ═══ HISTORIQUE PARTICIPATIONS ═══ -->
-        <div class="tab-pane fade" id="tab-historique">
-          <div class="card p-4">
-            <h2 class="h5 fw-bold mb-4"><i class="bi bi-calendar-check me-2 text-primary"></i>Historique de mes participations</h2>
-            <div id="historique-list"></div>
-          </div>
-        </div>
-
-        <!-- ═══ PAIEMENTS ═══ -->
-        <div class="tab-pane fade" id="tab-paiements">
-          <div class="card p-4">
-            <h2 class="h5 fw-bold mb-4"><i class="bi bi-credit-card me-2 text-primary"></i>Mes paiements & échéanciers</h2>
-            <div id="paiements-list"></div>
-          </div>
-        </div>
-
-        <!-- ═══ LOCATIONS ═══ -->
-        <div class="tab-pane fade" id="tab-locations">
-          <div class="card p-4">
-            <h2 class="h5 fw-bold mb-4"><i class="bi bi-house-door me-2 text-primary"></i>Mes réservations de vacances</h2>
-            <div id="locations-list"></div>
-          </div>
-        </div>
-
-        <!-- ═══ NOTIFICATIONS ═══ -->
-        <div class="tab-pane fade" id="tab-notifs">
-          <div class="card p-4" style="max-width:520px;">
-            <h2 class="h5 fw-bold mb-4"><i class="bi bi-bell me-2 text-primary"></i>Préférences de notifications</h2>
-            <div id="notif-alert" class="alert d-none mb-3"></div>
-            <div class="mb-3">
-              <label class="form-label fw-semibold small">Délai de notification (jours à l'avance)</label>
-              <input type="number" class="form-control" id="n-delai" min="1" max="30" value="7" style="max-width:120px;" />
-            </div>
-            <div class="form-check form-switch mb-2">
-              <input class="form-check-input" type="checkbox" id="n-anniversaires" />
-              <label class="form-check-label" for="n-anniversaires">Anniversaires de ma famille</label>
-            </div>
-            <div class="form-check form-switch mb-2">
-              <input class="form-check-input" type="checkbox" id="n-autres-users" />
-              <label class="form-check-label" for="n-autres-users">Anniversaires des autres membres</label>
-            </div>
-            <div class="form-check form-switch mb-2">
-              <input class="form-check-input" type="checkbox" id="n-evenements" />
-              <label class="form-check-label" for="n-evenements">Rappels événements</label>
-            </div>
-            <div class="form-check form-switch mb-4">
-              <input class="form-check-input" type="checkbox" id="n-conventions" />
-              <label class="form-check-label" for="n-conventions">Nouvelles conventions</label>
-            </div>
-            <button class="btn btn-attt" onclick="saveNotifs()">
-              <i class="bi bi-check-circle me-1"></i>Enregistrer
-            </button>
-          </div>
-        </div>
-
-        <!-- ═══ SÉCURITÉ ═══ -->
-        <div class="tab-pane fade" id="tab-securite">
-          <div class="card p-4" style="max-width:420px;">
-            <h2 class="h5 fw-bold mb-4"><i class="bi bi-shield-lock me-2 text-primary"></i>Changer mon mot de passe</h2>
-            <div id="pwd-alert" class="alert d-none mb-3"></div>
-            <div class="mb-3">
-              <label class="form-label fw-semibold small">Mot de passe actuel</label>
-              <input type="password" class="form-control" id="old-pwd" />
-            </div>
-            <div class="mb-3">
-              <label class="form-label fw-semibold small">Nouveau mot de passe (6 caractères min.)</label>
-              <input type="password" class="form-control" id="new-pwd" minlength="6" />
-            </div>
-            <div class="mb-4">
-              <label class="form-label fw-semibold small">Confirmer</label>
-              <input type="password" class="form-control" id="new-pwd2" />
-            </div>
-            <button class="btn btn-attt" onclick="changePwd()">
-              <i class="bi bi-lock me-1"></i>Mettre à jour
-            </button>
-          </div>
-        </div>
-
-      </div>
-    </div>
-  </main>
-
-  <!-- MODAL — Ajouter membre de famille -->
-  <div class="modal fade" id="modalFamille" tabindex="-1">
-    <div class="modal-dialog">
-      <div class="modal-content">
-        <div class="modal-header">
-          <h5 class="modal-title fw-bold"><i class="bi bi-person-plus me-2"></i>Ajouter un membre de famille</h5>
-          <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
-        </div>
-        <div class="modal-body">
-          <div id="fm-alert" class="alert d-none mb-3"></div>
+        <div class="modal-body p-4">
           <div class="mb-3">
-            <label class="form-label fw-semibold small">Nom</label>
-            <input type="text" class="form-control" id="fm-nom" placeholder="NOM" />
+            <label class="form-label fw-semibold">Destinataire(s) <span class="text-danger">*</span></label>
+            <div id="selected-recipients" class="mb-2 d-flex flex-wrap gap-1"></div>
+            <div class="d-flex gap-2 mb-2">
+              <input type="text" class="form-control" id="recipient-search" placeholder="Rechercher un membre…" oninput="filterRecipients()" />
+              <button class="btn btn-sm btn-attt" onclick="selectAllRecipients()"><i class="bi bi-people me-1"></i>Tous</button>
+            </div>
+            <div id="recipients-list" style="max-height:200px;overflow-y:auto;border:1px solid #dee2e6;border-radius:10px;padding:.5rem;"></div>
           </div>
           <div class="mb-3">
-            <label class="form-label fw-semibold small">Prénom</label>
-            <input type="text" class="form-control" id="fm-prenom" placeholder="Prénom" />
+            <label class="form-label fw-semibold">Objet <span class="text-danger">*</span></label>
+            <input type="text" class="form-control" id="msg-subject" placeholder="Objet du message" />
           </div>
           <div class="mb-3">
-            <label class="form-label fw-semibold small">Date de naissance</label>
-            <input type="date" class="form-control" id="fm-date" />
+            <label class="form-label fw-semibold">Message <span class="text-danger">*</span></label>
+            <textarea class="form-control" id="msg-body" rows="5" placeholder="Votre message…"></textarea>
           </div>
-          <div class="mb-3">
-            <label class="form-label fw-semibold small">Relation</label>
-            <select class="form-select" id="fm-relation">
-              <option value="conjoint">Conjoint(e)</option>
-              <option value="enfant">Enfant</option>
-              <option value="parent">Parent</option>
-              <option value="frere_soeur">Frère / Sœur</option>
-              <option value="autre">Autre</option>
-            </select>
-          </div>
+          <div id="msg-alert" class="alert d-none mb-0"></div>
         </div>
         <div class="modal-footer">
           <button class="btn btn-secondary" data-bs-dismiss="modal">Annuler</button>
-          <button class="btn btn-attt" onclick="saveFamilyMember()"><i class="bi bi-check me-1"></i>Ajouter</button>
+          <button class="btn btn-attt" onclick="sendMessage()"><i class="bi bi-send me-1"></i>Envoyer</button>
         </div>
       </div>
     </div>
   </div>
 
-  <!-- FOOTER -->
-  <footer class="py-3 text-white text-center small">
-    <div class="container"><p class="mb-0 opacity-75">&copy; 2026 Amicale ATTT — Mon Profil</p></div>
-  </footer>
-
-<script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js"></script>
-<!-- Firebase -->
-<script src="https://www.gstatic.com/firebasejs/10.14.1/firebase-app-compat.js"></script>
-<script src="https://www.gstatic.com/firebasejs/10.14.1/firebase-firestore-compat.js"></script>
-<script src="https://www.gstatic.com/firebasejs/10.14.1/firebase-storage-compat.js"></script>
-<script src="js/firebase-config.js"></script>
-<script src="js/db.js"></script>
-<script src="js/auth.js"></script>
-<script src="js/data.js"></script>
-<script src="js/log.js"></script>
-<script src="js/media-upload.js"></script>
-<script src="js/profile.js"></script>
-<script src="js/payments.js"></script>
-<script src="js/rentals.js"></script>
-<script src="js/messages.js"></script>
-<script>
+  <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js"></script>
+  <script src="https://www.gstatic.com/firebasejs/10.14.1/firebase-app-compat.js"></script>
+  <script src="https://www.gstatic.com/firebasejs/10.14.1/firebase-firestore-compat.js"></script>
+  <script src="js/firebase-config.js"></script>
+  <script src="js/db.js"></script>
+  <script src="js/auth.js"></script>
+  <script src="js/profile.js"></script>
+  <script src="js/messaging.js"></script>
+  <script src="js/payments.js"></script>
+  <script src="js/events.js"></script>
+  <script>
 'use strict';
-
 const user = AUTH.requireAuth('famille');
-if (!user) throw new Error();
+if (!user) throw new Error('Non authentifié');
 
-/* ── Unread badge ─────────────────────────────────────────── */
+let _currentTab = 'infos';
+let _allUsers = [];
+let _selectedRecipients = [];
+
+/* ═══════ INIT ═══════ */
 DB_READY.then(() => {
-  const cnt = MESSAGES.unreadCount(user.id);
-  if (cnt > 0) document.getElementById('nav-unread').innerHTML = `<span class="badge bg-danger me-1">${cnt}</span>`;
+  // Header
+  document.getElementById('hdr-nom').textContent  = (user.prenom||'') + ' ' + (user.nom||'');
+  const ROLE_LBL = { famille:'Membre', membre:'Membre', delegue:'Délégué', direction:'Direction', admin:'Administrateur' };
+  document.getElementById('hdr-role').textContent = user.email || '';
+  document.getElementById('hdr-lieu').textContent = user.lieuTravail || '';
+  document.getElementById('hdr-role-badge').textContent = ROLE_LBL[user.role] || user.role;
 
-  loadPage();
-  showAnniversaires();
-  if (typeof MEDIA_UPLOAD !== 'undefined') MEDIA_UPLOAD.prewarmDriveToken();
+  // Load all users for messaging
+  try {
+    if (AUTH.getUsers) _allUsers = AUTH.getUsers().filter(u => u.id !== user.id && u.role !== 'famille' && u.statut === 'actif');
+    else if (AUTH.getAllUsers) _allUsers = AUTH.getAllUsers().filter(u => u.id !== user.id);
+  } catch(e){}
+
+  // Unread badge
+  try {
+    if (typeof MESSAGING !== 'undefined' && MESSAGING.getUnread) {
+      const u = MESSAGING.getUnread(user.id);
+      if (u.length) {
+        const b = document.getElementById('msg-unread-badge');
+        if (b) { b.textContent = u.length; b.classList.remove('d-none'); }
+      }
+    }
+  } catch(e){}
+
+  renderTab('infos');
 });
 
-function loadPage() {
-  /* En-tête */
-  document.getElementById('header-nom').textContent  = user.prenom + ' ' + user.nom;
-  document.getElementById('header-role').textContent = AUTH.ROLE_LABELS[user.role] || user.role;
-  document.getElementById('header-lieu').textContent = user.lieuTravail ? '📍 ' + user.lieuTravail : '';
-
-  /* Photo de profil */
-  if (user.photoProfil) document.getElementById('avatar-img').src = user.photoProfil;
-
-  /* Photo de famille */
-  if (user.photoFamille) {
-    const fi = document.getElementById('family-photo-img');
-    fi.src = user.photoFamille;
-    fi.style.display = '';
-    document.getElementById('family-photo-placeholder').style.display = 'none';
-  }
-
-  /* Remplir le formulaire infos */
-  document.getElementById('f-nom').value         = user.nom || '';
-  document.getElementById('f-prenom').value       = user.prenom || '';
-  document.getElementById('f-email').value        = user.email || '';
-  document.getElementById('f-telephone').value    = user.telephone || '';
-  document.getElementById('f-adresse').value      = user.adresse || '';
-  document.getElementById('f-dateNaissance').value= user.dateNaissance || '';
-
-  /* Villes de Tunisie */
-  const sel = document.getElementById('f-lieuTravail');
-  PROFILE.VILLES_TN.forEach(v => {
-    const o = document.createElement('option');
-    o.value = v; o.textContent = v;
-    if (v === user.lieuTravail) o.selected = true;
-    sel.appendChild(o);
-  });
-
-  /* Notifications */
-  const notifs = PROFILE.getNotifPrefs(user.id);
-  document.getElementById('n-delai').value          = notifs.delaiJours;
-  document.getElementById('n-anniversaires').checked = notifs.anniversaires;
-  document.getElementById('n-autres-users').checked  = notifs.autresUsers;
-  document.getElementById('n-evenements').checked    = notifs.evenements;
-  document.getElementById('n-conventions').checked   = notifs.conventions;
-
-  /* Famille */
-  renderFamille();
-
-  /* Code de partage */
-  const code = PROFILE.getFamilyShareCode(user.id);
-  document.getElementById('share-code-val').textContent = code || '(non généré)';
-  refreshFamilyShareUi();
-  renderFamilyRequests();
-
-  /* Historique */
-  renderHistorique();
-
-  /* Paiements */
-  renderPaiements();
-
-  /* Locations */
-  renderLocations();
+/* ═══════ TAB SWITCH ═══════ */
+function switchTab(tab, btn) {
+  _currentTab = tab;
+  document.querySelectorAll('.ptab').forEach(b => b.classList.remove('active'));
+  if (btn) btn.classList.add('active');
+  renderTab(tab);
 }
 
-/* ── Anniversaires ────────────────────────────────────────── */
-function showAnniversaires() {
-  const annivs = PROFILE.getUpcomingAnniversaries(user.id);
-  if (!annivs.length) return;
-  const rel = { self:'Vous-même', famille:'Famille', membre:'Membre' };
-  document.getElementById('notif-anniversaires').innerHTML =
-    annivs.map(a => `
-      <div class="d-inline-flex align-items-center gap-2 bg-white bg-opacity-15 rounded-pill px-3 py-1 me-2 mb-1 text-white" style="font-size:.85rem;">
-        <i class="bi bi-cake2-fill"></i>
-        <strong>${AUTH.esc(a.prenom)} ${AUTH.esc(a.nom)}</strong>
-        ${a.dansJours === 0 ? '<span class="badge bg-warning text-dark">Aujourd\'hui !</span>' : `dans ${a.dansJours}j`}
-        <span class="opacity-65">${rel[a.type]||a.type}</span>
-      </div>`).join('');
+function renderTab(tab) {
+  const content = document.getElementById('profile-content');
+  content.innerHTML = '<div class="text-center text-muted py-5"><i class="bi bi-hourglass-split me-2"></i>Chargement…</div>';
+  setTimeout(() => {
+    try {
+      switch(tab) {
+        case 'infos':      renderInfos(content); break;
+        case 'delegue':    renderDelegue(content); break;
+        case 'famille':    renderFamille(content); break;
+        case 'historique': renderHistorique(content); break;
+        case 'messages':   renderMessages(content); break;
+        case 'paiements':  renderPaiements(content); break;
+        case 'securite':   renderSecurite(content); break;
+        default: content.innerHTML = '<p class="text-muted">Section indisponible.</p>';
+      }
+    } catch(e) {
+      content.innerHTML = `<div class="alert alert-warning">Erreur : ${e.message}</div>`;
+    }
+  }, 80);
 }
 
-/* ── Sauvegarder infos ────────────────────────────────────── */
+/* ═══════ INFOS ═══════ */
+function renderInfos(c) {
+  const cities = (typeof PROFILE !== 'undefined' && PROFILE.VILLES_TN) ? PROFILE.VILLES_TN : [];
+  const cityOptions = cities.map(v => `<option value="${v}" ${user.lieuTravail===v?'selected':''}>${v}</option>`).join('');
+  c.innerHTML = `
+    <div class="tab-pane-anim">
+      <div class="info-card">
+        <h3><i class="bi bi-person-lines-fill me-2 text-primary"></i>Informations personnelles</h3>
+        <div id="info-alert" class="alert d-none mb-3"></div>
+        <div class="row g-3">
+          <div class="col-sm-6"><label class="form-label fw-semibold small">Nom</label>
+            <input class="form-control" id="f-nom" value="${AUTH.esc(user.nom||'')}" /></div>
+          <div class="col-sm-6"><label class="form-label fw-semibold small">Prénom</label>
+            <input class="form-control" id="f-prenom" value="${AUTH.esc(user.prenom||'')}" /></div>
+          <div class="col-sm-6"><label class="form-label fw-semibold small">Login (non modifiable)</label>
+            <input class="form-control" value="${AUTH.esc(user.login||'')}" readonly style="background:#f8f9fa;" /></div>
+          <div class="col-sm-6"><label class="form-label fw-semibold small">E-mail</label>
+            <input class="form-control" id="f-email" type="email" value="${AUTH.esc(user.email||'')}" /></div>
+          <div class="col-sm-6"><label class="form-label fw-semibold small">Téléphone</label>
+            <input class="form-control" id="f-telephone" type="tel" value="${AUTH.esc(user.telephone||'')}" /></div>
+          <div class="col-sm-6"><label class="form-label fw-semibold small">Date de naissance</label>
+            <input class="form-control" id="f-date" type="date" value="${AUTH.esc(user.dateNaissance||'')}" /></div>
+          <div class="col-sm-6"><label class="form-label fw-semibold small">Lieu de travail</label>
+            <select class="form-select" id="f-lieu"><option value="">— Choisir —</option>${cityOptions}</select></div>
+          <div class="col-12"><label class="form-label fw-semibold small">Adresse</label>
+            <textarea class="form-control" id="f-adresse" rows="2">${AUTH.esc(user.adresse||'')}</textarea></div>
+        </div>
+        <button class="btn btn-attt mt-4" onclick="saveInfos()"><i class="bi bi-check-circle me-1"></i>Enregistrer</button>
+      </div>
+    </div>`;
+}
+
 function saveInfos() {
-  const alert = document.getElementById('info-alert');
-  const show  = (t, m) => { alert.className='alert alert-'+t; alert.textContent=m; alert.classList.remove('d-none'); };
-  const changes = {
-    nom:           document.getElementById('f-nom').value.trim().toUpperCase(),
-    prenom:        document.getElementById('f-prenom').value.trim(),
-    email:         document.getElementById('f-email').value.trim(),
-    telephone:     document.getElementById('f-telephone').value.trim(),
-    adresse:       document.getElementById('f-adresse').value.trim(),
-    lieuTravail:   document.getElementById('f-lieuTravail').value,
-    dateNaissance: document.getElementById('f-dateNaissance').value
+  const data = {
+    nom: document.getElementById('f-nom').value.trim(),
+    prenom: document.getElementById('f-prenom').value.trim(),
+    email: document.getElementById('f-email').value.trim(),
+    telephone: document.getElementById('f-telephone').value.trim(),
+    dateNaissance: document.getElementById('f-date').value,
+    lieuTravail: document.getElementById('f-lieu').value,
+    adresse: document.getElementById('f-adresse').value.trim(),
   };
-  if (!changes.nom || !changes.prenom) return show('warning', 'Nom et prénom requis.');
-  PROFILE.updateProfile(user.id, changes);
-  /* Mettre à jour la session */
-  Object.assign(user, changes);
-  document.getElementById('header-nom').textContent  = user.prenom + ' ' + user.nom;
-  document.getElementById('header-lieu').textContent = user.lieuTravail ? '📍 ' + user.lieuTravail : '';
-  show('success', 'Profil mis à jour.');
-  LOG.add('PROFILE_UPDATE', { acteurId: user.id, acteurLogin: user.login, acteurRole: user.role });
-}
-
-/* ── Photo de profil ─────────────────────────────────────── */
-async function uploadAvatar(input) {
-  const file = input.files?.[0];
-  if (!file) return;
   try {
-    if (MEDIA_UPLOAD.isAvailable()) {
-      const result = await MEDIA_UPLOAD.uploadFile(file, 'profiles/avatar');
-      PROFILE.updateProfile(user.id, { photoProfil: result.url });
-      document.getElementById('avatar-img').src = result.url;
+    const result = PROFILE.updateProfile ? PROFILE.updateProfile(user.id, data) : AUTH.updateUser(user.id, data);
+    const al = document.getElementById('info-alert');
+    if (result && result.ok === false) {
+      al.className = 'alert alert-danger'; al.textContent = result.msg || 'Erreur.';
     } else {
-      const b64 = await PROFILE.resizeImageToBase64(file, 300);
-      PROFILE.updateProfile(user.id, { photoProfil: b64 });
-      document.getElementById('avatar-img').src = b64;
+      al.className = 'alert alert-success'; al.textContent = '✓ Informations enregistrées.';
+      Object.assign(user, data);
     }
-  } catch(e) { alert('Erreur lors du chargement : ' + e.message); }
-}
-
-async function uploadFamilyPhoto(input) {
-  const file = input.files?.[0];
-  if (!file) return;
-  try {
-    let photoUrl = '';
-    if (MEDIA_UPLOAD.isAvailable()) {
-      const result = await MEDIA_UPLOAD.uploadFile(file, 'profiles/family');
-      photoUrl = result.url;
-    } else {
-      photoUrl = await PROFILE.resizeImageToBase64(file, 800);
-    }
-    PROFILE.updateProfile(user.id, { photoFamille: photoUrl });
-    const fi = document.getElementById('family-photo-img');
-    fi.src = photoUrl; fi.style.display = '';
-    document.getElementById('family-photo-placeholder').style.display = 'none';
+    al.classList.remove('d-none');
   } catch(e) { alert('Erreur : ' + e.message); }
 }
 
-/* ── Famille ─────────────────────────────────────────────── */
-const REL_LABELS = { conjoint:'Conjoint(e)', enfant:'Enfant', parent:'Parent', frere_soeur:'Frère/Sœur', autre:'Autre' };
+/* ═══════ DÉLÉGUÉ ═══════ */
+function renderDelegue(c) {
+  let delegue = null;
+  try {
+    if (user.delegueId && AUTH.getUserById) delegue = AUTH.getUserById(user.delegueId);
+    else if (AUTH.getUsers) {
+      const all = AUTH.getUsers();
+      delegue = all.find(u => u.role === 'delegue' && (u.membres||[]).includes(user.id));
+    }
+  } catch(e){}
 
-function renderFamille() {
-  const u   = PROFILE.getProfile(user.id);
-  const fam = u?.famille || [];
-  const linked = PROFILE.getLinkedFamilyMembers(user.id);
-  const el  = document.getElementById('famille-list');
-  if (!fam.length && !linked.length) {
-    el.innerHTML = '<p class="text-muted small">Aucun membre de famille enregistré.</p>';
-    return;
-  }
-  const manualHtml = fam.map(m => `
-    <div class="d-flex align-items-center justify-content-between border-bottom py-2 gap-2">
-      <div>
-        <span class="fw-semibold">${AUTH.esc(m.prenom)} ${AUTH.esc(m.nom)}</span>
-        <span class="badge bg-light text-dark border relation-badge ms-1">${REL_LABELS[m.relation]||m.relation}</span>
-        ${m.dateNaissance ? `<small class="text-muted ms-2"><i class="bi bi-cake2 me-1"></i>${AUTH.esc(m.dateNaissance)}</small>` : ''}
-      </div>
-      <button class="btn btn-outline-danger btn-sm" onclick="removeMember('${m.id}')">
-        <i class="bi bi-trash"></i>
-      </button>
-    </div>`).join('');
-  const linkedHtml = linked.map(member => `
-    <div class="d-flex align-items-center justify-content-between border-bottom py-2 gap-2">
-      <div>
-        <span class="fw-semibold">${AUTH.esc(member.prenom)} ${AUTH.esc(member.nom)}</span>
-        <span class="badge bg-info-subtle text-info-emphasis border relation-badge ms-1">Compte lié</span>
-        <span class="badge bg-light text-dark border relation-badge ms-1">${AUTH.esc(AUTH.ROLE_LABELS[member.role] || member.role)}</span>
-        ${member.email ? `<small class="text-muted ms-2"><i class="bi bi-envelope me-1"></i>${AUTH.esc(member.email)}</small>` : ''}
-      </div>
-      <span class="badge bg-success">Actif</span>
-    </div>`).join('');
-  el.innerHTML = manualHtml + linkedHtml;
-}
-
-function renderFamilyRequests() {
-  const reqs = PROFILE.getPendingFamilyRequests(user.id);
-  const el = document.getElementById('family-requests-list');
-  if (!reqs.length) {
-    el.innerHTML = '<p class="text-muted small mb-0">Aucune demande en attente.</p>';
-    return;
-  }
-  el.innerHTML = reqs.map(r => `
-    <div class="d-flex justify-content-between align-items-center border-bottom py-2 gap-2">
-      <div>
-        <div class="fw-semibold">${AUTH.esc(r.prenom)} ${AUTH.esc(r.nom)}</div>
-        <div class="small text-muted">@${AUTH.esc(r.login)}${r.email ? ' · ' + AUTH.esc(r.email) : ''}</div>
-      </div>
-      <div class="d-flex gap-2">
-        <button class="btn btn-sm btn-outline-success" onclick="approveFamilyRequest('${r.id}')">
-          <i class="bi bi-check-circle me-1"></i>Activer
-        </button>
-        <button class="btn btn-sm btn-outline-danger" onclick="rejectFamilyRequest('${r.id}')">
-          <i class="bi bi-x-circle me-1"></i>Refuser
-        </button>
-      </div>
-    </div>`).join('');
-}
-
-function saveFamilyMember() {
-  const alert  = document.getElementById('fm-alert');
-  const show   = (t,m) => { alert.className='alert alert-'+t; alert.textContent=m; alert.classList.remove('d-none'); };
-  const nom    = document.getElementById('fm-nom').value.trim();
-  const prenom = document.getElementById('fm-prenom').value.trim();
-  const date   = document.getElementById('fm-date').value;
-  const rel    = document.getElementById('fm-relation').value;
-  if (!nom || !prenom) return show('warning','Nom et prénom requis.');
-  PROFILE.addFamilyMember(user.id, { nom, prenom, dateNaissance: date, relation: rel });
-  renderFamille();
-  /* Fermer modal et reset */
-  document.activeElement?.blur?.();
-  bootstrap.Modal.getInstance(document.getElementById('modalFamille')).hide();
-  ['fm-nom','fm-prenom','fm-date'].forEach(id => document.getElementById(id).value='');
-  alert.classList.add('d-none');
-}
-
-function removeMember(membreId) {
-  if (!confirm('Retirer ce membre de la famille ?')) return;
-  PROFILE.removeFamilyMember(user.id, membreId);
-  renderFamille();
-}
-
-/* ── Code de partage ─────────────────────────────────────── */
-function genShareCode() {
-  const code = PROFILE.generateFamilyShareCode(user.id);
-  document.getElementById('share-code-val').textContent = code;
-  refreshFamilyShareUi();
-}
-function copyShareCode() {
-  const code = document.getElementById('share-code-val').textContent;
-  navigator.clipboard.writeText(code).then(() => alert('Code copié !'));
-}
-function refreshFamilyShareUi() {
-  const link = PROFILE.getFamilyShareLink(user.id);
-  const img = document.getElementById('share-qr-img');
-  const empty = document.getElementById('share-qr-empty');
-  const code = PROFILE.getFamilyShareCode(user.id);
-  document.getElementById('share-code-val').textContent = code || '(non généré)';
-  if (!link) {
-    img.style.display = 'none';
-    img.src = '';
-    empty.style.display = '';
-    return;
-  }
-  img.src = 'https://api.qrserver.com/v1/create-qr-code/?size=168x168&data=' + encodeURIComponent(link);
-  img.style.display = '';
-  empty.style.display = 'none';
-}
-function copyShareLink() {
-  const link = PROFILE.getFamilyShareLink(user.id);
-  if (!link) return alert('Générez d\'abord un code de partage.');
-  navigator.clipboard.writeText(new URL(link, window.location.href).href)
-    .then(() => alert('Lien copié !'));
-}
-function approveFamilyRequest(memberId) {
-  const result = PROFILE.approveFamilyRequest(user.id, memberId);
-  if (!result.ok) return alert(result.msg || 'Activation impossible.');
-  renderFamilyRequests();
-  renderFamille();
-}
-function rejectFamilyRequest(memberId) {
-  if (!confirm('Refuser et supprimer cette demande famille ?')) return;
-  const result = PROFILE.rejectFamilyRequest(user.id, memberId);
-  if (!result.ok) return alert(result.msg || 'Refus impossible.');
-  renderFamilyRequests();
-}
-
-/* ── Historique ──────────────────────────────────────────── */
-function renderHistorique() {
-  const hist   = PROFILE.getUserParticipations(user.id);
-  const events = DATA.getEvents();
-  const el     = document.getElementById('historique-list');
-  if (!hist.length) {
-    el.innerHTML = '<p class="text-muted small">Aucune participation enregistrée.</p>';
-    return;
-  }
-  el.innerHTML = `<div class="table-responsive"><table class="table table-sm table-hover align-middle">
-    <thead class="table-light"><tr><th>Événement</th><th>Date événement</th><th>Inscrit le</th><th></th></tr></thead>
-    <tbody>
-    ${hist.map(h => {
-      const ev = events.find(e => e.id === h.eventId);
-      return `<tr>
-        <td>${ev ? AUTH.esc(ev.titre) : '<span class="text-muted">Événement supprimé</span>'}</td>
-        <td>${ev ? AUTH.esc(ev.date) : '—'}</td>
-        <td>${AUTH.esc(h.date.slice(0,10))}</td>
-        <td><button class="btn btn-outline-danger btn-sm" onclick="annulerParticipation('${h.eventId}')"><i class="bi bi-x"></i></button></td>
-      </tr>`;
-    }).join('')}
-    </tbody></table></div>`;
-}
-
-function annulerParticipation(eventId) {
-  if (!confirm('Se désinscrire de cet événement ?')) return;
-  PROFILE.cancelParticipation(user.id, eventId);
-  renderHistorique();
-}
-
-/* ── Paiements ───────────────────────────────────────────── */
-function renderPaiements() {
-  PAYMENTS.refreshStatuts();
-  const pays = PAYMENTS.getUserPayments(user.id);
-  const events = DATA.getEvents();
-  const el = document.getElementById('paiements-list');
-  if (!pays.length) {
-    el.innerHTML = '<p class="text-muted small">Aucun paiement en cours.</p>';
-    return;
-  }
-  const COL = { en_attente:'warning', paye:'success', retard:'danger' };
-  const LBL = { en_attente:'En attente', paye:'Payé', retard:'En retard' };
-  el.innerHTML = `<div class="table-responsive"><table class="table table-sm align-middle">
-    <thead class="table-light"><tr><th>Événement</th><th>Échéance</th><th>Montant</th><th>Date prévue</th><th>Statut</th></tr></thead>
-    <tbody>
-    ${pays.map(p => {
-      const ev = events.find(e => e.id === p.eventId);
-      return `<tr>
-        <td class="small">${ev ? AUTH.esc(ev.titre) : AUTH.esc(p.eventId)}</td>
-        <td class="small">${AUTH.esc(p.label)}</td>
-        <td class="fw-semibold">${p.montant} TND</td>
-        <td class="small">${AUTH.esc(p.datePrev||'—')}</td>
-        <td><span class="badge bg-${COL[p.statut]||'secondary'}">${LBL[p.statut]||p.statut}</span></td>
-      </tr>`;
-    }).join('')}
-    </tbody></table></div>`;
-}
-
-/* ── Locations ───────────────────────────────────────────── */
-function renderLocations() {
-  const bookings = RENTALS.getUserBookings(user.id);
-  const rentals  = RENTALS.getRentals();
-  const el       = document.getElementById('locations-list');
-  if (!bookings.length) {
-    el.innerHTML = '<p class="text-muted small">Aucune réservation de vacances.</p>' +
-      '<a href="location.html" class="btn btn-attt btn-sm"><i class="bi bi-house-door me-1"></i>Voir les locations disponibles</a>';
-    return;
-  }
-  el.innerHTML = bookings.map(b => {
-    const rental  = rentals.find(r => r.id === b.rentalId);
-    const tranche = rental?.tranches?.find(t => t.id === b.trancheId);
-    const SC = RENTALS.STATUT_COLORS[b.statut] || 'secondary';
-    const SL = RENTALS.STATUT_LABELS[b.statut] || b.statut;
-    return `<div class="card mb-2 p-3">
-      <div class="d-flex justify-content-between align-items-start gap-2 flex-wrap">
-        <div>
-          <div class="fw-semibold">${AUTH.esc(rental?.titre||b.rentalId)}</div>
-          <small class="text-muted">${AUTH.esc(tranche?.libelle||b.trancheId)} — ${b.nbUnites} unité(s)</small><br/>
-          <small class="text-muted"><i class="bi bi-calendar3 me-1"></i>${AUTH.esc(b.dateDebut)} → ${AUTH.esc(b.dateFin)}</small>
-        </div>
-        <div class="text-end">
-          <span class="badge bg-${SC}">${SL}</span>
-          <div class="fw-bold mt-1">${b.montantTotal} TND</div>
-          ${b.statut === 'en_attente' ? `<button class="btn btn-outline-danger btn-sm mt-1" onclick="cancelBooking('${b.id}')"><i class="bi bi-x me-1"></i>Annuler</button>` : ''}
+  if (!delegue) {
+    c.innerHTML = `<div class="tab-pane-anim">
+      <div class="info-card">
+        <h3><i class="bi bi-person-badge me-2 text-primary"></i>Mon délégué</h3>
+        <div class="text-center text-muted py-4">
+          <i class="bi bi-person-dash fs-2 d-block mb-2 opacity-25"></i>
+          Aucun délégué n'est attaché à votre compte pour le moment.<br>
+          <small>Un délégué vous sera assigné après validation de votre inscription.</small>
         </div>
       </div>
     </div>`;
+    return;
+  }
+
+  c.innerHTML = `<div class="tab-pane-anim">
+    <div class="info-card">
+      <h3><i class="bi bi-person-badge me-2 text-primary"></i>Mon délégué</h3>
+      <div class="delegue-card d-flex align-items-center gap-3 flex-wrap">
+        <div style="width:64px;height:64px;border-radius:50%;background:var(--cp);color:#fff;display:flex;align-items:center;justify-content:center;font-size:1.6rem;font-weight:700;flex-shrink:0;">
+          ${(delegue.prenom||'?').charAt(0).toUpperCase()}
+        </div>
+        <div class="flex-grow-1">
+          <div class="fw-bold fs-5">${AUTH.esc(delegue.prenom||'')} ${AUTH.esc(delegue.nom||'')}</div>
+          <div class="text-muted small"><i class="bi bi-person-badge me-1"></i>Délégué de l'Amicale</div>
+          ${delegue.lieuTravail ? `<div class="text-muted small"><i class="bi bi-geo-alt me-1"></i>${AUTH.esc(delegue.lieuTravail)}</div>` : ''}
+          ${delegue.telephone ? `<div class="text-muted small"><i class="bi bi-telephone me-1"></i>${AUTH.esc(delegue.telephone)}</div>` : ''}
+          ${delegue.email ? `<div class="text-muted small"><i class="bi bi-envelope me-1"></i>${AUTH.esc(delegue.email)}</div>` : ''}
+        </div>
+        <button class="btn btn-attt btn-sm" onclick="openMsgModal(['${delegue.id}'])">
+          <i class="bi bi-chat-text me-1"></i>Contacter
+        </button>
+      </div>
+      <div class="mt-4">
+        <h4 class="h6 fw-bold mb-2"><i class="bi bi-people me-1"></i>Membres de ce délégué</h4>
+        <div id="delegue-membres-list" class="text-muted small">Chargement…</div>
+      </div>
+    </div>
+  </div>`;
+
+  // Members list
+  try {
+    if (AUTH.getUsers) {
+      const membres = AUTH.getUsers().filter(u => (u.delegueId === delegue.id) || ((delegue.membres||[]).includes(u.id)));
+      const listEl = document.getElementById('delegue-membres-list');
+      if (!membres.length) { listEl.textContent = 'Aucun membre listé.'; }
+      else {
+        listEl.innerHTML = membres.slice(0,10).map(m =>
+          `<span class="badge bg-light text-dark me-1 mb-1 border">${AUTH.esc(m.prenom||'')} ${AUTH.esc(m.nom||'')}</span>`
+        ).join('') + (membres.length > 10 ? `<span class="text-muted">… +${membres.length-10} autres</span>` : '');
+      }
+    }
+  } catch(e){}
+}
+
+/* ═══════ FAMILLE ═══════ */
+function renderFamille(c) {
+  let members = [];
+  try {
+    if (AUTH.getUsers) {
+      const all = AUTH.getUsers();
+      // Membres famille liés à cet utilisateur via linkedTo (rôle Famille)
+      const byLinkedTo = all.filter(u => u.linkedTo === user.id && u.id !== user.id && AUTH.hasRole(u, 'famille'));
+      // Membres partageant le même familyCode (ancienne méthode)
+      const byFamilyCode = user.familyCode
+        ? all.filter(u => u.familyCode === user.familyCode && u.id !== user.id)
+        : [];
+      // Fusion sans doublons
+      const seen = new Set();
+      members = [...byLinkedTo, ...byFamilyCode].filter(u => { if (seen.has(u.id)) return false; seen.add(u.id); return true; });
+    }
+  } catch(e){}
+
+  let html = `<div class="tab-pane-anim">
+    <div class="info-card">
+      <div class="d-flex justify-content-between align-items-center mb-3">
+        <h3 class="mb-0"><i class="bi bi-people me-2 text-primary"></i>Membres de ma famille</h3>
+      </div>`;
+
+  if (!members.length) {
+    html += `<p class="text-muted">Aucun membre famille lié à votre compte.</p>`;
+  } else {
+    html += members.map(m => `
+      <div class="fam-item">
+        <div class="fam-avatar">${(m.prenom||'?').charAt(0).toUpperCase()}</div>
+        <div class="flex-grow-1">
+          <div class="fw-bold">${AUTH.esc(m.prenom||'')} ${AUTH.esc(m.nom||'')}</div>
+          <div class="small text-muted">${AUTH.esc(m.email||'')} · Statut : ${AUTH.esc(m.statut||'—')}</div>
+        </div>
+        <span class="badge ${m.statut==='actif'?'bg-success':'bg-warning text-dark'}">${m.statut==='actif'?'Actif':'En attente'}</span>
+      </div>`).join('');
+  }
+
+  // Code famille
+  const code = user.familyCode || user.familyShareCode || '—';
+  html += `
+    </div>
+    <div class="info-card">
+      <h3><i class="bi bi-share me-2 text-primary"></i>Code de partage famille</h3>
+      <p class="text-muted small mb-3">Partagez ce code avec vos proches pour qu'ils puissent créer un compte famille lié au vôtre.</p>
+      <div class="d-flex align-items-center gap-3 flex-wrap">
+        <code class="fs-5 fw-bold px-3 py-2 bg-light rounded-3 border">${code}</code>
+        <button class="btn btn-oa btn-sm" onclick="navigator.clipboard.writeText('${code}').then(()=>alert('Code copié !'))">
+          <i class="bi bi-clipboard me-1"></i>Copier
+        </button>
+        <a href="inscription.html?familyCode=${code}" class="btn btn-attt btn-sm">
+          <i class="bi bi-person-plus me-1"></i>Lien d'inscription
+        </a>
+      </div>
+    </div>
+  </div>`;
+  c.innerHTML = html;
+}
+
+/* ═══════ HISTORIQUE ═══════ */
+function renderHistorique(c) {
+  let registrations = [];
+  try {
+    if (typeof EVENTS !== 'undefined' && EVENTS.getRegistrations) registrations = EVENTS.getRegistrations(user.id);
+    else if (user.participations) registrations = user.participations;
+  } catch(e){}
+
+  const ICONS = { events:'calendar-event', voyages:'compass', locations:'house-heart', offres:'tag', conventions:'award', votes:'ballot' };
+  const COLORS = { events:'#003DA6', voyages:'#2e7d32', locations:'#d84315', offres:'#f59e0b', conventions:'#7b1fa2', votes:'#0dcaf0' };
+
+  let html = `<div class="tab-pane-anim">
+    <div class="info-card">
+      <h3><i class="bi bi-calendar-check me-2 text-primary"></i>Mes participations</h3>`;
+
+  if (!registrations.length) {
+    html += `<div class="text-center text-muted py-4">
+      <i class="bi bi-inbox fs-2 d-block mb-2 opacity-25"></i>Aucune participation enregistrée.
+    </div>`;
+  } else {
+    html += registrations.slice(0,20).map(r => {
+      const type = r.type || 'events';
+      const icon = ICONS[type] || 'calendar';
+      const color = COLORS[type] || '#003DA6';
+      return `<div class="hist-item">
+        <div class="hist-icon" style="background:${color}20;color:${color};"><i class="bi bi-${icon}"></i></div>
+        <div class="flex-grow-1">
+          <div class="fw-bold">${AUTH.esc(r.titre||r.eventId||'Activité')}</div>
+          <div class="small text-muted">${AUTH.esc(r.date||r.dateInscription||'—')} · ${AUTH.esc(r.lieu||r.type||'—')}</div>
+          ${r.statut ? `<span class="badge ${r.statut==='confirmé'?'bg-success':'bg-warning text-dark'} mt-1" style="font-size:.72rem;">${r.statut}</span>` : ''}
+        </div>
+        ${r.montant ? `<div class="text-end flex-shrink-0"><div class="fw-bold">${r.montant} TND</div></div>` : ''}
+      </div>`;
+    }).join('');
+  }
+  html += '</div></div>';
+  c.innerHTML = html;
+}
+
+/* ═══════ MESSAGERIE ═══════ */
+function renderMessages(c) {
+  let inbox = [], sent = [];
+  try {
+    if (typeof MESSAGING !== 'undefined') {
+      if (MESSAGING.getInbox) inbox = MESSAGING.getInbox(user.id);
+      if (MESSAGING.getSent)  sent  = MESSAGING.getSent(user.id);
+    }
+  } catch(e){}
+
+  c.innerHTML = `<div class="tab-pane-anim">
+    <div class="d-flex justify-content-between align-items-center mb-3 flex-wrap gap-2">
+      <h2 class="h5 fw-bold mb-0"><i class="bi bi-chat-text me-2 text-primary"></i>Messagerie</h2>
+      <button class="btn btn-attt btn-sm" onclick="openMsgModal([])">
+        <i class="bi bi-pencil-square me-1"></i>Nouveau message
+      </button>
+    </div>
+
+    <!-- Nav inbox/envoyés -->
+    <ul class="nav nav-pills mb-3 gap-2">
+      <li class="nav-item"><button class="btn btn-sm active" id="btn-inbox" onclick="showMsgSection('inbox')" style="background:var(--cp);color:#fff;border-radius:9px;padding:.4rem 1rem;border:none;font-weight:600;">
+        <i class="bi bi-inbox me-1"></i>Reçus (${inbox.length})</button></li>
+      <li class="nav-item"><button class="btn btn-sm" id="btn-sent" onclick="showMsgSection('sent')" style="background:#e9ecef;color:#495057;border-radius:9px;padding:.4rem 1rem;border:none;font-weight:600;">
+        <i class="bi bi-send me-1"></i>Envoyés (${sent.length})</button></li>
+    </ul>
+
+    <div id="msg-inbox">
+      ${!inbox.length ? '<p class="text-muted text-center py-3">Aucun message reçu.</p>' :
+        inbox.map(m => `<div class="msg-item ${m.lu?'':'unread'}" onclick="openMsg('${m.id}')">
+          <div class="d-flex justify-content-between align-items-start">
+            <div class="msg-from"><i class="bi bi-person-circle me-1 text-primary"></i>${AUTH.esc(m.expediteurNom||m.expediteurId||'Inconnu')}</div>
+            <div class="msg-date">${AUTH.esc(m.date||'')}</div>
+          </div>
+          <div class="msg-sub">${AUTH.esc(m.sujet||'(sans objet)')}</div>
+          <div class="small text-muted mt-1">${AUTH.esc((m.corps||'').substring(0,80))}…</div>
+        </div>`).join('')}
+    </div>
+    <div id="msg-sent" class="d-none">
+      ${!sent.length ? '<p class="text-muted text-center py-3">Aucun message envoyé.</p>' :
+        sent.map(m => `<div class="msg-item" onclick="openMsg('${m.id}')">
+          <div class="d-flex justify-content-between align-items-start">
+            <div class="msg-from"><i class="bi bi-send me-1 text-success"></i>À : ${AUTH.esc((m.destinataires||[]).join(', '))}</div>
+            <div class="msg-date">${AUTH.esc(m.date||'')}</div>
+          </div>
+          <div class="msg-sub">${AUTH.esc(m.sujet||'(sans objet)')}</div>
+        </div>`).join('')}
+    </div>
+  </div>`;
+}
+
+function showMsgSection(sec) {
+  document.getElementById('msg-inbox').classList.toggle('d-none', sec !== 'inbox');
+  document.getElementById('msg-sent').classList.toggle('d-none', sec !== 'sent');
+  document.getElementById('btn-inbox').style.background = sec==='inbox' ? 'var(--cp)' : '#e9ecef';
+  document.getElementById('btn-inbox').style.color = sec==='inbox' ? '#fff' : '#495057';
+  document.getElementById('btn-sent').style.background = sec==='sent' ? 'var(--cp)' : '#e9ecef';
+  document.getElementById('btn-sent').style.color = sec==='sent' ? '#fff' : '#495057';
+}
+
+function openMsg(msgId) {
+  try {
+    let msg = null;
+    if (typeof MESSAGING !== 'undefined' && MESSAGING.getMessage) msg = MESSAGING.getMessage(msgId);
+    if (!msg) return;
+    if (MESSAGING.markRead) MESSAGING.markRead(msgId);
+    alert(`De : ${msg.expediteurNom||msg.expediteurId||'—'}\nObjet : ${msg.sujet}\n\n${msg.corps}`);
+  } catch(e) { alert('Impossible d\'ouvrir le message.'); }
+}
+
+/* ═══════ PAIEMENTS ═══════ */
+function renderPaiements(c) {
+  let payments = [];
+  try {
+    if (typeof PAYMENTS !== 'undefined' && PAYMENTS.getUserPayments) payments = PAYMENTS.getUserPayments(user.id);
+    else if (user.paiements) payments = user.paiements;
+  } catch(e){}
+
+  c.innerHTML = `<div class="tab-pane-anim">
+    <div class="info-card">
+      <h3><i class="bi bi-credit-card me-2 text-primary"></i>Suivi des paiements</h3>
+      ${!payments.length
+        ? '<p class="text-muted text-center py-3">Aucun paiement enregistré.</p>'
+        : `<div class="table-responsive">
+            <table class="table table-hover align-middle">
+              <thead class="table-light">
+                <tr><th>Date</th><th>Description</th><th>Montant</th><th>Statut</th></tr>
+              </thead>
+              <tbody>${payments.map(p => `
+                <tr>
+                  <td class="small">${AUTH.esc(p.date||'—')}</td>
+                  <td>${AUTH.esc(p.description||p.type||'—')}</td>
+                  <td class="fw-bold">${p.montant||'—'} TND</td>
+                  <td><span class="badge ${p.statut==='payé'?'bg-success':p.statut==='en attente'?'bg-warning text-dark':'bg-secondary'}">${AUTH.esc(p.statut||'—')}</span></td>
+                </tr>`).join('')}
+              </tbody>
+            </table>
+          </div>`}
+    </div>
+  </div>`;
+}
+
+/* ═══════ SECURITE ═══════ */
+function renderSecurite(c) {
+  c.innerHTML = `<div class="tab-pane-anim">
+    <div class="info-card">
+      <h3><i class="bi bi-shield-lock me-2 text-primary"></i>Changer le mot de passe</h3>
+      <div id="pwd-alert" class="alert d-none mb-3"></div>
+      <div class="row g-3" style="max-width:450px;">
+        <div class="col-12"><label class="form-label fw-semibold small">Mot de passe actuel</label>
+          <input type="password" class="form-control" id="old-pwd" /></div>
+        <div class="col-12"><label class="form-label fw-semibold small">Nouveau mot de passe</label>
+          <input type="password" class="form-control" id="new-pwd" /></div>
+        <div class="col-12"><label class="form-label fw-semibold small">Confirmer le nouveau</label>
+          <input type="password" class="form-control" id="new-pwd2" /></div>
+      </div>
+      <button class="btn btn-attt mt-4" onclick="changePwd()"><i class="bi bi-lock me-1"></i>Changer le mot de passe</button>
+    </div>
+  </div>`;
+}
+
+function changePwd() {
+  const old = document.getElementById('old-pwd').value;
+  const np  = document.getElementById('new-pwd').value;
+  const np2 = document.getElementById('new-pwd2').value;
+  const al  = document.getElementById('pwd-alert');
+  const show = (t,m) => { al.className='alert alert-'+t; al.textContent=m; al.classList.remove('d-none'); };
+  if (!old||!np||!np2) return show('warning','Veuillez remplir tous les champs.');
+  if (np !== np2) return show('danger','Les mots de passe ne correspondent pas.');
+  if (np.length < 6) return show('warning','Le mot de passe doit contenir au moins 6 caractères.');
+  try {
+    const result = AUTH.changePassword ? AUTH.changePassword(user.id, old, np) : { ok:false, msg:'Non disponible.' };
+    if (result.ok) show('success','✓ Mot de passe modifié.');
+    else show('danger', result.msg || 'Erreur.');
+  } catch(e) { show('danger','Erreur : ' + e.message); }
+}
+
+/* ═══════ MESSAGERIE MODALE ═══════ */
+function openMsgModal(preSelected) {
+  _selectedRecipients = [...preSelected];
+  renderRecipientBadges();
+  filterRecipients();
+  new bootstrap.Modal(document.getElementById('msgModal')).show();
+}
+
+function filterRecipients() {
+  const q = (document.getElementById('recipient-search')?.value||'').toLowerCase();
+  const list = document.getElementById('recipients-list');
+  if (!list) return;
+  const filtered = _allUsers.filter(u =>
+    !_selectedRecipients.includes(u.id) &&
+    ((u.prenom||'') + ' ' + (u.nom||'')).toLowerCase().includes(q)
+  );
+  list.innerHTML = filtered.slice(0,30).map(u => `
+    <div class="user-select-item" onclick="toggleRecipient('${u.id}','${AUTH.esc(u.prenom||'')} ${AUTH.esc(u.nom||'')}')">
+      <div class="u-avatar">${(u.prenom||'?').charAt(0).toUpperCase()}</div>
+      <div>
+        <div class="fw-semibold small">${AUTH.esc(u.prenom||'')} ${AUTH.esc(u.nom||'')}</div>
+        <div class="small text-muted">${AUTH.esc(u.role||'')} · ${AUTH.esc(u.lieuTravail||'')}</div>
+      </div>
+    </div>`).join('') || '<p class="text-muted text-center small py-2">Aucun résultat.</p>';
+}
+
+function toggleRecipient(id, name) {
+  if (!_selectedRecipients.includes(id)) _selectedRecipients.push(id);
+  renderRecipientBadges();
+  filterRecipients();
+}
+
+function removeRecipient(id) {
+  _selectedRecipients = _selectedRecipients.filter(r => r !== id);
+  renderRecipientBadges();
+  filterRecipients();
+}
+
+function renderRecipientBadges() {
+  const container = document.getElementById('selected-recipients');
+  if (!container) return;
+  container.innerHTML = _selectedRecipients.map(id => {
+    const u = _allUsers.find(u => u.id === id);
+    const name = u ? `${u.prenom||''} ${u.nom||''}` : id;
+    return `<span class="selected-user">
+      <i class="bi bi-person-fill" style="font-size:.75rem;color:var(--cp);"></i>${AUTH.esc(name)}
+      <i class="bi bi-x" style="cursor:pointer;font-size:.8rem;" onclick="removeRecipient('${id}')"></i>
+    </span>`;
   }).join('');
 }
 
-function cancelBooking(bookingId) {
-  if (!confirm('Annuler cette réservation ?')) return;
-  RENTALS.cancelBooking(bookingId, user.id);
-  renderLocations();
+function selectAllRecipients() {
+  _selectedRecipients = _allUsers.map(u => u.id);
+  renderRecipientBadges();
+  filterRecipients();
 }
 
-/* ── Notifications prefs ─────────────────────────────────── */
-function saveNotifs() {
-  PROFILE.setNotifPrefs(user.id, {
-    delaiJours:    parseInt(document.getElementById('n-delai').value) || 7,
-    anniversaires: document.getElementById('n-anniversaires').checked,
-    autresUsers:   document.getElementById('n-autres-users').checked,
-    evenements:    document.getElementById('n-evenements').checked,
-    conventions:   document.getElementById('n-conventions').checked
-  });
-  const al = document.getElementById('notif-alert');
-  al.className = 'alert alert-success'; al.textContent = 'Préférences enregistrées.'; al.classList.remove('d-none');
-  setTimeout(() => al.classList.add('d-none'), 3000);
+function sendMessage() {
+  const sujet = document.getElementById('msg-subject').value.trim();
+  const corps = document.getElementById('msg-body').value.trim();
+  const al    = document.getElementById('msg-alert');
+  const show  = (t,m) => { al.className='alert alert-'+t; al.textContent=m; al.classList.remove('d-none'); };
+  if (!_selectedRecipients.length) return show('warning','Veuillez sélectionner au moins un destinataire.');
+  if (!sujet) return show('warning','Veuillez saisir un objet.');
+  if (!corps) return show('warning','Veuillez saisir un message.');
+  try {
+    const result = typeof MESSAGING !== 'undefined' && MESSAGING.send
+      ? MESSAGING.send(user.id, _selectedRecipients, sujet, corps)
+      : { ok:false, msg:'Messagerie non disponible.' };
+    if (result && result.ok) {
+      show('success', '✓ Message envoyé à ' + _selectedRecipients.length + ' destinataire(s).');
+      document.getElementById('msg-subject').value = '';
+      document.getElementById('msg-body').value = '';
+      _selectedRecipients = [];
+      renderRecipientBadges();
+      setTimeout(() => bootstrap.Modal.getInstance(document.getElementById('msgModal')).hide(), 1200);
+    } else { show('danger', (result && result.msg) || 'Erreur lors de l\'envoi.'); }
+  } catch(e) { show('danger','Erreur : ' + e.message); }
 }
-
-/* ── Changement mot de passe ─────────────────────────────── */
-function changePwd() {
-  const alert  = document.getElementById('pwd-alert');
-  const show   = (t,m) => { alert.className='alert alert-'+t; alert.textContent=m; alert.classList.remove('d-none'); };
-  const oldPwd = document.getElementById('old-pwd').value;
-  const newPwd = document.getElementById('new-pwd').value;
-  const newPwd2= document.getElementById('new-pwd2').value;
-  if (!oldPwd||!newPwd) return show('warning','Tous les champs sont requis.');
-  if (newPwd.length<6)  return show('warning','6 caractères minimum.');
-  if (newPwd!==newPwd2) return show('danger','Les mots de passe ne correspondent pas.');
-  if (!AUTH.login(user.login,oldPwd).ok) return show('danger','Mot de passe actuel incorrect.');
-  const salt='ATTT_AMICALE_DZ_2026'; const s=newPwd+salt; let h=2166136261;
-  for(let i=0;i<s.length;i++){h^=s.charCodeAt(i);h=Math.imul(h,16777619)>>>0;}
-  AUTH.updateUser(user.id,{passwordHash:h.toString(16).padStart(8,'0')});
-  show('success','Mot de passe mis à jour.');
-  ['old-pwd','new-pwd','new-pwd2'].forEach(id=>document.getElementById(id).value='');
-  LOG.add('PASSWORD_CHANGE',{acteurId:user.id,acteurLogin:user.login,acteurRole:user.role});
-}
-</script>
+  </script>
 </body>
 </html>

@@ -30,7 +30,6 @@ const SITE_SETTINGS = (() => {
     phone: '+216 00 000 000',
     hoursWeek: 'Lundi - Vendredi : 08h00 - 16h30',
     hoursWeekend: 'Samedi & Dimanche : Ferme',
-    formAction: 'https://formspree.io/f/VOTRE_ID_FORMSPREE',
     mapEmbedUrl: 'https://www.google.com/maps?q=Agence%20Technique%20des%20Transports%20Terrestres%20Tunis&output=embed',
     facebookUrl: '',
     instagramUrl: '',
@@ -92,8 +91,6 @@ const SITE_SETTINGS = (() => {
       hoursEl.innerHTML = _multilineHtml([settings.hoursWeek, settings.hoursWeekend]);
     }
     if (mapFrame) mapFrame.src = settings.mapEmbedUrl;
-    if (form) form.action = settings.formAction;
-
     [
       ['facebook', settings.facebookUrl],
       ['instagram', settings.instagramUrl],

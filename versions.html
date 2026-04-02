@@ -1,0 +1,808 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Amicale ATTT — Versions &amp; Déploiement</title>
+  <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css" rel="stylesheet" />
+  <link href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.3/font/bootstrap-icons.css" rel="stylesheet" />
+  <link href="css/style.css" rel="stylesheet" />
+  <style>
+    :root { --cp:#003DA6; }
+    body { background:#f0f2f8; min-height:100vh; }
+
+    /* NAV */
+    .top-nav { background:var(--cp); padding:.55rem 1.25rem; display:flex; align-items:center; gap:1rem; box-shadow:0 2px 10px rgba(0,0,0,.18); }
+    .brand { color:#fff; font-weight:800; font-size:1.05rem; text-decoration:none; display:flex; align-items:center; gap:.5rem; flex:1; }
+    .btn-nav { border:1px solid rgba(255,255,255,.3); color:#fff!important; border-radius:8px; padding:.35rem .75rem; font-size:.82rem; font-weight:600; background:transparent; text-decoration:none; transition:background .15s; display:inline-flex; align-items:center; gap:.3rem; }
+    .btn-nav:hover { background:rgba(255,255,255,.15); }
+
+    /* LAYOUT */
+    .page-wrap { display:flex; min-height:calc(100vh - 54px); }
+    .sidebar-v { width:220px; min-width:220px; background:var(--cp); padding:.75rem .5rem; }
+    .sb-lk { display:flex; align-items:center; gap:.55rem; color:rgba(255,255,255,.78); text-decoration:none; padding:.45rem .75rem; border-radius:8px; font-size:.84rem; font-weight:500; transition:background .15s; cursor:pointer; border:none; background:none; width:100%; text-align:left; }
+    .sb-lk:hover,.sb-lk.active { background:rgba(255,255,255,.15); color:#fff; }
+    .sb-sec { font-size:.66rem; font-weight:800; text-transform:uppercase; letter-spacing:.08em; color:rgba(255,255,255,.4); padding:.7rem .75rem .15rem; }
+    .main-v { flex:1; padding:2rem; overflow-y:auto; }
+
+    /* CARDS */
+    .v-card { background:#fff; border-radius:16px; box-shadow:0 2px 12px rgba(0,0,0,.07); padding:1.5rem; margin-bottom:1.5rem; }
+    .v-card h2 { font-weight:800; font-size:1.1rem; margin-bottom:1rem; color:#0d1b2a; }
+    .section-pane { display:none; }
+    .section-pane.active { display:block; }
+
+    /* VERSION BOX */
+    .ver-box { display:flex; align-items:center; gap:1rem; padding:1.25rem; border:2px solid var(--cp); border-radius:14px; background:#eef5ff; margin-bottom:1rem; }
+    .ver-number { font-size:2.5rem; font-weight:900; color:var(--cp); line-height:1; }
+    .ver-badge { font-size:.7rem; background:#003DA6; color:#fff; border-radius:999px; padding:.25rem .7rem; font-weight:700; }
+
+    /* ARCHITECTURE TABLE */
+    .arch-table td, .arch-table th { font-size:.85rem; vertical-align:middle; }
+    .arch-table th { background:#f0f4ff; color:var(--cp); font-weight:700; font-size:.78rem; text-transform:uppercase; letter-spacing:.04em; }
+    .file-type { font-size:.72rem; padding:.2rem .55rem; border-radius:999px; font-weight:700; }
+
+    /* DB TABLE */
+    .db-section { border:1.5px solid #dee2e6; border-radius:13px; overflow:hidden; margin-bottom:1.25rem; }
+    .db-section-header { background:#f8f9fa; padding:.75rem 1rem; font-weight:800; font-size:.9rem; display:flex; align-items:center; gap:.5rem; border-bottom:1.5px solid #dee2e6; cursor:pointer; }
+    .db-section-header:hover { background:#eef5ff; }
+    .db-field { display:flex; align-items:flex-start; gap:.75rem; padding:.55rem 1rem; border-bottom:1px solid #f0f0f0; }
+    .db-field:last-child { border-bottom:none; }
+    .db-field-name { font-weight:700; font-size:.85rem; min-width:160px; color:#0d1b2a; font-family:monospace; }
+    .db-field-type { font-size:.75rem; padding:.15rem .5rem; border-radius:6px; background:#e8efff; color:var(--cp); font-weight:600; font-family:monospace; flex-shrink:0; }
+    .db-field-desc { font-size:.82rem; color:#6c757d; }
+    .db-pk { background:#fff3cd; color:#856404; }
+    .db-fk { background:#d4edda; color:#155724; }
+
+    /* DEPLOY */
+    .deploy-log { background:#0d1b2a; color:#a8ff78; border-radius:12px; padding:1rem 1.25rem; font-family:monospace; font-size:.82rem; line-height:1.7; min-height:200px; max-height:400px; overflow-y:auto; }
+    .deploy-log .err { color:#ff6b6b; }
+    .deploy-log .ok { color:#a8ff78; }
+    .deploy-log .info { color:#74c0fc; }
+
+    /* DOWNLOAD */
+    .dl-option { border:1.5px solid #dee2e6; border-radius:12px; padding:1rem 1.25rem; margin-bottom:.75rem; cursor:pointer; transition:border-color .15s,background .15s; }
+    .dl-option:hover { border-color:var(--cp); background:#f5f8ff; }
+    .dl-option input[type=radio] { margin-right:.6rem; }
+
+    /* STATS */
+    .stat-pill { display:inline-flex; flex-direction:column; align-items:center; padding:.75rem 1.25rem; border-radius:14px; background:#f0f4ff; min-width:90px; }
+    .stat-pill .n { font-size:1.5rem; font-weight:900; color:var(--cp); line-height:1; }
+    .stat-pill .l { font-size:.68rem; text-transform:uppercase; letter-spacing:.05em; color:#6c757d; margin-top:.2rem; }
+
+    /* BTN */
+    .btn-attt { background:var(--cp); color:#fff; border:none; border-radius:9px; font-weight:700; padding:.55rem 1.4rem; transition:background .2s; }
+    .btn-attt:hover { background:#004fd6; color:#fff; }
+    .btn-oa { border:2px solid var(--cp); color:var(--cp); border-radius:9px; font-weight:700; padding:.5rem 1.2rem; background:transparent; transition:all .2s; }
+    .btn-oa:hover { background:var(--cp); color:#fff; }
+
+    @media(max-width:767px){ .sidebar-v { display:none; } .main-v { padding:1rem; } }
+  </style>
+</head>
+<body>
+
+  <!-- NAV -->
+  <div class="top-nav">
+    <a href="espace-membre.html" class="brand"><img src="img/logo_attt.jpeg" alt="Logo" style="height:30px;border-radius:6px;" onerror="this.style.display='none'">Amicale ATTT</a>
+    <span class="badge bg-warning text-dark fw-bold">Gestion &amp; Versions</span>
+    <div class="d-flex gap-2 ms-auto">
+      <a href="espace-membre.html" class="btn-nav"><i class="bi bi-house"></i><span class="d-none d-sm-inline">Mon espace</span></a>
+      <a href="#" class="btn-nav" style="border-color:#dc3545;color:#fff!important;background:#dc3545;" onclick="AUTH.logout();return false;"><i class="bi bi-box-arrow-right"></i></a>
+    </div>
+  </div>
+
+  <div class="page-wrap">
+
+    <!-- SIDEBAR -->
+    <aside class="sidebar-v d-none d-md-block">
+      <div class="sb-sec">Navigation</div>
+      <button class="sb-lk active" onclick="showSection('version',this)"><i class="bi bi-tag-fill"></i>Version &amp; infos</button>
+      <button class="sb-lk" onclick="showSection('architecture',this)"><i class="bi bi-diagram-3"></i>Architecture</button>
+      <button class="sb-lk" onclick="showSection('base',this)"><i class="bi bi-table"></i>Base de données</button>
+      <button class="sb-lk" onclick="showSection('download',this)"><i class="bi bi-download"></i>Télécharger</button>
+      <button class="sb-lk" onclick="showSection('deploy',this)"><i class="bi bi-cloud-upload"></i>Déploiement</button>
+      <div class="sb-sec" style="margin-top:.75rem;">Liens rapides</div>
+      <a class="sb-lk" href="droits.html"><i class="bi bi-shield-lock"></i>Droits &amp; rôles</a>
+      <a class="sb-lk" href="parametres.html"><i class="bi bi-gear"></i>Paramètres</a>
+      <a class="sb-lk" href="hebergement.html"><i class="bi bi-server"></i>Guide hébergement</a>
+    </aside>
+
+    <!-- MAIN -->
+    <div class="main-v">
+
+      <!-- ══════════════════════════════════════════════
+           SECTION : VERSION
+      ══════════════════════════════════════════════ -->
+      <div id="sec-version" class="section-pane active">
+        <h1 class="h4 fw-black mb-1">Version &amp; Informations</h1>
+        <p class="text-muted mb-4">Gérez la version de votre application et consultez les statistiques globales.</p>
+
+        <div class="v-card">
+          <h2><i class="bi bi-tag me-2 text-primary"></i>Numéro de version</h2>
+          <div class="ver-box">
+            <div>
+              <div class="small text-muted mb-1">Version actuelle</div>
+              <div class="ver-number" id="ver-display">—</div>
+            </div>
+            <div class="flex-grow-1">
+              <span class="ver-badge" id="ver-badge">Stable</span>
+              <div class="small text-muted mt-2" id="ver-date"></div>
+            </div>
+          </div>
+          <div class="row g-3 align-items-end mt-1">
+            <div class="col-sm-5">
+              <label class="form-label fw-semibold small">Numéro de version</label>
+              <input type="text" class="form-control" id="ver-input" placeholder="ex: 1.0.0" />
+            </div>
+            <div class="col-sm-4">
+              <div class="form-check">
+                <input class="form-check-input" type="checkbox" id="ver-auto" onchange="toggleAutoVer(this)" />
+                <label class="form-check-label fw-semibold small" for="ver-auto">Génération automatique</label>
+              </div>
+              <div class="form-text">Incrémente automatiquement à chaque déploiement</div>
+            </div>
+            <div class="col-sm-3">
+              <button class="btn btn-attt w-100" onclick="saveVersion()"><i class="bi bi-check me-1"></i>Enregistrer</button>
+            </div>
+          </div>
+          <div id="ver-alert" class="alert d-none mt-3 mb-0"></div>
+        </div>
+
+        <div class="v-card">
+          <h2><i class="bi bi-bar-chart me-2 text-primary"></i>Statistiques de l'application</h2>
+          <div class="d-flex flex-wrap gap-3" id="stats-row">
+            <div class="stat-pill"><div class="n" id="stat-pages">—</div><div class="l">Pages HTML</div></div>
+            <div class="stat-pill"><div class="n" id="stat-js">—</div><div class="l">Scripts JS</div></div>
+            <div class="stat-pill"><div class="n" id="stat-users">—</div><div class="l">Utilisateurs</div></div>
+            <div class="stat-pill"><div class="n" id="stat-events">—</div><div class="l">Événements</div></div>
+            <div class="stat-pill"><div class="n" id="stat-tables">16</div><div class="l">Collections DB</div></div>
+          </div>
+        </div>
+
+        <div class="v-card">
+          <h2><i class="bi bi-clock-history me-2 text-primary"></i>Journal des versions</h2>
+          <div id="changelog-list">
+            <div class="d-flex align-items-start gap-3 mb-3">
+              <div style="width:8px;height:8px;border-radius:50%;background:var(--cp);margin-top:.35rem;flex-shrink:0;"></div>
+              <div><div class="fw-bold">v1.0.0 — Lancement initial</div>
+                <div class="small text-muted">Pages publiques, espace membres, messagerie, événements, offres, conventions, locations, voyages, votes</div></div>
+            </div>
+          </div>
+          <div class="mt-3">
+            <label class="form-label fw-semibold small">Ajouter une note de version</label>
+            <div class="d-flex gap-2">
+              <input type="text" class="form-control" id="changelog-note" placeholder="Description des modifications…" />
+              <button class="btn btn-oa btn-sm" onclick="addChangelog()"><i class="bi bi-plus me-1"></i>Ajouter</button>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- ══════════════════════════════════════════════
+           SECTION : ARCHITECTURE
+      ══════════════════════════════════════════════ -->
+      <div id="sec-architecture" class="section-pane">
+        <h1 class="h4 fw-black mb-1">Architecture du site</h1>
+        <p class="text-muted mb-4">Structure complète des fichiers et pages de l'application Amicale ATTT.</p>
+
+        <div class="v-card">
+          <h2><i class="bi bi-folder-fill me-2 text-warning"></i>Pages principales</h2>
+          <div class="table-responsive">
+            <table class="table arch-table table-hover mb-0">
+              <thead><tr><th>Fichier</th><th>Type</th><th>Accès</th><th>Description</th></tr></thead>
+              <tbody>
+                <tr><td><code>index.html</code></td><td><span class="file-type bg-success text-white">Public</span></td><td>Tous</td><td>Page d'accueil publique</td></tr>
+                <tr><td><code>a-propos.html</code></td><td><span class="file-type bg-success text-white">Public</span></td><td>Tous</td><td>Présentation de l'association</td></tr>
+                <tr><td><code>activites.html</code></td><td><span class="file-type bg-success text-white">Public</span></td><td>Tous</td><td>Liste des activités</td></tr>
+                <tr><td><code>evenements.html</code></td><td><span class="file-type bg-success text-white">Public</span></td><td>Tous</td><td>Événements à venir</td></tr>
+                <tr><td><code>actualites.html</code></td><td><span class="file-type bg-success text-white">Public</span></td><td>Tous</td><td>Actualités &amp; annonces</td></tr>
+                <tr><td><code>galerie.html</code></td><td><span class="file-type bg-success text-white">Public</span></td><td>Tous</td><td>Galerie photos</td></tr>
+                <tr><td><code>telechargements.html</code></td><td><span class="file-type bg-success text-white">Public</span></td><td>Tous</td><td>Téléchargements app</td></tr>
+                <tr><td><code>contact.html</code></td><td><span class="file-type bg-success text-white">Public</span></td><td>Tous</td><td>Formulaire de contact</td></tr>
+                <tr><td><code>login.html</code></td><td><span class="file-type bg-info text-white">Auth</span></td><td>Tous</td><td>Page de connexion</td></tr>
+                <tr><td><code>inscription.html</code></td><td><span class="file-type bg-info text-white">Auth</span></td><td>Tous</td><td>Création de compte</td></tr>
+                <tr><td><code>espace-membre.html</code></td><td><span class="file-type bg-primary text-white">Privé</span></td><td>Membres+</td><td>Tableau de bord membre avec onglets</td></tr>
+                <tr><td><code>profil.html</code></td><td><span class="file-type bg-primary text-white">Privé</span></td><td>Membres+</td><td>Profil, famille, messagerie, historique</td></tr>
+                <tr><td><code>messagerie.html</code></td><td><span class="file-type bg-primary text-white">Privé</span></td><td>Membres+</td><td>Messagerie interne</td></tr>
+                <tr><td><code>offres.html</code></td><td><span class="file-type bg-primary text-white">Privé</span></td><td>Membres+</td><td>Offres &amp; réductions membres</td></tr>
+                <tr><td><code>conventions.html</code></td><td><span class="file-type bg-primary text-white">Privé</span></td><td>Membres+</td><td>Conventions partenaires</td></tr>
+                <tr><td><code>location.html</code></td><td><span class="file-type bg-primary text-white">Privé</span></td><td>Membres+</td><td>Locations vacances</td></tr>
+                <tr><td><code>voyages.html</code></td><td><span class="file-type bg-primary text-white">Privé</span></td><td>Membres+</td><td>Voyages &amp; sorties</td></tr>
+                <tr><td><code>admin.html</code></td><td><span class="file-type bg-warning text-dark">Admin</span></td><td>Délégué+</td><td>Espace délégué</td></tr>
+                <tr><td><code>superviseur.html</code></td><td><span class="file-type bg-warning text-dark">Admin</span></td><td>Direction+</td><td>Espace direction</td></tr>
+                <tr><td><code>droits.html</code></td><td><span class="file-type bg-danger text-white">Super</span></td><td>Direction+</td><td>Gestion rôles &amp; droits</td></tr>
+                <tr><td><code>parametres.html</code></td><td><span class="file-type bg-danger text-white">Super</span></td><td>Direction+</td><td>Coordonnées du site</td></tr>
+                <tr><td><code>publicites.html</code></td><td><span class="file-type bg-danger text-white">Super</span></td><td>Direction+</td><td>Publicités page d'accueil</td></tr>
+                <tr><td><code>contenu-admin.html</code></td><td><span class="file-type bg-danger text-white">Super</span></td><td>Délégué+</td><td>Gestion actualités</td></tr>
+                <tr><td><code>versions.html</code></td><td><span class="file-type bg-danger text-white">Super</span></td><td>Direction+</td><td>Cette page — versions &amp; déploiement</td></tr>
+              </tbody>
+            </table>
+          </div>
+        </div>
+
+        <div class="v-card">
+          <h2><i class="bi bi-file-code me-2 text-primary"></i>Modules JavaScript</h2>
+          <div class="table-responsive">
+            <table class="table arch-table table-hover mb-0">
+              <thead><tr><th>Fichier</th><th>Rôle</th></tr></thead>
+              <tbody>
+                <tr><td><code>js/firebase-config.js</code></td><td>Configuration Firebase &amp; Google Drive</td></tr>
+                <tr><td><code>js/db.js</code></td><td>Couche d'accès données (Firestore + localStorage)</td></tr>
+                <tr><td><code>js/auth.js</code></td><td>Authentification, sessions, permissions</td></tr>
+                <tr><td><code>js/events.js</code></td><td>Événements &amp; inscriptions</td></tr>
+                <tr><td><code>js/offers.js</code></td><td>Offres membres</td></tr>
+                <tr><td><code>js/conventions.js</code></td><td>Conventions partenaires</td></tr>
+                <tr><td><code>js/rentals.js</code></td><td>Locations vacances</td></tr>
+                <tr><td><code>js/voyages.js</code></td><td>Voyages &amp; sorties</td></tr>
+                <tr><td><code>js/votes.js</code></td><td>Système de votes &amp; élections</td></tr>
+                <tr><td><code>js/messaging.js</code></td><td>Messagerie interne</td></tr>
+                <tr><td><code>js/payments.js</code></td><td>Suivi des paiements</td></tr>
+                <tr><td><code>js/profile.js</code></td><td>Profil utilisateur &amp; famille</td></tr>
+                <tr><td><code>js/contenu.js</code></td><td>Articles &amp; actualités</td></tr>
+                <tr><td><code>js/ads.js</code></td><td>Publicités page d'accueil</td></tr>
+                <tr><td><code>js/site-settings.js</code></td><td>Paramètres &amp; coordonnées du site</td></tr>
+                <tr><td><code>js/version-check.js</code></td><td>Vérification mises à jour</td></tr>
+                <tr><td><code>js/main.js</code></td><td>Initialisation globale</td></tr>
+                <tr><td><code>deploy-server.js</code></td><td>Serveur Node.js local pour déploiement git</td></tr>
+              </tbody>
+            </table>
+          </div>
+        </div>
+      </div>
+
+      <!-- ══════════════════════════════════════════════
+           SECTION : BASE DE DONNÉES
+      ══════════════════════════════════════════════ -->
+      <div id="sec-base" class="section-pane">
+        <h1 class="h4 fw-black mb-1">Base de données — Collections Firestore</h1>
+        <p class="text-muted mb-4">Schéma complet des collections de la base de données Firebase/Firestore.</p>
+
+        <!-- Chaque collection -->
+        <script>
+        const DB_SCHEMA = [
+          { name:'users', icon:'bi-people', desc:'Utilisateurs de l\'application', fields:[
+            {n:'id', t:'string', pk:true, d:'Identifiant unique (UUID)'},
+            {n:'login', t:'string', d:'Identifiant de connexion (unique)'},
+            {n:'nom', t:'string', d:'Nom de famille'},
+            {n:'prenom', t:'string', d:'Prénom'},
+            {n:'email', t:'string', d:'Adresse e-mail'},
+            {n:'telephone', t:'string', d:'Numéro de téléphone'},
+            {n:'dateNaissance', t:'date', d:'Date de naissance'},
+            {n:'lieuTravail', t:'string', d:'Ville / lieu de travail'},
+            {n:'adresse', t:'string', d:'Adresse postale'},
+            {n:'role', t:'enum', d:'Rôle : famille | membre | delegue | direction | admin'},
+            {n:'statut', t:'enum', d:'actif | en_attente | suspendu'},
+            {n:'delegueId', t:'ref→users', fk:true, d:'Délégué attaché à ce membre'},
+            {n:'familyCode', t:'string', d:'Code famille pour lier les membres famille'},
+            {n:'avatar', t:'url', d:'URL photo de profil'},
+            {n:'dateInscription', t:'timestamp', d:'Date de création du compte'},
+            {n:'motDePasse', t:'string(hash)', d:'Mot de passe hashé'},
+          ]},
+          { name:'events', icon:'bi-calendar-event', desc:'Événements organisés par l\'Amicale', fields:[
+            {n:'id', t:'string', pk:true, d:'Identifiant unique'},
+            {n:'titre', t:'string', d:'Titre de l\'événement'},
+            {n:'description', t:'text', d:'Description détaillée'},
+            {n:'type', t:'enum', d:'standard | special'},
+            {n:'lieu', t:'string', d:'Lieu de l\'événement'},
+            {n:'dateDebut', t:'date', d:'Date et heure de début'},
+            {n:'dateFin', t:'date', d:'Date et heure de fin'},
+            {n:'placesTotal', t:'number', d:'Nombre de places total'},
+            {n:'placesDisponibles', t:'number', d:'Places encore disponibles'},
+            {n:'prix', t:'number', d:'Prix en TND (0 = gratuit)'},
+            {n:'photo', t:'url', d:'URL photo / affiche'},
+            {n:'acces', t:'enum', d:'Qui peut s\'inscrire : tous | membres | delegue | direction'},
+            {n:'actif', t:'boolean', d:'Événement visible ou archivé'},
+            {n:'creePar', t:'ref→users', fk:true, d:'Créateur (userId)'},
+            {n:'inscriptions', t:'array[ref→users]', d:'Liste des userId inscrits'},
+          ]},
+          { name:'offers', icon:'bi-tag', desc:'Offres et avantages membres', fields:[
+            {n:'id', t:'string', pk:true, d:'Identifiant unique'},
+            {n:'titre', t:'string', d:'Titre de l\'offre'},
+            {n:'description', t:'text', d:'Description détaillée'},
+            {n:'categorie', t:'enum', d:'reduction | partenaire | culture | loisir | autre'},
+            {n:'dateExpiration', t:'date', d:'Date d\'expiration'},
+            {n:'lien', t:'url', d:'URL externe (partenaire)'},
+            {n:'photo', t:'url', d:'Image de l\'offre'},
+            {n:'actif', t:'boolean', d:'Offre active ou archivée'},
+          ]},
+          { name:'conventions', icon:'bi-award', desc:'Conventions partenaires', fields:[
+            {n:'id', t:'string', pk:true, d:'Identifiant unique'},
+            {n:'titre', t:'string', d:'Titre de la convention'},
+            {n:'partenaire', t:'string', d:'Nom du partenaire'},
+            {n:'description', t:'text', d:'Conditions et avantages'},
+            {n:'categorie', t:'string', d:'Catégorie'},
+            {n:'dateDebut', t:'date', d:'Date de début de la convention'},
+            {n:'dateExpiration', t:'date', d:'Date d\'expiration'},
+            {n:'logo', t:'url', d:'Logo du partenaire'},
+            {n:'acces', t:'enum', d:'tous | famille | membres'},
+            {n:'actif', t:'boolean', d:'Convention active'},
+          ]},
+          { name:'rentals', icon:'bi-house-heart', desc:'Locations vacances', fields:[
+            {n:'id', t:'string', pk:true, d:'Identifiant unique'},
+            {n:'titre', t:'string', d:'Nom du logement'},
+            {n:'adresse', t:'string', d:'Adresse du logement'},
+            {n:'description', t:'text', d:'Description'},
+            {n:'photo', t:'url', d:'Photo du logement'},
+            {n:'mapUrl', t:'url', d:'URL Google Maps'},
+            {n:'actif', t:'boolean', d:'Disponible à la réservation'},
+            {n:'tranches', t:'array[Tranche]', d:'Liste des tranches de réservation'},
+          ]},
+          { name:'rental_tranches', icon:'bi-calendar-range', desc:'Tranches de disponibilité des locations', fields:[
+            {n:'id', t:'string', pk:true, d:'Identifiant'},
+            {n:'rentalId', t:'ref→rentals', fk:true, d:'Location concernée'},
+            {n:'libelle', t:'string', d:'Ex : Juillet, Semaine 1'},
+            {n:'debut', t:'date', d:'Date de début'},
+            {n:'fin', t:'date', d:'Date de fin'},
+            {n:'unite', t:'string', d:'Ex : semaine, nuit, séjour'},
+            {n:'prixUnite', t:'number', d:'Prix par unité en TND'},
+            {n:'placesTotal', t:'number', d:'Nombre d\'unités disponibles'},
+            {n:'minUnites', t:'number', d:'Minimum à réserver'},
+            {n:'maxUnites', t:'number', d:'Maximum par réservation'},
+          ]},
+          { name:'rental_bookings', icon:'bi-calendar-check', desc:'Réservations de locations', fields:[
+            {n:'id', t:'string', pk:true, d:'Identifiant'},
+            {n:'userId', t:'ref→users', fk:true, d:'Membre ayant réservé'},
+            {n:'rentalId', t:'ref→rentals', fk:true, d:'Location réservée'},
+            {n:'trancheId', t:'string', d:'Tranche réservée'},
+            {n:'nbUnites', t:'number', d:'Nombre d\'unités réservées'},
+            {n:'montantTotal', t:'number', d:'Montant total TND'},
+            {n:'statut', t:'enum', d:'en_attente | confirmé | annulé'},
+            {n:'dateReservation', t:'timestamp', d:'Date de la réservation'},
+          ]},
+          { name:'voyages', icon:'bi-compass', desc:'Voyages et sorties organisés', fields:[
+            {n:'id', t:'string', pk:true, d:'Identifiant'},
+            {n:'titre', t:'string', d:'Titre du voyage'},
+            {n:'description', t:'text', d:'Description'},
+            {n:'destination', t:'string', d:'Destination'},
+            {n:'dateDebut', t:'date', d:'Date de départ'},
+            {n:'dateFin', t:'date', d:'Date de retour'},
+            {n:'prix', t:'number', d:'Prix par personne en TND'},
+            {n:'placesTotal', t:'number', d:'Nombre de places'},
+            {n:'placesDisponibles', t:'number', d:'Places restantes'},
+            {n:'photo', t:'url', d:'Affiche du voyage'},
+            {n:'actif', t:'boolean', d:'Voyage actif'},
+            {n:'inscriptions', t:'array', d:'UserIds inscrits'},
+          ]},
+          { name:'votes', icon:'bi-ballot', desc:'Sujets de vote et élections', fields:[
+            {n:'id', t:'string', pk:true, d:'Identifiant unique du vote'},
+            {n:'titre', t:'string', d:'Titre du vote / élection'},
+            {n:'description', t:'text', d:'Description du sujet'},
+            {n:'rolesAutorises', t:'array[enum]', d:'Rôles pouvant voter : membres | delegue | direction | tous'},
+            {n:'dateDebut', t:'timestamp', d:'Date et heure d\'ouverture'},
+            {n:'dateFin', t:'timestamp', d:'Date et heure de clôture'},
+            {n:'minChoix', t:'number', d:'Nombre minimum de choix à sélectionner'},
+            {n:'maxChoix', t:'number', d:'Nombre maximum de choix sélectionnables'},
+            {n:'creePar', t:'ref→users', fk:true, d:'Créateur du vote (userId)'},
+            {n:'actif', t:'boolean', d:'Vote actif (visible)'},
+            {n:'resultatsPublics', t:'boolean', d:'Résultats visibles par tous avant la fin'},
+          ]},
+          { name:'vote_choix', icon:'bi-list-check', desc:'Options / candidats d\'un vote', fields:[
+            {n:'id', t:'string', pk:true, d:'Identifiant du choix'},
+            {n:'voteId', t:'ref→votes', fk:true, d:'Vote associé'},
+            {n:'label', t:'string', d:'Libellé du choix (ex: nom du candidat)'},
+            {n:'description', t:'text', d:'Description ou détails supplémentaires'},
+            {n:'photo', t:'url', d:'Photo du candidat ou de l\'option'},
+            {n:'ordre', t:'number', d:'Ordre d\'affichage'},
+          ]},
+          { name:'vote_bulletins', icon:'bi-envelope-check', desc:'Bulletins de vote soumis (1 par utilisateur par vote)', fields:[
+            {n:'id', t:'string', pk:true, d:'Identifiant du bulletin'},
+            {n:'voteId', t:'ref→votes', fk:true, d:'Vote concerné'},
+            {n:'userId', t:'ref→users', fk:true, d:'Votant'},
+            {n:'choixIds', t:'array[ref→vote_choix]', d:'IDs des choix sélectionnés'},
+            {n:'dateVote', t:'timestamp', d:'Horodatage du vote'},
+          ]},
+          { name:'messages', icon:'bi-chat-text', desc:'Messagerie interne entre membres', fields:[
+            {n:'id', t:'string', pk:true, d:'Identifiant'},
+            {n:'expediteurId', t:'ref→users', fk:true, d:'Expéditeur'},
+            {n:'destinataires', t:'array[ref→users]', d:'Liste des destinataires'},
+            {n:'sujet', t:'string', d:'Objet du message'},
+            {n:'corps', t:'text', d:'Contenu du message'},
+            {n:'date', t:'timestamp', d:'Date d\'envoi'},
+            {n:'lu', t:'map{userId:boolean}', d:'Statut de lecture par destinataire'},
+          ]},
+          { name:'payments', icon:'bi-credit-card', desc:'Suivi des paiements', fields:[
+            {n:'id', t:'string', pk:true, d:'Identifiant'},
+            {n:'userId', t:'ref→users', fk:true, d:'Membre concerné'},
+            {n:'type', t:'enum', d:'evenement | location | voyage | cotisation | autre'},
+            {n:'referenceId', t:'string', d:'ID de l\'activité payée'},
+            {n:'montant', t:'number', d:'Montant en TND'},
+            {n:'statut', t:'enum', d:'payé | en_attente | remboursé'},
+            {n:'date', t:'timestamp', d:'Date du paiement'},
+            {n:'note', t:'string', d:'Note ou référence'},
+          ]},
+          { name:'ads', icon:'bi-badge-ad', desc:'Publicités page d\'accueil', fields:[
+            {n:'id', t:'string', pk:true, d:'Identifiant'},
+            {n:'titre', t:'string', d:'Titre de la publicité'},
+            {n:'mediaType', t:'enum', d:'image | video'},
+            {n:'mediaUrl', t:'url', d:'URL du média'},
+            {n:'lien', t:'url', d:'URL de destination externe'},
+            {n:'lienLabel', t:'string', d:'Texte du lien'},
+            {n:'ordre', t:'number', d:'Ordre d\'affichage'},
+            {n:'acces', t:'enum', d:'public | membres'},
+            {n:'actif', t:'boolean', d:'Publicité visible'},
+          ]},
+          { name:'articles', icon:'bi-newspaper', desc:'Actualités et annonces', fields:[
+            {n:'id', t:'string', pk:true, d:'Identifiant'},
+            {n:'titre', t:'string', d:'Titre de l\'article'},
+            {n:'resume', t:'string', d:'Résumé court'},
+            {n:'corps', t:'html', d:'Contenu complet (HTML)'},
+            {n:'categorie', t:'enum', d:'annonce | actualite | sport | culture | autre'},
+            {n:'photo', t:'url', d:'Image principale'},
+            {n:'acces', t:'enum', d:'public | membres'},
+            {n:'datePublication', t:'date', d:'Date de publication'},
+            {n:'auteurLogin', t:'string', d:'Login de l\'auteur'},
+          ]},
+          { name:'site_settings', icon:'bi-gear', desc:'Paramètres et coordonnées du site', fields:[
+            {n:'id', t:'string', d:'Identifiant fixe : "main"'},
+            {n:'organisation', t:'string', d:'Nom de l\'organisation'},
+            {n:'addressLine1', t:'string', d:'Adresse ligne 1'},
+            {n:'addressLine2', t:'string', d:'Adresse ligne 2'},
+            {n:'email', t:'string', d:'E-mail de contact'},
+            {n:'phone', t:'string', d:'Téléphone'},
+            {n:'hoursWeek', t:'string', d:'Horaires semaine'},
+            {n:'hoursWeekend', t:'string', d:'Horaires week-end'},
+            {n:'mapEmbedUrl', t:'url', d:'URL iframe Google Maps'},
+            {n:'facebookUrl', t:'url', d:'Lien Facebook'},
+            {n:'instagramUrl', t:'url', d:'Lien Instagram'},
+            {n:'whatsappUrl', t:'url', d:'Lien WhatsApp'},
+            {n:'formAction', t:'url', d:'URL Formspree pour le formulaire contact'},
+            {n:'appVersion', t:'string', d:'Version de l\'application'},
+            {n:'autoVersion', t:'boolean', d:'Incrémentation automatique de version'},
+          ]},
+        ];
+        </script>
+
+        <div id="db-tables-container"></div>
+      </div>
+
+      <!-- ══════════════════════════════════════════════
+           SECTION : TÉLÉCHARGEMENT
+      ══════════════════════════════════════════════ -->
+      <div id="sec-download" class="section-pane">
+        <h1 class="h4 fw-black mb-1">Télécharger le site</h1>
+        <p class="text-muted mb-4">Téléchargez le code source ou les données de votre application.</p>
+
+        <div class="v-card">
+          <h2><i class="bi bi-download me-2 text-primary"></i>Options de téléchargement</h2>
+          <p class="text-muted small mb-3">Choisissez ce que vous souhaitez exporter :</p>
+
+          <label class="dl-option d-block">
+            <input type="radio" name="dl-type" value="all" checked /> <strong>Tout le projet</strong>
+            <span class="text-muted ms-2 small">— Pages HTML, scripts JS, CSS, et données de configuration</span>
+          </label>
+          <label class="dl-option d-block">
+            <input type="radio" name="dl-type" value="pages" /> <strong>Pages &amp; fichiers uniquement</strong>
+            <span class="text-muted ms-2 small">— Fichiers HTML, JS, CSS uniquement (sans les données)</span>
+          </label>
+          <label class="dl-option d-block">
+            <input type="radio" name="dl-type" value="base" /> <strong>Base de données uniquement</strong>
+            <span class="text-muted ms-2 small">— Export JSON de toutes les collections Firestore</span>
+          </label>
+
+          <div class="mt-4">
+            <button class="btn btn-attt px-4" onclick="downloadProject()">
+              <i class="bi bi-download me-2"></i>Télécharger en ZIP
+            </button>
+            <button class="btn btn-oa ms-2" onclick="exportDB()">
+              <i class="bi bi-database-down me-2"></i>Exporter la base (JSON)
+            </button>
+          </div>
+          <div id="dl-alert" class="alert d-none mt-3 mb-0"></div>
+        </div>
+
+        <div class="v-card">
+          <h2><i class="bi bi-cloud-download me-2 text-primary"></i>Sauvegarde automatique</h2>
+          <p class="text-muted small mb-3">Configurez une sauvegarde régulière des données.</p>
+          <div class="form-check form-switch mb-3">
+            <input class="form-check-input" type="checkbox" id="auto-backup" />
+            <label class="form-check-label fw-semibold" for="auto-backup">Activer la sauvegarde automatique</label>
+          </div>
+          <div class="row g-3 align-items-end">
+            <div class="col-sm-4">
+              <label class="form-label small fw-semibold">Fréquence</label>
+              <select class="form-select">
+                <option>Quotidienne</option>
+                <option>Hebdomadaire</option>
+                <option>Mensuelle</option>
+              </select>
+            </div>
+            <div class="col-sm-4">
+              <button class="btn btn-attt w-100" onclick="alert('Sauvegarde manuelle déclenchée !')">
+                <i class="bi bi-cloud-upload me-1"></i>Sauvegarder maintenant
+              </button>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- ══════════════════════════════════════════════
+           SECTION : DÉPLOIEMENT
+      ══════════════════════════════════════════════ -->
+      <div id="sec-deploy" class="section-pane">
+        <h1 class="h4 fw-black mb-1">Déploiement &amp; Mise à jour</h1>
+        <p class="text-muted mb-4">Publiez vos modifications directement depuis cette interface vers GitHub Pages.</p>
+
+        <div class="v-card">
+          <h2><i class="bi bi-info-circle me-2 text-primary"></i>Statut du serveur de déploiement</h2>
+          <div class="d-flex align-items-center gap-3 flex-wrap mb-3">
+            <span id="srv-status" class="badge bg-secondary">Vérification…</span>
+            <div class="small text-muted" id="srv-info"></div>
+            <button class="btn btn-oa btn-sm ms-auto" onclick="checkServerStatus()">
+              <i class="bi bi-arrow-clockwise me-1"></i>Actualiser
+            </button>
+          </div>
+          <div class="alert alert-info small mb-0">
+            <i class="bi bi-lightbulb me-1"></i>
+            Pour déployer, lancez <code>demarrer.bat</code> sur votre PC, puis cliquez sur le bouton de déploiement ci-dessous.
+            Le serveur local doit tourner sur <strong>http://localhost:8081</strong>.
+          </div>
+        </div>
+
+        <div class="v-card">
+          <h2><i class="bi bi-cloud-upload me-2 text-primary"></i>Publier les modifications</h2>
+          <p class="text-muted small mb-3">
+            Toutes vos modifications locales seront envoyées automatiquement vers GitHub Pages.
+            Le site sera mis à jour dans ~1 minute.
+          </p>
+          <div class="mb-3">
+            <label class="form-label fw-semibold small">Message de version (commentaire git)</label>
+            <input type="text" class="form-control" id="deploy-comment" placeholder="ex: Ajout onglet votes, correction affichage profil…" />
+          </div>
+          <div class="d-flex flex-wrap gap-3 align-items-center">
+            <button class="btn btn-attt btn-lg px-4" id="deploy-btn" onclick="startDeploy()">
+              <i class="bi bi-rocket-takeoff me-2"></i>Déployer maintenant
+            </button>
+            <div class="small text-muted">
+              Branche : <code>master</code> → GitHub Pages
+            </div>
+          </div>
+        </div>
+
+        <div class="v-card">
+          <h2><i class="bi bi-terminal me-2 text-primary"></i>Journal de déploiement</h2>
+          <div class="deploy-log" id="deploy-log">
+            <span class="info">Prêt. Cliquez sur "Déployer" pour commencer.</span>
+          </div>
+          <div class="mt-2 d-flex gap-2">
+            <button class="btn btn-outline-secondary btn-sm" onclick="document.getElementById('deploy-log').innerHTML='<span class=\'info\'>Journal effacé.</span>'">
+              <i class="bi bi-trash me-1"></i>Effacer
+            </button>
+            <a id="site-link" href="https://dtaattt2026-boop.github.io/amicale-attt-2026/" target="_blank"
+               class="btn btn-outline-success btn-sm">
+              <i class="bi bi-box-arrow-up-right me-1"></i>Voir le site en ligne
+            </a>
+          </div>
+        </div>
+      </div>
+
+    </div><!-- /main-v -->
+  </div><!-- /page-wrap -->
+
+  <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js"></script>
+  <script src="https://www.gstatic.com/firebasejs/10.14.1/firebase-app-compat.js"></script>
+  <script src="https://www.gstatic.com/firebasejs/10.14.1/firebase-firestore-compat.js"></script>
+  <script src="js/firebase-config.js"></script>
+  <script src="js/db.js"></script>
+  <script src="js/auth.js"></script>
+  <script src="js/site-settings.js"></script>
+  <script src="js/events.js"></script>
+  <script>
+  'use strict';
+  const user = AUTH.requireAuth();
+  if (!user) throw new Error('Non authentifié');
+  if (!AUTH.hasPermission('Accéder page Droits', user) && user.role !== 'direction' && user.role !== 'admin') {
+    alert('Accès refusé.'); history.back(); throw new Error('Refusé');
+  }
+
+  /* ══ NAVIGATION ══ */
+  function showSection(id, btn) {
+    document.querySelectorAll('.section-pane').forEach(p => p.classList.remove('active'));
+    document.querySelectorAll('.sb-lk').forEach(b => b.classList.remove('active'));
+    document.getElementById('sec-' + id).classList.add('active');
+    if (btn) btn.classList.add('active');
+    if (id === 'base') renderDBSchema();
+    if (id === 'deploy') checkServerStatus();
+    if (id === 'version') loadVersion();
+  }
+
+  /* ══ VERSION ══ */
+  function loadVersion() {
+    DB_READY.then(() => {
+      const s = typeof SITE_SETTINGS !== 'undefined' && SITE_SETTINGS.getSettings ? SITE_SETTINGS.getSettings() : {};
+      const v = s.appVersion || '1.0.0';
+      document.getElementById('ver-display').textContent = v;
+      document.getElementById('ver-input').value = v;
+      document.getElementById('ver-date').textContent = 'Dernière mise à jour : ' + new Date().toLocaleDateString('fr-TN');
+      document.getElementById('ver-auto').checked = !!s.autoVersion;
+
+      // Stats
+      try { if (typeof AUTH !== 'undefined' && AUTH.getUsers) document.getElementById('stat-users').textContent = AUTH.getUsers().length; } catch(e){}
+      try { if (typeof EVENTS !== 'undefined' && EVENTS.getEvents) document.getElementById('stat-events').textContent = EVENTS.getEvents().length; } catch(e){}
+    });
+  }
+
+  function toggleAutoVer(cb) {
+    document.getElementById('ver-input').disabled = cb.checked;
+  }
+
+  function saveVersion() {
+    const v = document.getElementById('ver-input').value.trim();
+    const auto = document.getElementById('ver-auto').checked;
+    const al = document.getElementById('ver-alert');
+    if (!v && !auto) { al.className='alert alert-warning'; al.textContent='Veuillez saisir un numéro de version.'; al.classList.remove('d-none'); return; }
+    try {
+      if (typeof SITE_SETTINGS !== 'undefined' && SITE_SETTINGS.updateSettings) {
+        SITE_SETTINGS.updateSettings({ appVersion: v, autoVersion: auto });
+      }
+      document.getElementById('ver-display').textContent = v;
+      al.className='alert alert-success'; al.textContent='✓ Version enregistrée : ' + v;
+    } catch(e) { al.className='alert alert-danger'; al.textContent='Erreur : ' + e.message; }
+    al.classList.remove('d-none');
+  }
+
+  function addChangelog() {
+    const note = document.getElementById('changelog-note').value.trim();
+    if (!note) return;
+    const ver = document.getElementById('ver-input').value || '—';
+    const list = document.getElementById('changelog-list');
+    const div = document.createElement('div');
+    div.className = 'd-flex align-items-start gap-3 mb-3';
+    div.innerHTML = `<div style="width:8px;height:8px;border-radius:50%;background:var(--cp);margin-top:.35rem;flex-shrink:0;"></div>
+      <div><div class="fw-bold">v${ver} — ${new Date().toLocaleDateString('fr-TN')}</div>
+      <div class="small text-muted">${note}</div></div>`;
+    list.prepend(div);
+    document.getElementById('changelog-note').value = '';
+  }
+
+  /* ══ DB SCHEMA ══ */
+  function renderDBSchema() {
+    const container = document.getElementById('db-tables-container');
+    if (container.innerHTML) return; // Already rendered
+    container.innerHTML = DB_SCHEMA.map(coll => `
+      <div class="db-section">
+        <div class="db-section-header" onclick="toggleSection(this)">
+          <i class="bi ${coll.icon} text-primary"></i>
+          <span class="fw-bold">${coll.name}</span>
+          <span class="badge bg-light text-dark border ms-2">${coll.fields.length} champs</span>
+          <span class="text-muted small ms-2">${coll.desc}</span>
+          <i class="bi bi-chevron-down ms-auto text-muted"></i>
+        </div>
+        <div class="db-section-body">
+          ${coll.fields.map(f => `
+            <div class="db-field">
+              <div class="db-field-name">${f.n} ${f.pk ? '<span class="badge db-pk ms-1">PK</span>' : ''} ${f.fk ? '<span class="badge db-fk ms-1">FK</span>' : ''}</div>
+              <div class="db-field-type">${f.t}</div>
+              <div class="db-field-desc">${f.d}</div>
+            </div>`).join('')}
+        </div>
+      </div>`).join('');
+  }
+
+  function toggleSection(header) {
+    const body = header.nextElementSibling;
+    body.style.display = body.style.display === 'none' ? '' : 'none';
+    const ico = header.querySelector('.bi-chevron-down, .bi-chevron-up');
+    if (ico) ico.className = body.style.display === 'none' ? 'bi bi-chevron-up ms-auto text-muted' : 'bi bi-chevron-down ms-auto text-muted';
+  }
+
+  /* ══ DOWNLOAD ══ */
+  function downloadProject() {
+    const type = document.querySelector('input[name=dl-type]:checked').value;
+    const al = document.getElementById('dl-alert');
+    al.className = 'alert alert-info'; al.textContent = 'Pour télécharger le projet, ouvrez la page en local et utilisez le serveur de déploiement. Le téléchargement ZIP direct n\'est disponible qu\'en mode local.';
+    al.classList.remove('d-none');
+  }
+
+  function exportDB() {
+    try {
+      const data = {};
+      if (typeof DB !== 'undefined' && DB.exportAll) { Object.assign(data, DB.exportAll()); }
+      else {
+        // Collect from localStorage keys
+        for (let k of Object.keys(localStorage)) {
+          try { data[k] = JSON.parse(localStorage.getItem(k)); } catch(e) { data[k] = localStorage.getItem(k); }
+        }
+      }
+      const blob = new Blob([JSON.stringify(data, null, 2)], { type:'application/json' });
+      const url  = URL.createObjectURL(blob);
+      const a = document.createElement('a');
+      a.href = url; a.download = 'amicale-attt-db-export-' + new Date().toISOString().slice(0,10) + '.json';
+      a.click(); URL.revokeObjectURL(url);
+    } catch(e) { alert('Erreur lors de l\'export : ' + e.message); }
+  }
+
+  /* ══ DEPLOY ══ */
+  const DEPLOY_URL = 'http://127.0.0.1:8081';
+
+  function checkServerStatus() {
+    const badge = document.getElementById('srv-status');
+    const info  = document.getElementById('srv-info');
+    badge.className = 'badge bg-secondary'; badge.textContent = 'Vérification…';
+    fetch(DEPLOY_URL + '/api/status', { signal: AbortSignal.timeout(3000) })
+      .then(r => r.json())
+      .then(d => {
+        badge.className = 'badge bg-success'; badge.textContent = '✓ Connecté';
+        info.textContent = 'Branche : ' + (d.git?.branch || 'master') + ' · ' + (d.git?.commit || '');
+      })
+      .catch(() => {
+        badge.className = 'badge bg-danger'; badge.textContent = '✗ Hors ligne';
+        info.innerHTML = 'Lancez <code>demarrer.bat</code> sur votre PC pour activer le serveur.';
+      });
+  }
+
+  function log(msg, type='') {
+    const logEl = document.getElementById('deploy-log');
+    const line = document.createElement('div');
+    line.className = type;
+    line.textContent = msg;
+    logEl.appendChild(line);
+    logEl.scrollTop = logEl.scrollHeight;
+  }
+
+  function startDeploy() {
+    const comment = document.getElementById('deploy-comment').value.trim() || 'Mise à jour depuis versions.html';
+    const btn     = document.getElementById('deploy-btn');
+    const logEl   = document.getElementById('deploy-log');
+    logEl.innerHTML = '';
+    btn.disabled = true;
+    btn.innerHTML = '<span class="spinner-border spinner-border-sm me-2"></span>Déploiement…';
+
+    // Auto-version si activée
+    const auto = document.getElementById('ver-auto') && document.getElementById('ver-auto').checked;
+    if (auto) {
+      const cur = document.getElementById('ver-input').value || '1.0.0';
+      const parts = cur.split('.').map(Number);
+      parts[2] = (parts[2] || 0) + 1;
+      const newVer = parts.join('.');
+      document.getElementById('ver-input').value = newVer;
+      document.getElementById('ver-display').textContent = newVer;
+      try {
+        if (typeof SITE_SETTINGS !== 'undefined' && SITE_SETTINGS.updateSettings) {
+          SITE_SETTINGS.updateSettings({ appVersion: newVer });
+        }
+      } catch(e){}
+    }
+
+    fetch(DEPLOY_URL + '/api/deploy', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ comment })
+    }).then(r => {
+      const reader = r.body.getReader();
+      const decoder = new TextDecoder();
+      let buffer = '';
+      function read() {
+        reader.read().then(({ done, value }) => {
+          if (done) {
+            btn.disabled = false;
+            btn.innerHTML = '<i class="bi bi-rocket-takeoff me-2"></i>Déployer maintenant';
+            return;
+          }
+          buffer += decoder.decode(value);
+          const lines = buffer.split('\n');
+          buffer = lines.pop();
+          for (const line of lines) {
+            if (line.startsWith('data: ')) {
+              try {
+                const evt = JSON.parse(line.slice(6));
+                const cls = evt.type === 'error' ? 'err' : evt.type === 'done' ? 'ok' : '';
+                log(evt.data, cls);
+              } catch(e){}
+            }
+          }
+          read();
+        });
+      }
+      read();
+    }).catch(err => {
+      log('✖ Impossible de joindre le serveur : ' + err.message, 'err');
+      log('   → Vérifiez que demarrer.bat est lancé.', 'err');
+      btn.disabled = false;
+      btn.innerHTML = '<i class="bi bi-rocket-takeoff me-2"></i>Déployer maintenant';
+    });
+  }
+
+  /* ══ INIT ══ */
+  DB_READY.then(loadVersion);
+  </script>
+</body>
+</html>

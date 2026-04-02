@@ -8,7 +8,14 @@
       ".venv/**",
       "**/*.md",
       "**/node_modules/**",
-      "**/.git/**"
+      "**/.git/**",
+      "client_secret_*.json",
+      "check.js",
+      "check-links.js",
+      "deploy-server.js",
+      "demarrer.bat",
+      "firebase-debug.log",
+      "amicale attt/**"
     ],
     "rewrites": [],
     "headers": [

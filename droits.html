@@ -91,7 +91,7 @@
   <nav class="navbar navbar-dark py-2" style="background:var(--couleur-principale);">
     <div class="container-fluid px-3 d-flex justify-content-between">
       <a class="navbar-brand fw-bold d-flex align-items-center gap-2 fs-6" href="index.html">
-        <i class="bi bi-people-fill"></i>Amicale ATTT
+        <img src="img/logo_attt.jpeg" alt="Logo" style="height:32px;border-radius:6px;" onerror="this.style.display='none'">Amicale ATTT
         <span class="badge bg-warning text-dark ms-2">Droits</span>
       </a>
       <div class="d-flex align-items-center gap-2">
@@ -852,14 +852,13 @@ function selectMatrixPage(pageId) {
 function renderRolePicker(roles) {
   const container = document.getElementById('matrix-role-picker');
   if (!container) return;
-  container.innerHTML = roles.map(role => {
-    const isActive   = role.id === SELECTED_MATRIX_ROLE;
-    const isImplicit = role.implicitAll;
-    const cls  = isImplicit ? 'role-tab implicit' : (isActive ? 'role-tab active' : 'role-tab');
-    const icon = isImplicit ? '<i class="bi bi-shield-fill-check me-1"></i>' : '';
-    const click = isImplicit ? '' : ` onclick="selectMatrixRole('${AUTH.esc(role.id)}')"`;
-    return `<button class="${cls}"${click} title="${AUTH.esc(role.label)}">${icon}${AUTH.esc(role.label)}</button>`;
-  }).join('');
+  // Maître (implicitAll) est masqué : il a tout automatiquement, pas besoin de le configurer
+  container.innerHTML = roles
+    .filter(role => !role.implicitAll)
+    .map(role => {
+      const isActive = role.id === SELECTED_MATRIX_ROLE;
+      return `<button class="role-tab${isActive ? ' active' : ''}" onclick="selectMatrixRole('${AUTH.esc(role.id)}')" title="${AUTH.esc(role.label)}">${AUTH.esc(role.label)}</button>`;
+    }).join('');
 }
 
 function selectMatrixRole(roleId) {
@@ -929,12 +928,13 @@ function renderMatrix() {
   if (!_editMode) {
     MATRIX_ROWS = loadMatrix();
   }
-  const roles  = AUTH.getRoles();
+  // Filtrer Maître (implicitAll) — il a tout automatiquement, ne s'affiche pas dans la matrice
+  const roles  = AUTH.getRoles().filter(r => !r.implicitAll);
   const groups = getMatrixGroups(MATRIX_ROWS);
 
   // Initialise le rôle sélectionné si vide ou inconnu
   if (!SELECTED_MATRIX_ROLE || !roles.find(r => r.id === SELECTED_MATRIX_ROLE)) {
-    SELECTED_MATRIX_ROLE = roles.find(r => !r.implicitAll)?.id || roles[0]?.id || '';
+    SELECTED_MATRIX_ROLE = roles[0]?.id || '';
   }
   renderRolePicker(roles);
   renderMatrixPageList(groups);

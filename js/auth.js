@@ -26,65 +26,71 @@ const AUTH = (() => {
     { id: 'famille', label: 'Famille', level: 4, implicitAll: false, linkedToUser: true, system: true }
   ];
 
+  // Version de la matrice — incrémenter pour forcer un reset du localStorage
+  const K_RIGHTS_VERSION = 'attt_droits_v3';
+
+  // Colonnes : [label, _master(ignoré), Direction(superviseur), Délégué(admin), Membre]
+  // Maître a implicitAll=true → il a tout automatiquement, n'apparaît pas dans la matrice
+  // Direction (superviseur) a TOUS les droits sauf "Promouvoir → Maître"
   const LEGACY_RIGHTS_MATRIX_DEFAULT = [
-    ['Se connecter',                      '✓','✓','✓','✓'],
-    ['Consulter événements (publics)',   '✓','✓','✓','✓'],
-    ['Consulter événements (membres)',   '✓','✓','✓','✓'],
-    ['Consulter offres',                 '✓','✓','✓','✓'],
-    ['Consulter articles / actualités',  '✓','✓','✓','⚠'],
-    ['Ajouter / modifier événement',     '✓','✓','✓','—'],
-    ['Supprimer événement',              '✓','✓','✓','—'],
-    ['Ajouter / modifier offre',         '✓','✓','✓','—'],
-    ['Supprimer offre',                  '✓','✓','✓','—'],
-    ['Publier article avec photo',       '✓','✓','✓','—'],
-    ['Modifier / supprimer article',     '✓','✓','✓','—'],
-    ['Valider inscription (en attente)', '✓','✓','✓','—'],
-    ['Rejeter inscription',              '✓','✓','✓','—'],
-    ['Suspendre / réactiver utilisateur','✓','✓','✓','—'],
-    ['Supprimer utilisateur',            '✓','✓','✓','—'],
-    ['Promouvoir → Délégué',             '✓','✓','—','—'],
-    ['Promouvoir → Direction',           '✓','✓','—','—'],
-    ['Promouvoir → Maître',              '✓','—','—','—'],
-    ['Rétrograder un utilisateur',       '✓','⚠','—','—'],
-    ['Supprimer définitivement utilisateur','✓','—','—','—'],
-    ['Voir journal des opérations',      '✓','—','—','—'],
-    ['Effacer journal',                  '✓','—','—','—'],
-    ['Accéder page Droits',              '✓','✓','—','—'],
-    ['Accéder page Journal',             '✓','—','—','—'],
-    ['Accéder page Guide technique',     '✓','—','—','—'],
-    ['Accéder page Paramètres site',     '✓','✓','—','—'],
-    ['Modifier paramètres site',         '✓','⚠','—','—'],
-    ['Accéder page Publicités accueil',  '✓','✓','✓','—'],
-    ['Ajouter / modifier publicité accueil','✓','✓','✓','—'],
-    ['Supprimer publicité accueil',      '✓','✓','✓','—'],
-    ['Voir bouton Ajouter publicité accueil','✓','✓','✓','—'],
-    ['Accéder page Actualités',          '✓','✓','✓','—'],
-    ['Réserver location vacances',       '✓','✓','✓','✓'],
-    ['Voir colonne E-mail',              '✓','✓','✓','—'],
-    ['Voir colonne Inscrits',            '✓','✓','✓','—'],
-    ['Voir bouton Ajouter événement',    '✓','✓','✓','—'],
-    ['Voir bouton Supprimer événement',  '✓','✓','✓','—'],
-    ['Voir bouton Ajouter offre',        '✓','✓','✓','—'],
-    ['Voir bouton Supprimer offre',      '✓','✓','✓','—'],
-    ['Voir bouton Ajouter convention',   '✓','—','✓','—'],
-    ['Consulter conventions réservées',  '✓','✓','✓','✓'],
-    ['Voir détail convention réservée',  '✓','✓','✓','✓'],
-    ['Voir bouton Modifier matrice',     '✓','✓','—','—'],
-    ['Ajouter photo galerie',             '✓','✓','✓','—'],
-    ['Supprimer photo galerie',           '✓','✓','✓','—'],
-    ['Consulter voyages',                 '✓','✓','✓','✓'],
-    ['Créer / modifier voyage',            '✓','✓','✓','—'],
-    ['Supprimer voyage',                  '✓','✓','✓','—'],
-    ['S\'inscrire voyage',                '✓','✓','✓','✓'],
-    ['Gérer inscriptions voyage',          '✓','✓','—','—'],
-    ['Voir bouton Ajouter voyage',        '✓','✓','✓','—'],
-    ['Consulter votes',                   '✓','✓','✓','✓'],
-    ['Créer / modifier vote',             '✓','✓','—','—'],
-    ['Supprimer vote',                    '✓','✓','—','—'],
-    ['Participer au vote',                '✓','✓','✓','✓'],
-    ['Voir résultats vote',               '✓','✓','✓','✓'],
-    ['Gérer votes',                       '✓','✓','—','—'],
-    ['Voir bouton Créer vote',            '✓','✓','—','—']
+    ['Se connecter',                         '✓','✓','✓','✓'],
+    ['Consulter événements (publics)',        '✓','✓','✓','✓'],
+    ['Consulter événements (membres)',        '✓','✓','✓','✓'],
+    ['Consulter offres',                      '✓','✓','✓','✓'],
+    ['Consulter articles / actualités',       '✓','✓','✓','⚠'],
+    ['Ajouter / modifier événement',          '✓','✓','✓','—'],
+    ['Supprimer événement',                   '✓','✓','✓','—'],
+    ['Ajouter / modifier offre',              '✓','✓','✓','—'],
+    ['Supprimer offre',                       '✓','✓','✓','—'],
+    ['Publier article avec photo',            '✓','✓','✓','—'],
+    ['Modifier / supprimer article',          '✓','✓','✓','—'],
+    ['Valider inscription (en attente)',       '✓','✓','✓','—'],
+    ['Rejeter inscription',                   '✓','✓','✓','—'],
+    ['Suspendre / réactiver utilisateur',     '✓','✓','✓','—'],
+    ['Supprimer utilisateur',                 '✓','✓','✓','—'],
+    ['Promouvoir → Délégué',                  '✓','✓','—','—'],
+    ['Promouvoir → Direction',                '✓','✓','—','—'],
+    ['Promouvoir → Maître',                   '✓','—','—','—'],  /* Réservé Maître uniquement */
+    ['Rétrograder un utilisateur',            '✓','✓','—','—'],
+    ['Supprimer définitivement utilisateur',  '✓','✓','—','—'],
+    ['Voir journal des opérations',           '✓','✓','—','—'],
+    ['Effacer journal',                       '✓','✓','—','—'],
+    ['Accéder page Droits',                   '✓','✓','—','—'],
+    ['Accéder page Journal',                  '✓','✓','—','—'],
+    ['Accéder page Guide technique',          '✓','✓','—','—'],
+    ['Accéder page Paramètres site',          '✓','✓','—','—'],
+    ['Modifier paramètres site',              '✓','✓','—','—'],
+    ['Accéder page Publicités accueil',       '✓','✓','✓','—'],
+    ['Ajouter / modifier publicité accueil',  '✓','✓','✓','—'],
+    ['Supprimer publicité accueil',           '✓','✓','✓','—'],
+    ['Voir bouton Ajouter publicité accueil', '✓','✓','✓','—'],
+    ['Accéder page Actualités',               '✓','✓','✓','—'],
+    ['Réserver location vacances',            '✓','✓','✓','✓'],
+    ['Voir colonne E-mail',                   '✓','✓','✓','—'],
+    ['Voir colonne Inscrits',                 '✓','✓','✓','—'],
+    ['Voir bouton Ajouter événement',         '✓','✓','✓','—'],
+    ['Voir bouton Supprimer événement',       '✓','✓','✓','—'],
+    ['Voir bouton Ajouter offre',             '✓','✓','✓','—'],
+    ['Voir bouton Supprimer offre',           '✓','✓','✓','—'],
+    ['Voir bouton Ajouter convention',        '✓','✓','✓','—'],
+    ['Consulter conventions réservées',       '✓','✓','✓','✓'],
+    ['Voir détail convention réservée',       '✓','✓','✓','✓'],
+    ['Voir bouton Modifier matrice',          '✓','✓','—','—'],
+    ['Ajouter photo galerie',                 '✓','✓','✓','—'],
+    ['Supprimer photo galerie',               '✓','✓','✓','—'],
+    ['Consulter voyages',                     '✓','✓','✓','✓'],
+    ['Créer / modifier voyage',               '✓','✓','✓','—'],
+    ['Supprimer voyage',                      '✓','✓','✓','—'],
+    ['S\'inscrire voyage',                    '✓','✓','✓','✓'],
+    ['Gérer inscriptions voyage',             '✓','✓','—','—'],
+    ['Voir bouton Ajouter voyage',            '✓','✓','✓','—'],
+    ['Consulter votes',                       '✓','✓','✓','✓'],
+    ['Créer / modifier vote',                 '✓','✓','✓','—'],
+    ['Supprimer vote',                        '✓','✓','✓','—'],
+    ['Participer au vote',                    '✓','✓','✓','✓'],
+    ['Voir résultats vote',                   '✓','✓','✓','✓'],
+    ['Gérer votes',                           '✓','✓','✓','—'],
+    ['Voir bouton Créer vote',                '✓','✓','✓','—']
   ];
 
   const DEFAULT_PERMISSION_PAGES = [
@@ -595,6 +601,11 @@ const AUTH = (() => {
 
   function _getRightsMatrix() {
     try {
+      // Reset automatique si la version de la matrice est obsolète
+      if (localStorage.getItem('attt_droits_version') !== K_RIGHTS_VERSION) {
+        localStorage.removeItem(K_RIGHTS);
+        localStorage.setItem('attt_droits_version', K_RIGHTS_VERSION);
+      }
       return _syncRightsMatrix(JSON.parse(localStorage.getItem(K_RIGHTS) || 'null'));
     } catch {
       return _buildDefaultRightsMatrix();
@@ -604,6 +615,7 @@ const AUTH = (() => {
   function _saveRightsMatrix(rows) {
     const normalized = _syncRightsMatrix(rows);
     localStorage.setItem(K_RIGHTS, JSON.stringify(normalized));
+    localStorage.setItem('attt_droits_version', K_RIGHTS_VERSION);
     if (typeof DB !== 'undefined') DB.push(K_RIGHTS, normalized);
     return normalized;
   }

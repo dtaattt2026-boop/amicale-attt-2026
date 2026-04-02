@@ -1,8 +1,8 @@
 ﻿/* =========================================================
-   Service Worker â€” Amicale ATTT
-   StratÃ©gie : Network-first avec fallback cache
+   Service Worker — Amicale ATTT
+   Stratégie : Network-first avec fallback cache + versioning
    ========================================================= */
-const CACHE_NAME  = 'amicale-attt-v2';
+let CACHE_NAME = 'amicale-attt-v1.0.0';  // mis à jour dynamiquement
 const CORE_ASSETS = [
   './',
   './index.html',
@@ -23,31 +23,49 @@ const CORE_ASSETS = [
   './js/log.js'
 ];
 
-/* â”€â”€ Installation : mise en cache initiale â”€â”€ */
+/* ── Récupère la version depuis version.json et met à jour CACHE_NAME ── */
+async function updateCacheName() {
+  try {
+    const r = await fetch('assets/version.json?_=' + Date.now(), { cache: 'no-store' });
+    if (r.ok) {
+      const data = await r.json();
+      const version = data.version || data.platforms?.pwa?.version || '1.0.0';
+      CACHE_NAME = 'amicale-attt-v' + version;
+    }
+  } catch (err) {
+    console.warn('[SW] Erreur mise à jour version:', err.message);
+  }
+}
+
+/* ── Installation : mise en cache initiale + récupération version ── */
 self.addEventListener('install', event => {
   event.waitUntil(
-    caches.open(CACHE_NAME)
-      .then(cache => cache.addAll(CORE_ASSETS))
-      .catch(() => { /* silencieux si une ressource manque */ })
+    (async () => {
+      await updateCacheName();
+      const cache = await caches.open(CACHE_NAME);
+      await cache.addAll(CORE_ASSETS).catch(() => {});
+    })()
   );
   self.skipWaiting();
 });
 
-/* â”€â”€ Activation : nettoyage des anciens caches â”€â”€ */
+/* ── Activation : nettoyage des anciens caches ── */
 self.addEventListener('activate', event => {
   event.waitUntil(
-    caches.keys().then(keys =>
-      Promise.all(
+    (async () => {
+      await updateCacheName();
+      const keys = await caches.keys();
+      await Promise.all(
         keys.filter(k => k !== CACHE_NAME).map(k => caches.delete(k))
-      )
-    )
+      );
+    })()
   );
   self.clients.claim();
 });
 
-/* â”€â”€ RÃ©cupÃ©ration : Network-first, Cache fallback â”€â”€ */
+/* ── Récupération : Network-first, Cache fallback + mise à jour ── */
 self.addEventListener('fetch', event => {
-  /* Ignorer les requÃªtes non-GET et cross-origin */
+  /* Ignorer les requêtes non-GET et cross-origin */
   if (event.request.method !== 'GET') return;
   const url = new URL(event.request.url);
   if (url.origin !== self.location.origin) return;
@@ -70,7 +88,7 @@ self.addEventListener('fetch', event => {
             '<!DOCTYPE html><html lang="fr"><head><meta charset="UTF-8"><title>Hors-ligne</title></head>' +
             '<body style="font-family:sans-serif;text-align:center;padding:3rem">' +
             '<h1>&#128296; Hors connexion</h1>' +
-            '<p>Impossible de charger cette page. VÃ©rifiez votre connexion puis <a href="./">retournez Ã  l\'accueil</a>.</p>' +
+            '<p>Impossible de charger cette page. Vérifiez votre connexion puis <a href="./">retournez à l\'accueil</a>.</p>' +
             '</body></html>',
             { status: 503, headers: { 'Content-Type': 'text/html; charset=utf-8' } }
           );
@@ -79,3 +97,9 @@ self.addEventListener('fetch', event => {
   );
 });
 
+/* ── Message depuis le client pour forcer une mise à jour ── */
+self.addEventListener('message', event => {
+  if (event.data && event.data.type === 'SKIP_WAITING') {
+    self.skipWaiting();
+  }
+});
