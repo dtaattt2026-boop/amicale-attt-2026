@@ -275,6 +275,11 @@
     await DB_READY;
     _user = AUTH.requireAuth('famille');
     if (!_user) return;
+    if (!AUTH.hasPermission('Consulter votes', _user, null, 'visible')) {
+      alert('Accès refusé à la page Votes.');
+      history.back();
+      return;
+    }
     AUTH.applyPermissions(document, _user);
 
     // Bouton créer
