@@ -82,7 +82,7 @@ const VERSION_CHECK = (() => {
   function _showUpdateBanner(latest, platformsToUpdate) {
     if (document.getElementById('update-banner')) return;
 
-    const labels = { windows: 'Windows (.exe)', android: 'Android (.apk)' };
+    const labels = { windows: 'Windows (.exe)', android: 'Android (.apk)', pwa: 'Application web (smartphone)' };
     const list   = platformsToUpdate.map(p => `<strong>${labels[p] || p}</strong>`).join(', ');
     const forced = latest.forceUpdate === true;
 
@@ -141,6 +141,18 @@ const VERSION_CHECK = (() => {
   async function checkAndNotify() {
     const latest = await fetchLatest();
     if (!latest) return;
+
+    // Détection dédiée PWA/site: compare la dernière version vue sur cet appareil.
+    const SITE_KEY = 'attt_seen_site_version';
+    const seenSiteVersion = localStorage.getItem(SITE_KEY);
+    const shouldNotifySite =
+      !!seenSiteVersion && _cmp(latest.version, seenSiteVersion) > 0 &&
+      !sessionStorage.getItem('update-dismissed-' + latest.version);
+
+    if (shouldNotifySite) {
+      _showUpdateBanner(latest, ['pwa']);
+    }
+    localStorage.setItem(SITE_KEY, latest.version);
 
     const inst = getInstalled();
     const toUpdate = PLATFORMS.filter(p => {
