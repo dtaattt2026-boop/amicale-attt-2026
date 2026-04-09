@@ -149,10 +149,10 @@
             <div class="d-flex flex-wrap align-items-center gap-3">
               <div class="flex-grow-1">
                 <i class="bi bi-eye-fill text-primary me-1"></i>
-                <strong>Mode test</strong> — Les fichiers sont en ligne mais la bannière n'est visible que par vous.
+                <strong>Mode test</strong> — Les modifications sont enregistrées localement. Testez sur localhost puis publiez.
               </div>
               <button class="btn btn-success btn-sm fw-semibold px-3" onclick="publishForAll()">
-                <i class="bi bi-megaphone me-1"></i>Publier pour tous les utilisateurs
+                <i class="bi bi-cloud-upload me-1"></i>Publier pour tous
               </button>
             </div>
           </div>
@@ -627,16 +627,6 @@
       document.getElementById('ver-auto').checked = !!s.autoVersion;
       document.getElementById('ver-input').disabled = !!s.autoVersion;
 
-      // Vérifier si en mode test (fichiers déployés mais bannière désactivée)
-      try {
-        var ms = JSON.parse(localStorage.getItem('attt_master_settings') || '{}');
-        if (ms.version && ms.showUpdateBanner === false && ms.publishedAt) {
-          document.getElementById('publish-bar').classList.remove('d-none');
-        } else {
-          document.getElementById('publish-bar').classList.add('d-none');
-        }
-      } catch(e) {}
-
       // Stats
       try { if (typeof AUTH !== 'undefined' && AUTH.getUsers) document.getElementById('stat-users').textContent = AUTH.getUsers().length; } catch(e){}
       try { if (typeof EVENTS !== 'undefined' && EVENTS.getEvents) document.getElementById('stat-events').textContent = EVENTS.getEvents().length; } catch(e){}
@@ -648,13 +638,13 @@
   }
 
   function saveVersion() {
-    const auto = document.getElementById('ver-auto').checked;
-    const al = document.getElementById('ver-alert');
-    let v = document.getElementById('ver-input').value.trim();
+    var auto = document.getElementById('ver-auto').checked;
+    var al = document.getElementById('ver-alert');
+    var v = document.getElementById('ver-input').value.trim();
 
-    /* ── Mode Auto : incrémenter la version ── */
+    /* Mode Auto : incrémenter la version */
     if (auto) {
-      const parts = (v || '1.0.0').split('.').map(Number);
+      var parts = (v || '1.0.0').split('.').map(Number);
       parts[2] = (parts[2] || 0) + 1;
       v = parts.join('.');
       document.getElementById('ver-input').value = v;
@@ -667,7 +657,7 @@
       }
       document.getElementById('ver-display').textContent = v;
 
-      // ── Synchroniser attt_version_json ──
+      /* Mettre à jour attt_version_json */
       var vj = {};
       try { vj = JSON.parse(localStorage.getItem('attt_version_json') || '{}'); } catch(e) { vj = {}; }
       vj.version = v;
@@ -681,98 +671,77 @@
       localStorage.setItem('attt_version_json', JSON.stringify(vj));
       if (typeof DB !== 'undefined' && DB.push) DB.push('attt_version_json', vj);
 
-      var pubAt = new Date().toISOString();
-
-      // ── attt_master_settings ──
+      /* Mettre à jour attt_master_settings */
       var ms = {};
       try { ms = JSON.parse(localStorage.getItem('attt_master_settings') || '{}'); } catch(e) { ms = {}; }
       ms.version = v;
-      ms.publishedAt = pubAt;
-
-      if (auto) {
-        /* Mode Auto : publier directement pour tout le monde */
-        ms.showUpdateBanner = true;
-      } else {
-        /* Mode Manuel : test uniquement, bannière désactivée pour les utilisateurs */
-        ms.showUpdateBanner = false;
-      }
-
+      ms.publishedAt = new Date().toISOString();
       localStorage.setItem('attt_master_settings', JSON.stringify(ms));
       if (typeof DB !== 'undefined' && DB.push) DB.push('attt_master_settings', ms);
-
-      // ── Maître : marquer comme vu ──
-      localStorage.setItem('attt_seen_site_version', v);
-      localStorage.setItem('attt_seen_publish_time', pubAt);
-      if (typeof VERSION_CHECK !== 'undefined' && VERSION_CHECK.clearCache) VERSION_CHECK.clearCache();
-
     } catch(e) { al.className='alert alert-danger'; al.textContent='Erreur : ' + e.message; al.classList.remove('d-none'); return; }
 
-    /* ── Étape 2 : Mettre à jour assets/version.json sur le disque ── */
-    al.className='alert alert-info';
-    al.innerHTML = '<span class="spinner-border spinner-border-sm me-2"></span>Mise à jour de la version ' + v + '…';
-    al.classList.remove('d-none');
+    if (auto) {
+      /* ═══ MODE AUTO : mettre à jour version.json + déployer sur GitHub ═══ */
+      al.className='alert alert-info';
+      al.innerHTML = '<span class="spinner-border spinner-border-sm me-2"></span>Déploiement v' + v + ' vers GitHub…';
+      al.classList.remove('d-none');
 
-    fetch(DEPLOY_URL + '/api/version', {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ version: v, changelog: vj.changelog || 'Nouvelle version' })
-    }).then(function(r) { return r.json(); }).then(function(d) {
-      if (!d.ok) console.warn('[SAVE] Erreur maj version.json:', d.error);
-    }).catch(function() {
-      console.warn('[SAVE] Serveur deploy hors ligne — version.json non mis à jour sur disque');
-    }).finally(function() {
-
-      /* ── Étape 3 : Déployer sur GitHub via deploy-server ── */
-      al.innerHTML = '<span class="spinner-border spinner-border-sm me-2"></span>Déploiement de la version ' + v + ' vers GitHub…';
-
-      var comment = auto
-        ? 'v' + v + ' — Mise à jour automatique'
-        : 'v' + v + ' — Test maître (non publié)';
-
-      _deployToGitHub(comment, function(ok, msg) {
-        if (ok) {
-          if (auto) {
+      /* 1. Mettre à jour assets/version.json sur le disque */
+      fetch(DEPLOY_URL + '/api/version', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ version: v, changelog: vj.changelog || '' })
+      }).catch(function() {}).finally(function() {
+        /* 2. Git push vers GitHub */
+        _deployToGitHub('v' + v, function(ok, msg) {
+          if (ok) {
             al.className = 'alert alert-success';
-            al.innerHTML = '<i class="bi bi-check-circle me-1"></i>Version <strong>' + v + '</strong> déployée et publiée pour tous les utilisateurs.';
-            document.getElementById('publish-bar').classList.add('d-none');
+            al.innerHTML = '<i class="bi bi-check-circle me-1"></i>Version <strong>' + v + '</strong> déployée. Les utilisateurs verront la nouvelle version automatiquement.';
           } else {
-            al.className = 'alert alert-warning';
-            al.innerHTML = '<i class="bi bi-eye me-1"></i>Version <strong>' + v + '</strong> déployée en <strong>mode test</strong>. Les fichiers sont en ligne mais la bannière n\'est visible que par vous.<br>Cliquez <strong>Publier pour tous</strong> quand vous êtes prêt.';
-            document.getElementById('publish-bar').classList.remove('d-none');
+            al.className = 'alert alert-danger';
+            al.innerHTML = '<i class="bi bi-x-circle me-1"></i>' + msg;
           }
-        } else {
-          al.className = 'alert alert-danger';
-          al.innerHTML = '<i class="bi bi-x-circle me-1"></i>' + msg;
           document.getElementById('publish-bar').classList.add('d-none');
-        }
+        });
       });
-    }); /* fin finally */
+    } else {
+      /* ═══ MODE MANUEL : sauvegarder localement, PAS de déploiement ═══ */
+      al.className = 'alert alert-warning';
+      al.innerHTML = '<i class="bi bi-eye me-1"></i>Version <strong>' + v + '</strong> enregistrée localement. Les fichiers ne sont <strong>pas encore en ligne</strong>.<br>Testez sur <code>localhost:8080</code> puis cliquez <strong>Publier pour tous</strong>.';
+      al.classList.remove('d-none');
+      document.getElementById('publish-bar').classList.remove('d-none');
+    }
   }
 
-  /* ── Publier pour tous (mode manuel) ── */
+  /* ── Publier pour tous (mode manuel) : déployer sur GitHub ── */
   function publishForAll() {
     var v = document.getElementById('ver-input').value.trim();
     if (!v) { alert('Aucune version à publier.'); return; }
-    if (!confirm('Publier la version ' + v + ' pour tous les utilisateurs ?\n\nLa bannière de mise à jour apparaîtra sur tous les appareils.')) return;
+    if (!confirm('Déployer la version ' + v + ' sur GitHub ?\n\nTous les utilisateurs verront les modifications.')) return;
 
-    var pubAt = new Date().toISOString();
-    var ms = {};
-    try { ms = JSON.parse(localStorage.getItem('attt_master_settings') || '{}'); } catch(e) { ms = {}; }
-    ms.version = v;
-    ms.showUpdateBanner = true;
-    ms.publishedAt = pubAt;
-    localStorage.setItem('attt_master_settings', JSON.stringify(ms));
-    if (typeof DB !== 'undefined' && DB.push) DB.push('attt_master_settings', ms);
-
-    // Maître : marquer comme vu
-    localStorage.setItem('attt_seen_site_version', v);
-    localStorage.setItem('attt_seen_publish_time', pubAt);
-
-    document.getElementById('publish-bar').classList.add('d-none');
     var al = document.getElementById('ver-alert');
-    al.className = 'alert alert-success';
-    al.innerHTML = '<i class="bi bi-megaphone me-1"></i>Version <strong>' + v + '</strong> publiée ! La bannière apparaît maintenant sur tous les appareils.';
+    al.className = 'alert alert-info';
+    al.innerHTML = '<span class="spinner-border spinner-border-sm me-2"></span>Déploiement v' + v + ' vers GitHub…';
     al.classList.remove('d-none');
+
+    /* Mettre à jour assets/version.json sur le disque */
+    fetch(DEPLOY_URL + '/api/version', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ version: v })
+    }).catch(function() {}).finally(function() {
+      /* Git push vers GitHub */
+      _deployToGitHub('v' + v, function(ok, msg) {
+        if (ok) {
+          al.className = 'alert alert-success';
+          al.innerHTML = '<i class="bi bi-check-circle me-1"></i>Version <strong>' + v + '</strong> déployée. Tous les utilisateurs verront la nouvelle version.';
+          document.getElementById('publish-bar').classList.add('d-none');
+        } else {
+          al.className = 'alert alert-danger';
+          al.innerHTML = '<i class="bi bi-x-circle me-1"></i>' + msg;
+        }
+      });
+    });
   }
 
   /* ── Déployer vers GitHub via deploy-server (localhost:8081) ── */
@@ -788,10 +757,7 @@
       var success = false;
       function read() {
         reader.read().then(function(result) {
-          if (result.done) {
-            callback(success, success ? '' : 'Déploiement terminé avec des erreurs.');
-            return;
-          }
+          if (result.done) { callback(success, success ? '' : 'Déploiement terminé avec des erreurs.'); return; }
           buffer += decoder.decode(result.value);
           var lines = buffer.split('\n');
           buffer = lines.pop();
@@ -810,7 +776,7 @@
       }
       read();
     }).catch(function(err) {
-      callback(false, 'Impossible de joindre le serveur de déploiement (localhost:8081). Lancez <code>demarrer.bat</code> puis réessayez.');
+      callback(false, 'Impossible de joindre le serveur (localhost:8081). Lancez <code>demarrer.bat</code> puis réessayez.');
     });
   }
 
