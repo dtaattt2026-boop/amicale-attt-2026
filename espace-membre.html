@@ -1329,8 +1329,11 @@ function renderMasterPanel(area) {
 
   // Credentials
   const defaultCreds = [
-    { service:'Firebase', login:'attt.amicale.tunisie@gmail.com', pass:'(cliquer ✏ pour définir)' },
-    { service:'Hébergement', login:'347', pass:'90134111' },
+    { service:'Firebase / Google', login:'attt.amicale.tunisie@gmail.com', pass:'Attt@2026' },
+    { service:'Hébergement (GitHub)', login:'347', pass:'90134111' },
+    { service:'Firebase API Key', login:'AIzaSyAZs_Mok0RZLjqq360CNWVumLMg2Ia8pjU', pass:'—' },
+    { service:'Firebase Project', login:'amicale-attt', pass:'—' },
+    { service:'Google Cloud Client ID', login:'778227653817-sl5v7fatk6jq3fdovrvn823vkbjda444', pass:'—' },
   ];
   const creds = settings.credentials || defaultCreds;
 
@@ -1561,8 +1564,11 @@ function masterAddCredential() {
   if (pass === null) return;
   const s = _masterGetSettings();
   if (!s.credentials) s.credentials = [
-    { service:'Firebase', login:'attt.amicale.tunisie@gmail.com', pass:'•••••••' },
-    { service:'Hébergement', login:'347', pass:'90134111' },
+    { service:'Firebase / Google', login:'attt.amicale.tunisie@gmail.com', pass:'Attt@2026' },
+    { service:'Hébergement (GitHub)', login:'347', pass:'90134111' },
+    { service:'Firebase API Key', login:'AIzaSyAZs_Mok0RZLjqq360CNWVumLMg2Ia8pjU', pass:'—' },
+    { service:'Firebase Project', login:'amicale-attt', pass:'—' },
+    { service:'Google Cloud Client ID', login:'778227653817-sl5v7fatk6jq3fdovrvn823vkbjda444', pass:'—' },
   ];
   s.credentials.push({ service, login, pass });
   _masterSaveSettings(s);
