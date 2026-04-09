@@ -1310,10 +1310,6 @@ function renderMasterPanel(area) {
   let settings;
   try { settings = JSON.parse(localStorage.getItem(K_MASTER) || '{}'); } catch { settings = {}; }
 
-  // Version actuelle
-  const currentVersion = settings.version || '1.0.6';
-  const showUpdateBanner = settings.showUpdateBanner !== false;
-
   // Accès unifiés (services + liens + identifiants)
   const defaultAccess = [
     { service:'Console Firebase', url:'https://console.firebase.google.com/project/amicale-attt', icon:'bi-cloud', login:'attt.amicale.tunisie@gmail.com', pass:'Attt@2026' },
@@ -1335,37 +1331,6 @@ function renderMasterPanel(area) {
   </div>
 
   <div class="row g-4">
-
-    <!-- ═══ VERSION ═══ -->
-    <div class="col-lg-6">
-      <div class="card border-0 shadow-sm" style="border-radius:12px;">
-        <div class="card-header bg-white border-0 fw-bold" style="border-radius:12px 12px 0 0;">
-          <i class="bi bi-cloud-upload me-2 text-primary"></i>Version & Mise à jour
-        </div>
-        <div class="card-body">
-          <div class="d-flex align-items-center gap-3 mb-3">
-            <div style="width:56px;height:56px;border-radius:12px;background:var(--cp);display:flex;align-items:center;justify-content:center;">
-              <span class="text-white fw-bold fs-5">v</span>
-            </div>
-            <div>
-              <div class="fw-bold fs-4" style="color:var(--cp);line-height:1;" id="master-version-display">${AUTH.esc(currentVersion)}</div>
-              <div class="text-muted small">Version actuelle du site</div>
-            </div>
-          </div>
-          <div class="mb-3">
-            <label class="form-label fw-semibold small">Numéro de version</label>
-            <input type="text" class="form-control" id="master-version" value="${AUTH.esc(currentVersion)}" placeholder="ex: 1.0.7" />
-          </div>
-          <div class="form-check form-switch mb-3">
-            <input class="form-check-input" type="checkbox" id="master-show-update" ${showUpdateBanner ? 'checked' : ''} />
-            <label class="form-check-label small" for="master-show-update">Afficher la bannière de mise à jour aux utilisateurs</label>
-          </div>
-          <button class="btn btn-attt btn-sm" onclick="masterSaveVersion()">
-            <i class="bi bi-check-circle me-1"></i>Enregistrer la version
-          </button>
-        </div>
-      </div>
-    </div>
 
     <!-- ═══ ACCÈS & IDENTIFIANTS ═══ -->
     <div class="col-12">
@@ -1483,48 +1448,6 @@ function _masterGetSettings() {
 function _masterSaveSettings(s) {
   localStorage.setItem('attt_master_settings', JSON.stringify(s));
   if (typeof DB !== 'undefined' && DB.save) DB.save('attt_master_settings', s);
-}
-
-function masterSaveVersion() {
-  const ver = document.getElementById('master-version').value.trim();
-  const show = document.getElementById('master-show-update').checked;
-  if (!ver) { alert('Veuillez saisir un numéro de version.'); return; }
-  const s = _masterGetSettings();
-  s.version = ver;
-  s.showUpdateBanner = show;
-  s.publishedAt = new Date().toISOString();
-  _masterSaveSettings(s);
-
-  // Mettre à jour version.json dans localStorage + Firestore
-  try {
-    let vj = {};
-    try { vj = JSON.parse(localStorage.getItem('attt_version_json') || '{}'); } catch { vj = {}; }
-    vj.version = ver;
-    vj.datePublication = new Date().toISOString().slice(0,10);
-    vj.forceUpdate = false;
-    if (!vj.platforms) vj.platforms = {};
-    ['windows','android','pwa'].forEach(p => {
-      if (!vj.platforms[p]) vj.platforms[p] = {};
-      vj.platforms[p].version = ver;
-    });
-    if (show) {
-      vj.changelog = 'Mise à jour disponible — veuillez mettre à jour';
-    }
-    localStorage.setItem('attt_version_json', JSON.stringify(vj));
-    if (typeof DB !== 'undefined' && DB.push) DB.push('attt_version_json', vj);
-  } catch(e){ console.warn('[MASTER] Erreur MAJ version.json:', e); }
-
-  // Forcer la mise à jour de la bannière pour tous les visiteurs
-  // Sur l'appareil du maître, marquer la version comme vue
-  localStorage.setItem('attt_seen_site_version', ver);
-  localStorage.setItem('attt_seen_publish_time', s.publishedAt);
-  if (show && typeof VERSION_CHECK !== 'undefined') {
-    VERSION_CHECK.clearCache();
-    // Ne pas déclencher la bannière sur l'appareil du maître
-  }
-
-  document.getElementById('master-version-display').textContent = ver;
-  alert('✓ Version mise à jour : ' + ver + (show ? '\n\nLa bannière de mise à jour sera affichée à tous les utilisateurs lors de leur prochaine visite.' : ''));
 }
 
 function masterTogglePass(i) {
