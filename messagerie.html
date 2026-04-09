@@ -113,7 +113,7 @@
   </main>
 
   <!-- BOUTON COMPOSER FLOTTANT -->
-  <button class="btn btn-attt compose-btn" onclick="openCompose()" title="Nouveau message">
+  <button class="btn btn-attt compose-btn" data-perm="Envoyer message" onclick="openCompose()" title="Nouveau message">
     <i class="bi bi-pencil-fill"></i>
   </button>
 
@@ -240,6 +240,7 @@ function renderRecus() {
   const msgs   = MESSAGES.getReceived(user.id);
   const tbody  = document.getElementById('recus-body');
   const empty  = document.getElementById('recus-empty');
+  const canDelete = AUTH.hasPermission('Supprimer message', user);
   if (!msgs.length) { tbody.innerHTML=''; empty.classList.remove('d-none'); return; }
   empty.classList.add('d-none');
   tbody.innerHTML = msgs.map(m => {
@@ -249,7 +250,7 @@ function renderRecus() {
       <td class="msg-subject">${AUTH.esc(m.sujet)}</td>
       <td class="msg-preview text-muted small">${AUTH.esc((m.corps||'').slice(0,80))}</td>
       <td><small class="text-muted">${AUTH.esc(m.dateEnvoi.slice(0,16).replace('T',' '))}</small></td>
-      <td><button class="btn btn-sm btn-outline-danger p-1 lh-1" onclick="delMsg(event,'${m.id}')"><i class="bi bi-trash" style="font-size:.75rem;"></i></button></td>
+      <td>${canDelete ? `<button class="btn btn-sm btn-outline-danger p-1 lh-1" onclick="delMsg(event,'${m.id}')"><i class="bi bi-trash" style="font-size:.75rem;"></i></button>` : ''}</td>
     </tr>`;
   }).join('');
 }
@@ -316,6 +317,7 @@ function readMessage(id) {
 
 function delMsg(e, id) {
   e.stopPropagation();
+  if (!AUTH.hasPermission('Supprimer message', user)) { alert('Permission refusée.'); return; }
   if (!confirm('Supprimer ?')) return;
   MESSAGES.deleteMessage(id, user.id);
   renderRecus(); renderEnvoyes(); updateUnreadBadge();
@@ -346,6 +348,7 @@ document.getElementById('c-corps').addEventListener('input', function() {
 function sendMessage() {
   const alert  = document.getElementById('compose-alert');
   const show   = (t,m) => { alert.className='alert alert-'+t; alert.textContent=m; alert.classList.remove('d-none'); };
+  if (!AUTH.hasPermission('Envoyer message', user)) return show('danger','Vous n\'avez pas la permission d\'envoyer des messages.');
   const sel    = document.getElementById('c-dest');
   const sujet  = document.getElementById('c-sujet').value.trim();
   const corps  = document.getElementById('c-corps').value.trim();

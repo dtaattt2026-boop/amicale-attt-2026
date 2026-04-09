@@ -24,21 +24,36 @@
       </button>
       <div class="collapse navbar-collapse" id="navMenu">
         <ul class="navbar-nav ms-auto gap-1">
-          <li class="nav-item"><a class="nav-link" href="index.html">Accueil</a></li>
-          <li class="nav-item"><a class="nav-link" href="a-propos.html">L'association</a></li>
-          <li class="nav-item"><a class="nav-link" href="activites.html">Activités</a></li>
-          <li class="nav-item"><a class="nav-link" href="evenements.html">Événements</a></li>
-          <li class="nav-item"><a class="nav-link" href="actualites.html">Actualités</a></li>
-          <li class="nav-item"><a class="nav-link" href="galerie.html">Galerie</a></li>
-          <li class="nav-item"><a class="nav-link" href="telechargements.html">Téléchargements</a></li>
-          <li class="nav-item"><a class="nav-link active" href="contact.html">Contact</a></li>
+          <li class="nav-item"><a class="nav-link" href="index.html"><i class="bi bi-house me-1"></i>Accueil</a></li>
+          <li class="nav-item dropdown">
+            <a class="nav-link dropdown-toggle active" href="#" data-bs-toggle="dropdown"><i class="bi bi-building me-1"></i>L'Amicale</a>
+            <ul class="dropdown-menu">
+              <li><a class="dropdown-item" href="a-propos.html"><i class="bi bi-info-circle me-2"></i>L'association</a></li>
+              <li><a class="dropdown-item" href="activites.html"><i class="bi bi-calendar-plus me-2"></i>Activités</a></li>
+              <li><a class="dropdown-item" href="contact.html"><i class="bi bi-envelope me-2"></i>Contact</a></li>
+            </ul>
+          </li>
+          <li class="nav-item dropdown">
+            <a class="nav-link dropdown-toggle" href="#" data-bs-toggle="dropdown"><i class="bi bi-compass me-1"></i>Découvrir</a>
+            <ul class="dropdown-menu">
+              <li><a class="dropdown-item" href="evenements.html"><i class="bi bi-calendar-event me-2"></i>Événements</a></li>
+              <li><a class="dropdown-item" href="voyages.html"><i class="bi bi-airplane me-2"></i>Voyages</a></li>
+              <li><a class="dropdown-item" href="offres.html"><i class="bi bi-tag me-2"></i>Offres</a></li>
+              <li><a class="dropdown-item" href="conventions.html"><i class="bi bi-award me-2"></i>Conventions</a></li>
+              <li><hr class="dropdown-divider" /></li>
+              <li><a class="dropdown-item" href="galerie.html"><i class="bi bi-images me-2"></i>Galerie</a></li>
+              <li><a class="dropdown-item" href="actualites.html"><i class="bi bi-newspaper me-2"></i>Actualités</a></li>
+            </ul>
+          </li>
+          <li class="nav-item"><a class="nav-link" href="telechargements.html"><i class="bi bi-download me-1"></i>Téléchargements</a></li>
+          <li class="nav-item ms-2"><a class="btn btn-warning fw-bold btn-sm px-3 py-2" href="login.html" style="color:#000;border-radius:10px;"><i class="bi bi-person-circle me-1"></i>Connexion</a></li>
         </ul>
       </div>
     </div>
   </nav>
 
   <!-- EN-TÊTE PAGE -->
-  <div class="py-4" style="background: linear-gradient(135deg, var(--couleur-principale), #0056cc); color:white;">
+  <div class="page-header">
     <div class="container">
       <nav aria-label="breadcrumb">
         <ol class="breadcrumb mb-1">
@@ -46,7 +61,8 @@
           <li class="breadcrumb-item active text-white">Contact</li>
         </ol>
       </nav>
-      <h1 class="fw-bold mb-0">Nous contacter</h1>
+      <h1 class="fw-bold mb-1">Nous contacter</h1>
+      <p class="mb-0" style="color:rgba(255,255,255,.65);font-size:.92rem;">Une question ? N'hésitez pas à nous écrire.</p>
     </div>
   </div>
 
@@ -122,7 +138,9 @@
 
           <div class="card p-4 mb-3">
             <div class="d-flex gap-3 align-items-start">
-              <i class="bi bi-geo-alt-fill fs-4 flex-shrink-0" style="color: var(--couleur-principale);"></i>
+              <div class="d-flex align-items-center justify-content-center flex-shrink-0" style="width:44px;height:44px;border-radius:12px;background:var(--couleur-principale-light, #e8f0fe);">
+                <i class="bi bi-geo-alt-fill fs-5" style="color: var(--couleur-principale);"></i>
+              </div>
               <div>
                 <h3 class="h6 fw-bold mb-1">Adresse</h3>
                 <p class="text-muted small mb-0" data-site-setting="address"></p>
@@ -132,7 +150,9 @@
 
           <div class="card p-4 mb-3">
             <div class="d-flex gap-3 align-items-start">
-              <i class="bi bi-envelope-fill fs-4 flex-shrink-0" style="color: var(--couleur-principale);"></i>
+              <div class="d-flex align-items-center justify-content-center flex-shrink-0" style="width:44px;height:44px;border-radius:12px;background:var(--couleur-principale-light, #e8f0fe);">
+                <i class="bi bi-envelope-fill fs-5" style="color: var(--couleur-principale);"></i>
+              </div>
               <div>
                 <h3 class="h6 fw-bold mb-1">E-mail</h3>
                 <a href="mailto:attt.amicale.tunisie@gmail.com" class="text-muted small" data-site-setting="email-link">attt.amicale.tunisie@gmail.com</a>
@@ -142,7 +162,9 @@
 
           <div class="card p-4 mb-3">
             <div class="d-flex gap-3 align-items-start">
-              <i class="bi bi-telephone-fill fs-4 flex-shrink-0" style="color: var(--couleur-principale);"></i>
+              <div class="d-flex align-items-center justify-content-center flex-shrink-0" style="width:44px;height:44px;border-radius:12px;background:var(--couleur-principale-light, #e8f0fe);">
+                <i class="bi bi-telephone-fill fs-5" style="color: var(--couleur-principale);"></i>
+              </div>
               <div>
                 <h3 class="h6 fw-bold mb-1">Téléphone</h3>
                 <a href="tel:+21600000000" class="text-muted small" data-site-setting="phone-link">+216 00 000 000</a>
@@ -152,7 +174,9 @@
 
           <div class="card p-4 mb-4">
             <div class="d-flex gap-3 align-items-start">
-              <i class="bi bi-clock-fill fs-4 flex-shrink-0" style="color: var(--couleur-principale);"></i>
+              <div class="d-flex align-items-center justify-content-center flex-shrink-0" style="width:44px;height:44px;border-radius:12px;background:var(--couleur-principale-light, #e8f0fe);">
+                <i class="bi bi-clock-fill fs-5" style="color: var(--couleur-principale);"></i>
+              </div>
               <div>
                 <h3 class="h6 fw-bold mb-1">Horaires d'accueil</h3>
                 <p class="text-muted small mb-0" data-site-setting="hours"></p>
@@ -162,7 +186,9 @@
 
           <div class="card p-3 mb-4 overflow-hidden">
             <div class="d-flex gap-3 align-items-start mb-3">
-              <i class="bi bi-map-fill fs-4 flex-shrink-0" style="color: var(--couleur-principale);"></i>
+              <div class="d-flex align-items-center justify-content-center flex-shrink-0" style="width:44px;height:44px;border-radius:12px;background:var(--couleur-principale-light, #e8f0fe);">
+                <i class="bi bi-map-fill fs-5" style="color: var(--couleur-principale);"></i>
+              </div>
               <div>
                 <h3 class="h6 fw-bold mb-1">Localisation</h3>
                 <p class="text-muted small mb-0">Accès rapide via Google Maps.</p>
@@ -198,23 +224,50 @@
   </main>
 
   <!-- FOOTER -->
-  <footer class="py-4 text-white">
+  <footer class="pt-5 pb-3">
     <div class="container">
-      <div class="row align-items-center">
-        <div class="col-md-6 text-center text-md-start mb-3 mb-md-0">
-          <p class="mb-1 fw-semibold">Amicale de l'ATTT</p>
-          <p class="mb-0 small opacity-75">Association du personnel — Agence Technique des Transports Terrestres</p>
-        </div>
-        <div class="col-md-6 text-center text-md-end">
-          <div class="d-flex justify-content-center justify-content-md-end gap-3 mb-2 flex-wrap">
-            <a href="a-propos.html">L'association</a>
-            <a href="actualites.html">Actualités</a>
-            <a href="activites.html">Activités</a>
-            <a href="contact.html">Contact</a>
+      <div class="row g-4 mb-4">
+        <div class="col-lg-4 col-md-6">
+          <div class="d-flex align-items-center gap-2 mb-3">
+            <img src="img/logo_attt.jpeg" alt="Logo ATTT" style="height:36px;border-radius:8px;" onerror="this.style.display='none'">
+            <span class="footer-brand">Amicale ATTT</span>
           </div>
-          <p class="mb-0 small opacity-50">&copy; 2026 Amicale ATTT — Tous droits réservés</p>
-          <p class="mb-0 mt-1"><a href="hebergement.html" class="small opacity-40">Guide webmaster</a></p>
+          <p class="footer-desc mb-3">Association du personnel de l'Agence Technique des Transports Terrestres. Créer du lien, partager des moments.</p>
+          <div class="footer-social d-flex gap-2">
+            <a href="#" aria-label="Facebook"><i class="bi bi-facebook"></i></a>
+            <a href="#" aria-label="Instagram"><i class="bi bi-instagram"></i></a>
+            <a href="#" aria-label="WhatsApp"><i class="bi bi-whatsapp"></i></a>
+          </div>
         </div>
+        <div class="col-lg-2 col-md-3 col-6">
+          <h6>Navigation</h6>
+          <ul class="list-unstyled d-flex flex-column gap-2">
+            <li><a href="index.html">Accueil</a></li>
+            <li><a href="a-propos.html">L'association</a></li>
+            <li><a href="activites.html">Activités</a></li>
+            <li><a href="evenements.html">Événements</a></li>
+          </ul>
+        </div>
+        <div class="col-lg-2 col-md-3 col-6">
+          <h6>Services</h6>
+          <ul class="list-unstyled d-flex flex-column gap-2">
+            <li><a href="actualites.html">Actualités</a></li>
+            <li><a href="galerie.html">Galerie</a></li>
+            <li><a href="telechargements.html">Téléchargements</a></li>
+            <li><a href="contact.html">Contact</a></li>
+          </ul>
+        </div>
+        <div class="col-lg-4 col-md-6">
+          <h6>Contact</h6>
+          <ul class="list-unstyled d-flex flex-column gap-2">
+            <li><a href="mailto:attt.amicale.tunisie@gmail.com"><i class="bi bi-envelope me-2"></i>attt.amicale.tunisie@gmail.com</a></li>
+            <li><a href="contact.html"><i class="bi bi-geo-alt me-2"></i>Tunis, Tunisie</a></li>
+          </ul>
+        </div>
+      </div>
+      <div class="footer-bottom d-flex flex-wrap justify-content-between align-items-center gap-2">
+        <p class="mb-0 small" style="color:rgba(255,255,255,.35);">&copy; 2026 Amicale ATTT — Tous droits réservés</p>
+        <p class="mb-0"><a href="hebergement.html" class="small" style="color:rgba(255,255,255,.2);">Guide webmaster</a></p>
       </div>
     </div>
   </footer>

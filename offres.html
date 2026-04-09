@@ -51,21 +51,36 @@
       </button>
       <div class="collapse navbar-collapse" id="navMenu">
         <ul class="navbar-nav ms-auto gap-1">
-          <li class="nav-item"><a class="nav-link" href="index.html">Accueil</a></li>
-          <li class="nav-item"><a class="nav-link" href="a-propos.html">L'association</a></li>
-          <li class="nav-item"><a class="nav-link" href="activites.html">Activités</a></li>
-          <li class="nav-item"><a class="nav-link" href="evenements.html">Événements</a></li>
-          <li class="nav-item"><a class="nav-link" href="actualites.html">Actualités</a></li>
-          <li class="nav-item"><a class="nav-link" href="galerie.html">Galerie</a></li>
-          <li class="nav-item"><a class="nav-link" href="telechargements.html">Téléchargements</a></li>
-          <li class="nav-item"><a class="nav-link" href="contact.html">Contact</a></li>
+          <li class="nav-item"><a class="nav-link" href="index.html"><i class="bi bi-house me-1"></i>Accueil</a></li>
+          <li class="nav-item dropdown">
+            <a class="nav-link dropdown-toggle" href="#" data-bs-toggle="dropdown"><i class="bi bi-building me-1"></i>L'Amicale</a>
+            <ul class="dropdown-menu">
+              <li><a class="dropdown-item" href="a-propos.html"><i class="bi bi-info-circle me-2"></i>L'association</a></li>
+              <li><a class="dropdown-item" href="activites.html"><i class="bi bi-calendar-plus me-2"></i>Activités</a></li>
+              <li><a class="dropdown-item" href="contact.html"><i class="bi bi-envelope me-2"></i>Contact</a></li>
+            </ul>
+          </li>
+          <li class="nav-item dropdown">
+            <a class="nav-link dropdown-toggle active" href="#" data-bs-toggle="dropdown"><i class="bi bi-compass me-1"></i>Découvrir</a>
+            <ul class="dropdown-menu">
+              <li><a class="dropdown-item" href="evenements.html"><i class="bi bi-calendar-event me-2"></i>Événements</a></li>
+              <li><a class="dropdown-item" href="voyages.html"><i class="bi bi-airplane me-2"></i>Voyages</a></li>
+              <li><a class="dropdown-item" href="offres.html"><i class="bi bi-tag me-2"></i>Offres</a></li>
+              <li><a class="dropdown-item" href="conventions.html"><i class="bi bi-award me-2"></i>Conventions</a></li>
+              <li><hr class="dropdown-divider" /></li>
+              <li><a class="dropdown-item" href="galerie.html"><i class="bi bi-images me-2"></i>Galerie</a></li>
+              <li><a class="dropdown-item" href="actualites.html"><i class="bi bi-newspaper me-2"></i>Actualités</a></li>
+            </ul>
+          </li>
+          <li class="nav-item"><a class="nav-link" href="telechargements.html"><i class="bi bi-download me-1"></i>Téléchargements</a></li>
+          <li class="nav-item ms-2"><a class="btn btn-warning fw-bold btn-sm px-3 py-2" href="login.html" style="color:#000;border-radius:10px;"><i class="bi bi-person-circle me-1"></i>Connexion</a></li>
         </ul>
       </div>
     </div>
   </nav>
 
   <!-- EN-TÊTE PAGE -->
-  <div class="py-4" style="background: linear-gradient(135deg, var(--couleur-principale), #0056cc); color:white;">
+  <div class="page-header">
     <div class="container">
       <nav aria-label="breadcrumb">
         <ol class="breadcrumb mb-1">

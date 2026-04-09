@@ -1,25 +1,25 @@
 {
   "_comment": "Fichier de version des applications — modifiez ce fichier lors de chaque nouvelle release",
-  "version": "1.0.6",
-  "datePublication": "2026-04-03",
-  "changelog": "Mise a jour version depuis guide",
+  "version": "1.0.9",
+  "datePublication": "2026-04-09",
+  "changelog": "Nouvelle version disponible",
   "forceUpdate": false,
   "minVersion": "1.0.0",
   "platforms": {
     "windows": {
-      "version": "1.0.6",
+      "version": "1.0.9",
       "taille": "45 Mo",
       "fichier": "assets/app-desktop/amicale-attt-setup.exe",
       "sha256": ""
     },
     "android": {
-      "version": "1.0.6",
+      "version": "1.0.9",
       "taille": "28 Mo",
       "fichier": "assets/app-android/amicale-attt.apk",
       "sha256": ""
     },
     "pwa": {
-      "version": "1.0.6",
+      "version": "1.0.9",
       "note": "Mise à jour automatique à chaque visite"
     }
   }

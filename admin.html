@@ -72,13 +72,34 @@
             </button>
           </li>
           <li class="nav-item mt-3 border-top border-secondary pt-3">
+            <small class="text-white-50 px-3" style="font-size:.7rem;text-transform:uppercase;letter-spacing:.05em;">Navigation admin</small>
+          </li>
+          <li class="nav-item">
+            <a href="superviseur.html" class="nav-link" data-perm="Accéder page Superviseur" data-perm-mode="action">
+              <i class="bi bi-shield-check me-2"></i>Espace direction
+            </a>
+          </li>
+          <li class="nav-item">
+            <a href="droits.html" class="nav-link" data-perm="Accéder page Droits" data-perm-mode="action">
+              <i class="bi bi-shield-lock me-2"></i>Droits &amp; permissions
+            </a>
+          </li>
+          <li class="nav-item">
+            <a href="creation-actes.html" class="nav-link" data-perm="Créer des tables / entités" data-perm-mode="action">
+              <i class="bi bi-database-fill-gear me-2"></i>Création d'actes
+            </a>
+          </li>
+          <li class="nav-item mt-2 border-top border-secondary pt-3">
+            <small class="text-white-50 px-3" style="font-size:.7rem;text-transform:uppercase;letter-spacing:.05em;">Contenu &amp; paramètres</small>
+          </li>
+          <li class="nav-item">
             <a href="contenu-admin.html" class="nav-link" data-perm="Accéder page Actualités" data-perm-mode="action">
               <i class="bi bi-file-richtext me-2"></i>Actualités
             </a>
           </li>
           <li class="nav-item">
             <a href="parametres.html" class="nav-link" data-perm="Accéder page Paramètres site" data-perm-mode="action">
-              <i class="bi bi-geo-alt me-2"></i>Paramètres site
+              <i class="bi bi-sliders me-2"></i>Paramètres site
             </a>
           </li>
           <li class="nav-item">
@@ -183,7 +204,7 @@
           <p class="mb-3">Membre : <strong id="rm-fullname"></strong></p>
           <label class="form-label fw-semibold">Nouveau rôle</label>
           <select class="form-select" id="rm-role">
-            <option value="famille">Famille (niveau 0)</option>
+            <option value="famille">Famille (niveau 4)</option>
             <option value="membre">Membre (niveau 1)</option>
           </select>
           <p class="text-muted small mt-2">En tant que Délégué, vous pouvez attribuer les rôles Famille et Membre uniquement.</p>

@@ -1,28 +1,29 @@
-/**
- * version-check.js — Gestion des mises à jour des applications installées
+﻿/**
+ * version-check.js — Systeme de mise a jour centralise via Firestore
  *
  * Fonctionnement :
- *   1. Fetch assets/version.json depuis le serveur (pas de cache navigateur)
- *   2. Compare avec la version enregistrée au moment du téléchargement
- *   3. Si version plus récente → bannière "Mise à jour disponible"
- *   4. En cas de forceUpdate → bannière non fermable
+ *   1. Attend DB_READY (sync Firestore -> localStorage terminee)
+ *   2. Lit attt_master_settings { version, publishedAt, showUpdateBanner }
+ *   3. Compare publishedAt avec attt_seen_publish_time (horodatage local)
+ *   4. Si publishedAt > seen ET banniere activee -> affiche la banniere
+ *   5. 100% automatique : aucune action utilisateur requise
  *
- * Clé localStorage : attt_installed_versions
- *   {
- *     windows: '1.0.0', windows_date: '2026-03-25',
- *     android: '1.0.0', android_date: '2026-03-25'
- *   }
+ * Cles localStorage utilisees :
+ *   - attt_master_settings   : { version, publishedAt, showUpdateBanner } - ecrit par le maitre
+ *   - attt_seen_publish_time : horodatage de la derniere publication vue par cet appareil
+ *   - attt_seen_site_version : version vue (pour afficher la progression)
  */
 
 'use strict';
 
 const VERSION_CHECK = (() => {
 
-  const KEY       = 'attt_installed_versions';
-  const PLATFORMS = ['windows', 'android'];
-  let   _latest   = null;
+  const KEY_INSTALLED  = 'attt_installed_versions';
+  const KEY_SEEN       = 'attt_seen_site_version';
+  const KEY_SEEN_TIME  = 'attt_seen_publish_time';
+  const KEY_MASTER     = 'attt_master_settings';
+  const KEY_VER_JSON   = 'attt_version_json';
 
-  /* ── Compare deux versions sémantiques ("1.2.3") ───────────── */
   function _cmp(v1, v2) {
     const a = String(v1 || '0').split('.').map(Number);
     const b = String(v2 || '0').split('.').map(Number);
@@ -33,146 +34,187 @@ const VERSION_CHECK = (() => {
     return 0;
   }
 
-  /* ── Récupère version.json depuis le serveur (sans cache) ───── */
-  async function fetchLatest() {
-    if (_latest) return _latest;
+  function _getPublishedInfo() {
+    var version = null, showBanner = false, changelog = '';
+    var forceUpdate = false, publishedAt = null;
+
     try {
-      const r = await fetch('assets/version.json?_=' + Date.now(), {
-        cache: 'no-store'
-      });
-      if (!r.ok) throw new Error('HTTP ' + r.status);
-      _latest = await r.json();
-      return _latest;
-    } catch (err) {
-      console.warn('[VERSION] Impossible de récupérer version.json :', err.message);
-      return null;
+      var ms = JSON.parse(localStorage.getItem(KEY_MASTER) || '{}');
+      if (ms.version) {
+        version     = ms.version;
+        showBanner  = ms.showUpdateBanner === true;
+        publishedAt = ms.publishedAt || null;
+        changelog   = ms.changelog || '';
+        forceUpdate = ms.forceUpdate === true;
+      }
+    } catch (e) {}
+
+    if (!version) {
+      try {
+        var vj = JSON.parse(localStorage.getItem(KEY_VER_JSON) || '{}');
+        if (vj.version) {
+          version     = vj.version;
+          showBanner  = true;
+          publishedAt = vj.publishedAt || vj.datePublication || null;
+          changelog   = vj.changelog || '';
+          forceUpdate = vj.forceUpdate === true;
+        }
+      } catch (e) {}
     }
+
+    if (!version) return null;
+    return { version: version, showBanner: showBanner, publishedAt: publishedAt, changelog: changelog, forceUpdate: forceUpdate };
   }
 
-  /* ── Retourne les versions enregistrées (téléchargements passés) */
   function getInstalled() {
-    try { return JSON.parse(localStorage.getItem(KEY) || '{}'); }
-    catch { return {}; }
+    try { return JSON.parse(localStorage.getItem(KEY_INSTALLED) || '{}'); }
+    catch (e) { return {}; }
   }
 
-  /* ── Enregistre la version au moment du téléchargement ──────── */
   function recordInstall(platform, version) {
-    const inst = getInstalled();
-    inst[platform]              = version;
-    inst[platform + '_date']    = new Date().toISOString().split('T')[0];
-    localStorage.setItem(KEY, JSON.stringify(inst));
+    var inst = getInstalled();
+    inst[platform]           = version;
+    inst[platform + '_date'] = new Date().toISOString().split('T')[0];
+    localStorage.setItem(KEY_INSTALLED, JSON.stringify(inst));
   }
 
-  /* ── Retourne la dernière version serveur pour une plateforme── */
-  function getLatestVersion(platform) {
-    if (!_latest) return null;
-    return _latest.platforms?.[platform]?.version || _latest.version || null;
+  function _esc(s) {
+    var d = document.createElement('div');
+    d.textContent = String(s || '');
+    return d.innerHTML;
   }
 
-  /* ── Vérifie si une mise à jour est disponible ──────────────── */
-  function hasUpdate(platform) {
-    const installed = getInstalled()[platform];
-    if (!installed) return false;
-    const latest = getLatestVersion(platform);
-    if (!latest) return false;
-    return _cmp(latest, installed) > 0;
-  }
+  function _showUpdateBanner(fromVersion, toVersion, info) {
+    var old = document.getElementById('update-banner');
+    if (old) old.remove();
 
-  /* ── Affiche la bannière de mise à jour ─────────────────────── */
-  function _showUpdateBanner(latest, platformsToUpdate) {
-    if (document.getElementById('update-banner')) return;
+    var forced = info && info.forceUpdate === true;
+    var pubAt  = (info && info.publishedAt) || '';
 
-    const labels = { windows: 'Windows (.exe)', android: 'Android (.apk)', pwa: 'Application web (smartphone)' };
-    const list   = platformsToUpdate.map(p => `<strong>${labels[p] || p}</strong>`).join(', ');
-    const forced = latest.forceUpdate === true;
-
-    const banner = document.createElement('div');
+    var banner = document.createElement('div');
     banner.id = 'update-banner';
     Object.assign(banner.style, {
-      position:   'sticky',
-      top:        '0',
-      zIndex:     '2100',
+      position: 'sticky', top: '0', zIndex: '2100',
       background: forced ? '#dc3545' : '#ffc107',
-      color:      forced ? '#fff'    : '#212529',
-      padding:    '0.7rem 1rem',
-      display:    'flex',
-      alignItems: 'center',
-      gap:        '0.75rem',
-      boxShadow:  '0 2px 8px rgba(0,0,0,.18)',
-      flexWrap:   'wrap'
+      color: forced ? '#fff' : '#212529',
+      padding: '0.75rem 1rem',
+      display: 'flex', alignItems: 'center', gap: '0.75rem',
+      boxShadow: '0 2px 8px rgba(0,0,0,.18)', flexWrap: 'wrap'
     });
 
-    const iconEl = document.createElement('i');
+    var iconEl = document.createElement('i');
     iconEl.className = forced
       ? 'bi bi-exclamation-triangle-fill fs-5 flex-shrink-0'
       : 'bi bi-arrow-up-circle-fill fs-5 flex-shrink-0';
     banner.appendChild(iconEl);
 
-    const msg = document.createElement('div');
+    var msg = document.createElement('div');
     msg.style.flexGrow = '1';
-    msg.innerHTML = forced
-      ? `<strong>Mise à jour obligatoire (v${latest.version})</strong> — Votre version n'est plus supportée. Veuillez télécharger la nouvelle version pour ${list}.`
-      : `<strong>Nouvelle version disponible — v${latest.version}</strong> — Mise à jour pour ${list}.`
-        + (latest.changelog ? `<span class="ms-2 opacity-75">${latest.changelog}</span>` : '');
+
+    var progressText = fromVersion && fromVersion !== toVersion
+      ? '<strong>v' + _esc(fromVersion) + '</strong> \u2192 <strong>v' + _esc(toVersion) + '</strong>'
+      : '<strong>v' + _esc(toVersion) + '</strong>';
+
+    if (forced) {
+      msg.innerHTML = '<strong>Mise \u00e0 jour obligatoire</strong> \u2014 ' + progressText + '. Votre version n\'est plus support\u00e9e.';
+    } else {
+      msg.innerHTML = '<strong>Nouvelle version disponible</strong> \u2014 ' + progressText
+        + '. Mise \u00e0 jour pour <strong>Windows (.exe)</strong>, <strong>Android (.apk)</strong>.'
+        + (info && info.changelog ? '<br><span style="font-size:.85rem;opacity:.8;">' + _esc(info.changelog) + '</span>' : '');
+    }
     banner.appendChild(msg);
 
-    const btn = document.createElement('a');
+    var btn = document.createElement('a');
     btn.href = 'telechargements.html';
     btn.className = 'btn btn-sm fw-semibold flex-shrink-0';
     btn.style.background = forced ? '#fff' : '#003DA6';
-    btn.style.color      = forced ? '#dc3545' : '#fff';
-    btn.innerHTML = '<i class="bi bi-download me-1"></i>Mettre à jour';
+    btn.style.color = forced ? '#dc3545' : '#fff';
+    btn.style.borderRadius = '8px';
+    btn.style.textDecoration = 'none';
+    btn.innerHTML = '<i class="bi bi-download me-1"></i>Mettre \u00e0 jour';
+    btn.onclick = function() { _acknowledge(toVersion, pubAt); };
     banner.appendChild(btn);
 
     if (!forced) {
-      const close = document.createElement('button');
+      var close = document.createElement('button');
       close.type = 'button';
       close.setAttribute('aria-label', 'Fermer');
-      close.style.cssText = 'background:none;border:none;font-size:1.2rem;cursor:pointer;color:inherit;padding:0 .25rem;';
+      close.style.cssText = 'background:none;border:none;font-size:1.3rem;cursor:pointer;color:inherit;padding:0 .25rem;line-height:1;';
       close.innerHTML = '&times;';
-      close.onclick = () => { banner.remove(); sessionStorage.setItem('update-dismissed-' + latest.version, '1'); };
+      close.onclick = function() {
+        banner.remove();
+        _acknowledge(toVersion, pubAt);
+      };
       banner.appendChild(close);
     }
 
     document.body.prepend(banner);
+    console.log('[VERSION] Banni\u00e8re affich\u00e9e : ' + (fromVersion || '?') + ' \u2192 ' + toVersion);
   }
 
-  /* ── Point d'entrée principal : vérifie et notifie ─────────── */
+  function _acknowledge(version, publishedAt) {
+    localStorage.setItem(KEY_SEEN, version);
+    if (publishedAt) localStorage.setItem(KEY_SEEN_TIME, publishedAt);
+    sessionStorage.setItem('update-dismissed-' + version, '1');
+  }
+
   async function checkAndNotify() {
-    const latest = await fetchLatest();
-    if (!latest) return;
-
-    // Détection dédiée PWA/site: compare la dernière version vue sur cet appareil.
-    const SITE_KEY = 'attt_seen_site_version';
-    const seenSiteVersion = localStorage.getItem(SITE_KEY);
-    const shouldNotifySite =
-      !!seenSiteVersion && _cmp(latest.version, seenSiteVersion) > 0 &&
-      !sessionStorage.getItem('update-dismissed-' + latest.version);
-
-    if (shouldNotifySite) {
-      _showUpdateBanner(latest, ['pwa']);
+    if (typeof DB_READY !== 'undefined') {
+      try { await DB_READY; } catch (e) {}
     }
-    localStorage.setItem(SITE_KEY, latest.version);
 
-    const inst = getInstalled();
-    const toUpdate = PLATFORMS.filter(p => {
-      if (!inst[p]) return false;   /* pas encore installée sur cet appareil */
-      /* Ne pas afficher si déjà fermée pour cette version */
-      if (sessionStorage.getItem('update-dismissed-' + latest.version)) return false;
-      return hasUpdate(p);
-    });
+    var published = _getPublishedInfo();
+    if (!published) {
+      console.log('[VERSION] Aucune version publi\u00e9e trouv\u00e9e');
+      return;
+    }
 
-    if (toUpdate.length > 0) _showUpdateBanner(latest, toUpdate);
+    var publishedVersion = published.version;
+
+    if (published.showBanner === false) {
+      console.log('[VERSION] Banni\u00e8re d\u00e9sactiv\u00e9e par le ma\u00eetre');
+      return;
+    }
+
+    if (sessionStorage.getItem('update-dismissed-' + publishedVersion)) {
+      return;
+    }
+
+    /* ── Comparer par horodatage de publication (prioritaire) ── */
+    var pubAt  = published.publishedAt || '';
+    var seenAt = localStorage.getItem(KEY_SEEN_TIME) || '';
+
+    if (pubAt && pubAt > seenAt) {
+      var seenVer = localStorage.getItem(KEY_SEEN) || null;
+      _showUpdateBanner(seenVer, publishedVersion, published);
+      return;
+    }
+
+    /* ── Fallback : comparer par numero de version ── */
+    var seenVersion = localStorage.getItem(KEY_SEEN) || null;
+    if (!seenVersion || _cmp(publishedVersion, seenVersion) > 0) {
+      _showUpdateBanner(seenVersion, publishedVersion, published);
+      return;
+    }
+
+    console.log('[VERSION] D\u00e9j\u00e0 \u00e0 jour : v' + publishedVersion);
   }
 
-  /* ── API publique ────────────────────────────────────────────── */
+  function acknowledgeVersion(version) {
+    var pub = _getPublishedInfo();
+    localStorage.setItem(KEY_SEEN, version || (pub ? pub.version : '0'));
+    if (pub && pub.publishedAt) localStorage.setItem(KEY_SEEN_TIME, pub.publishedAt);
+    var old = document.getElementById('update-banner');
+    if (old) old.remove();
+  }
+
   return {
-    fetchLatest,
-    getInstalled,
-    recordInstall,
-    getLatestVersion,
-    hasUpdate,
-    checkAndNotify,
-    _cmp  /* exposé pour les tests */
+    checkAndNotify: checkAndNotify,
+    getInstalled: getInstalled,
+    recordInstall: recordInstall,
+    acknowledgeVersion: acknowledgeVersion,
+    clearCache: function() {},
+    _cmp: _cmp
   };
 })();
+

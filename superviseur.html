@@ -95,9 +95,25 @@
             </a>
           </li>
           <li class="nav-item mt-3 border-top border-secondary pt-3">
-              <a href="droits.html" class="nav-link" data-perm="Accéder page Droits" data-perm-mode="action">
-              <i class="bi bi-shield-lock me-2"></i>Droits
+            <small class="text-white-50 px-3" style="font-size:.7rem;text-transform:uppercase;letter-spacing:.05em;">Navigation admin</small>
+          </li>
+          <li class="nav-item">
+            <a href="admin.html" class="nav-link" data-perm="Accéder page Admin" data-perm-mode="action">
+              <i class="bi bi-people me-2"></i>Espace délégué
             </a>
+          </li>
+          <li class="nav-item">
+              <a href="droits.html" class="nav-link" data-perm="Accéder page Droits" data-perm-mode="action">
+              <i class="bi bi-shield-lock me-2"></i>Droits &amp; permissions
+            </a>
+          </li>
+          <li class="nav-item" data-perm="Créer des tables / entités" data-perm-mode="action">
+            <a href="creation-actes.html" class="nav-link">
+              <i class="bi bi-database-fill-gear me-2"></i>Création d'actes
+            </a>
+          </li>
+          <li class="nav-item mt-2 border-top border-secondary pt-3">
+            <small class="text-white-50 px-3" style="font-size:.7rem;text-transform:uppercase;letter-spacing:.05em;">Contenu &amp; paramètres</small>
           </li>
           <li class="nav-item">
               <a href="contenu-admin.html" class="nav-link" data-perm="Accéder page Actualités" data-perm-mode="action">
@@ -106,7 +122,7 @@
           </li>
           <li class="nav-item">
             <a href="parametres.html" class="nav-link" data-perm="Accéder page Paramètres site" data-perm-mode="action">
-              <i class="bi bi-geo-alt me-2"></i>Paramètres site
+              <i class="bi bi-sliders me-2"></i>Paramètres site
             </a>
           </li>
           <li class="nav-item">
@@ -1046,6 +1062,7 @@ function openRoleModal(id) {
   if (!u) return;
   const select  = document.getElementById('edit-role');
   select.innerHTML = AUTH.getAssignableRoles(user)
+    .filter(role => role.id !== 'master')
     .filter(role => !role.linkedToUser || AUTH.userHasExactRole(u, role.id))
     .map(role => `<option value="${role.id}"${AUTH.getPrimaryRole(u)===role.id?' selected':''}>${AUTH.esc(role.label)} (niv.${AUTH.esc(role.level)})</option>`)
     .join('');

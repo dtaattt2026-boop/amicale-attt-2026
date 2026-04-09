@@ -144,6 +144,18 @@
               <button class="btn btn-attt w-100" onclick="saveVersion()"><i class="bi bi-check me-1"></i>Enregistrer</button>
             </div>
           </div>
+          <!-- Bouton Publier pour tous (mode manuel) -->
+          <div id="publish-bar" class="d-none mt-3 p-3 rounded-3" style="background:var(--cp-light,#e8edf5);border:2px dashed var(--cp);">
+            <div class="d-flex flex-wrap align-items-center gap-3">
+              <div class="flex-grow-1">
+                <i class="bi bi-eye-fill text-primary me-1"></i>
+                <strong>Mode test</strong> — Les fichiers sont en ligne mais la bannière n'est visible que par vous.
+              </div>
+              <button class="btn btn-success btn-sm fw-semibold px-3" onclick="publishForAll()">
+                <i class="bi bi-megaphone me-1"></i>Publier pour tous les utilisateurs
+              </button>
+            </div>
+          </div>
           <div id="ver-alert" class="alert d-none mt-3 mb-0"></div>
         </div>
 
@@ -584,7 +596,7 @@
   <script src="js/db.js"></script>
   <script src="js/auth.js"></script>
   <script src="js/site-settings.js"></script>
-  <script src="js/events.js"></script>
+  <script src="js/version-check.js"></script>
   <script>
   'use strict';
   const user = AUTH.requireAuth();
@@ -613,6 +625,17 @@
       document.getElementById('ver-input').value = v;
       document.getElementById('ver-date').textContent = 'Dernière mise à jour : ' + new Date().toLocaleDateString('fr-TN');
       document.getElementById('ver-auto').checked = !!s.autoVersion;
+      document.getElementById('ver-input').disabled = !!s.autoVersion;
+
+      // Vérifier si en mode test (fichiers déployés mais bannière désactivée)
+      try {
+        var ms = JSON.parse(localStorage.getItem('attt_master_settings') || '{}');
+        if (ms.version && ms.showUpdateBanner === false && ms.publishedAt) {
+          document.getElementById('publish-bar').classList.remove('d-none');
+        } else {
+          document.getElementById('publish-bar').classList.add('d-none');
+        }
+      } catch(e) {}
 
       // Stats
       try { if (typeof AUTH !== 'undefined' && AUTH.getUsers) document.getElementById('stat-users').textContent = AUTH.getUsers().length; } catch(e){}
@@ -625,18 +648,170 @@
   }
 
   function saveVersion() {
-    const v = document.getElementById('ver-input').value.trim();
     const auto = document.getElementById('ver-auto').checked;
     const al = document.getElementById('ver-alert');
-    if (!v && !auto) { al.className='alert alert-warning'; al.textContent='Veuillez saisir un numéro de version.'; al.classList.remove('d-none'); return; }
+    let v = document.getElementById('ver-input').value.trim();
+
+    /* ── Mode Auto : incrémenter la version ── */
+    if (auto) {
+      const parts = (v || '1.0.0').split('.').map(Number);
+      parts[2] = (parts[2] || 0) + 1;
+      v = parts.join('.');
+      document.getElementById('ver-input').value = v;
+    }
+    if (!v) { al.className='alert alert-warning'; al.textContent='Veuillez saisir un numéro de version.'; al.classList.remove('d-none'); return; }
+
     try {
       if (typeof SITE_SETTINGS !== 'undefined' && SITE_SETTINGS.updateSettings) {
         SITE_SETTINGS.updateSettings({ appVersion: v, autoVersion: auto });
       }
       document.getElementById('ver-display').textContent = v;
-      al.className='alert alert-success'; al.textContent='✓ Version enregistrée : ' + v;
-    } catch(e) { al.className='alert alert-danger'; al.textContent='Erreur : ' + e.message; }
+
+      // ── Synchroniser attt_version_json ──
+      var vj = {};
+      try { vj = JSON.parse(localStorage.getItem('attt_version_json') || '{}'); } catch(e) { vj = {}; }
+      vj.version = v;
+      vj.datePublication = new Date().toISOString().slice(0,10);
+      if (!vj.changelog) vj.changelog = 'Nouvelle version disponible';
+      if (!vj.platforms) vj.platforms = {};
+      ['windows','android','pwa'].forEach(function(p) {
+        if (!vj.platforms[p]) vj.platforms[p] = {};
+        vj.platforms[p].version = v;
+      });
+      localStorage.setItem('attt_version_json', JSON.stringify(vj));
+      if (typeof DB !== 'undefined' && DB.push) DB.push('attt_version_json', vj);
+
+      var pubAt = new Date().toISOString();
+
+      // ── attt_master_settings ──
+      var ms = {};
+      try { ms = JSON.parse(localStorage.getItem('attt_master_settings') || '{}'); } catch(e) { ms = {}; }
+      ms.version = v;
+      ms.publishedAt = pubAt;
+
+      if (auto) {
+        /* Mode Auto : publier directement pour tout le monde */
+        ms.showUpdateBanner = true;
+      } else {
+        /* Mode Manuel : test uniquement, bannière désactivée pour les utilisateurs */
+        ms.showUpdateBanner = false;
+      }
+
+      localStorage.setItem('attt_master_settings', JSON.stringify(ms));
+      if (typeof DB !== 'undefined' && DB.push) DB.push('attt_master_settings', ms);
+
+      // ── Maître : marquer comme vu ──
+      localStorage.setItem('attt_seen_site_version', v);
+      localStorage.setItem('attt_seen_publish_time', pubAt);
+      if (typeof VERSION_CHECK !== 'undefined' && VERSION_CHECK.clearCache) VERSION_CHECK.clearCache();
+
+    } catch(e) { al.className='alert alert-danger'; al.textContent='Erreur : ' + e.message; al.classList.remove('d-none'); return; }
+
+    /* ── Étape 2 : Mettre à jour assets/version.json sur le disque ── */
+    al.className='alert alert-info';
+    al.innerHTML = '<span class="spinner-border spinner-border-sm me-2"></span>Mise à jour de la version ' + v + '…';
     al.classList.remove('d-none');
+
+    fetch(DEPLOY_URL + '/api/version', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ version: v, changelog: vj.changelog || 'Nouvelle version' })
+    }).then(function(r) { return r.json(); }).then(function(d) {
+      if (!d.ok) console.warn('[SAVE] Erreur maj version.json:', d.error);
+    }).catch(function() {
+      console.warn('[SAVE] Serveur deploy hors ligne — version.json non mis à jour sur disque');
+    }).finally(function() {
+
+      /* ── Étape 3 : Déployer sur GitHub via deploy-server ── */
+      al.innerHTML = '<span class="spinner-border spinner-border-sm me-2"></span>Déploiement de la version ' + v + ' vers GitHub…';
+
+      var comment = auto
+        ? 'v' + v + ' — Mise à jour automatique'
+        : 'v' + v + ' — Test maître (non publié)';
+
+      _deployToGitHub(comment, function(ok, msg) {
+        if (ok) {
+          if (auto) {
+            al.className = 'alert alert-success';
+            al.innerHTML = '<i class="bi bi-check-circle me-1"></i>Version <strong>' + v + '</strong> déployée et publiée pour tous les utilisateurs.';
+            document.getElementById('publish-bar').classList.add('d-none');
+          } else {
+            al.className = 'alert alert-warning';
+            al.innerHTML = '<i class="bi bi-eye me-1"></i>Version <strong>' + v + '</strong> déployée en <strong>mode test</strong>. Les fichiers sont en ligne mais la bannière n\'est visible que par vous.<br>Cliquez <strong>Publier pour tous</strong> quand vous êtes prêt.';
+            document.getElementById('publish-bar').classList.remove('d-none');
+          }
+        } else {
+          al.className = 'alert alert-danger';
+          al.innerHTML = '<i class="bi bi-x-circle me-1"></i>' + msg;
+          document.getElementById('publish-bar').classList.add('d-none');
+        }
+      });
+    }); /* fin finally */
+  }
+
+  /* ── Publier pour tous (mode manuel) ── */
+  function publishForAll() {
+    var v = document.getElementById('ver-input').value.trim();
+    if (!v) { alert('Aucune version à publier.'); return; }
+    if (!confirm('Publier la version ' + v + ' pour tous les utilisateurs ?\n\nLa bannière de mise à jour apparaîtra sur tous les appareils.')) return;
+
+    var pubAt = new Date().toISOString();
+    var ms = {};
+    try { ms = JSON.parse(localStorage.getItem('attt_master_settings') || '{}'); } catch(e) { ms = {}; }
+    ms.version = v;
+    ms.showUpdateBanner = true;
+    ms.publishedAt = pubAt;
+    localStorage.setItem('attt_master_settings', JSON.stringify(ms));
+    if (typeof DB !== 'undefined' && DB.push) DB.push('attt_master_settings', ms);
+
+    // Maître : marquer comme vu
+    localStorage.setItem('attt_seen_site_version', v);
+    localStorage.setItem('attt_seen_publish_time', pubAt);
+
+    document.getElementById('publish-bar').classList.add('d-none');
+    var al = document.getElementById('ver-alert');
+    al.className = 'alert alert-success';
+    al.innerHTML = '<i class="bi bi-megaphone me-1"></i>Version <strong>' + v + '</strong> publiée ! La bannière apparaît maintenant sur tous les appareils.';
+    al.classList.remove('d-none');
+  }
+
+  /* ── Déployer vers GitHub via deploy-server (localhost:8081) ── */
+  function _deployToGitHub(comment, callback) {
+    fetch(DEPLOY_URL + '/api/deploy', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ comment: comment })
+    }).then(function(r) {
+      var reader = r.body.getReader();
+      var decoder = new TextDecoder();
+      var buffer = '';
+      var success = false;
+      function read() {
+        reader.read().then(function(result) {
+          if (result.done) {
+            callback(success, success ? '' : 'Déploiement terminé avec des erreurs.');
+            return;
+          }
+          buffer += decoder.decode(result.value);
+          var lines = buffer.split('\n');
+          buffer = lines.pop();
+          for (var i = 0; i < lines.length; i++) {
+            if (lines[i].startsWith('data: ')) {
+              try {
+                var evt = JSON.parse(lines[i].slice(6));
+                if (evt.type === 'done') success = true;
+                if (evt.type === 'error') success = false;
+                console.log('[DEPLOY]', evt.data);
+              } catch(e) {}
+            }
+          }
+          read();
+        });
+      }
+      read();
+    }).catch(function(err) {
+      callback(false, 'Impossible de joindre le serveur de déploiement (localhost:8081). Lancez <code>demarrer.bat</code> puis réessayez.');
+    });
   }
 
   function addChangelog() {
@@ -745,22 +920,6 @@
     logEl.innerHTML = '';
     btn.disabled = true;
     btn.innerHTML = '<span class="spinner-border spinner-border-sm me-2"></span>Déploiement…';
-
-    // Auto-version si activée
-    const auto = document.getElementById('ver-auto') && document.getElementById('ver-auto').checked;
-    if (auto) {
-      const cur = document.getElementById('ver-input').value || '1.0.0';
-      const parts = cur.split('.').map(Number);
-      parts[2] = (parts[2] || 0) + 1;
-      const newVer = parts.join('.');
-      document.getElementById('ver-input').value = newVer;
-      document.getElementById('ver-display').textContent = newVer;
-      try {
-        if (typeof SITE_SETTINGS !== 'undefined' && SITE_SETTINGS.updateSettings) {
-          SITE_SETTINGS.updateSettings({ appVersion: newVer });
-        }
-      } catch(e){}
-    }
 
     fetch(DEPLOY_URL + '/api/deploy', {
       method: 'POST',

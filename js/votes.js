@@ -26,7 +26,6 @@ const VOTES = (() => {
   };
 
   const AVAILABLE_ROLES = [
-    { id: 'master',      label: 'Maître' },
     { id: 'superviseur', label: 'Direction' },
     { id: 'admin',       label: 'Délégué' },
     { id: 'membre',      label: 'Membre' },

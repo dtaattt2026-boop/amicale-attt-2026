@@ -15,81 +15,89 @@
 
     /* HERO */
     .hero-section {
-      background: linear-gradient(135deg, #001952 0%, #003DA6 55%, #0056cc 100%);
-      min-height: 540px; position: relative; overflow: hidden;
-      display: flex; align-items: center; padding: 4.5rem 0;
+      background: linear-gradient(135deg, #001030 0%, #002570 30%, #003DA6 60%, #0056cc 100%);
+      min-height: 560px; position: relative; overflow: hidden;
+      display: flex; align-items: center; padding: 5rem 0;
     }
     .hero-section::before {
       content:''; position:absolute; inset:0;
-      background: radial-gradient(ellipse at 80% 20%, rgba(255,193,7,.08) 0%, transparent 60%);
+      background: radial-gradient(ellipse at 75% 15%, rgba(255,193,7,.07) 0%, transparent 55%),
+                  radial-gradient(ellipse at 20% 80%, rgba(0,86,204,.15) 0%, transparent 50%);
+    }
+    .hero-section::after {
+      content:''; position:absolute; bottom:-200px; right:-100px;
+      width:500px; height:500px; border-radius:50%;
+      background:rgba(255,255,255,.02);
     }
     .hero-badge {
       display:inline-flex; align-items:center; gap:.5rem;
-      background:rgba(255,193,7,.15); border:1px solid rgba(255,193,7,.35);
-      color:#ffd54f; border-radius:999px; padding:.35rem 1rem;
-      font-size:.78rem; font-weight:700; text-transform:uppercase; letter-spacing:.08em; margin-bottom:1.25rem;
+      background:rgba(255,193,7,.12); border:1px solid rgba(255,193,7,.3);
+      color:#ffd54f; border-radius:999px; padding:.4rem 1.15rem;
+      font-size:.75rem; font-weight:700; text-transform:uppercase; letter-spacing:.1em; margin-bottom:1.5rem;
+      backdrop-filter:blur(6px);
     }
-    .hero-section h1 { font-size:clamp(2rem,5vw,3.4rem); font-weight:900; color:#fff; line-height:1.1; }
-    .hero-section .lead { color:rgba(255,255,255,.82); font-size:1.05rem; max-width:520px; }
+    .hero-section h1 { font-size:clamp(2rem,5vw,3.4rem); font-weight:900; color:#fff; line-height:1.08; letter-spacing:-.02em; }
+    .hero-section .lead { color:rgba(255,255,255,.8); font-size:1.08rem; max-width:520px; line-height:1.65; }
     .hero-glass {
-      background:rgba(255,255,255,.1); backdrop-filter:blur(14px);
-      border:1px solid rgba(255,255,255,.18); border-radius:22px; padding:2rem;
+      background:rgba(255,255,255,.08); backdrop-filter:blur(18px) saturate(1.4);
+      border:1px solid rgba(255,255,255,.14); border-radius:var(--radius-xl, 24px); padding:2.25rem;
+      box-shadow: 0 8px 32px rgba(0,0,0,.15);
     }
     .hs { text-align:center; }
-    .hs .n { font-size:2.2rem; font-weight:900; color:#ffd54f; line-height:1; }
-    .hs .l { font-size:.72rem; text-transform:uppercase; letter-spacing:.06em; color:rgba(255,255,255,.65); margin-top:.25rem; }
+    .hs .n { font-size:2.4rem; font-weight:900; color:#ffd54f; line-height:1; }
+    .hs .l { font-size:.7rem; text-transform:uppercase; letter-spacing:.08em; color:rgba(255,255,255,.55); margin-top:.35rem; font-weight:500; }
 
     /* NAVBAR */
-    .site-nav { background:rgba(0,25,82,.96); backdrop-filter:blur(8px); }
-    .site-nav .nav-link { color:rgba(255,255,255,.8)!important; font-weight:500; border-radius:8px; transition:background .15s; padding:.45rem .75rem!important; }
+    .site-nav { background:rgba(0,20,70,.97); backdrop-filter:blur(14px) saturate(1.2); border-bottom:1px solid rgba(255,255,255,.06); }
+    .site-nav .nav-link { color:rgba(255,255,255,.78)!important; font-weight:500; border-radius:8px; transition:all .2s cubic-bezier(.4,0,.2,1); padding:.5rem .85rem!important; font-size:.9rem; }
     .site-nav .nav-link:hover,.site-nav .nav-link.active { background:rgba(255,255,255,.12); color:#fff!important; }
 
     /* SECTION HEADINGS */
-    .s-eyebrow { font-size:.74rem; font-weight:700; text-transform:uppercase; letter-spacing:.1em; color:var(--cp); margin-bottom:.3rem; }
-    .s-title { font-weight:900; font-size:1.75rem; color:#0d1b2a; margin-bottom:.3rem; }
-    .s-sub { color:#6c757d; font-size:.95rem; }
+    .s-eyebrow { font-size:.72rem; font-weight:700; text-transform:uppercase; letter-spacing:.12em; color:var(--cp); margin-bottom:.35rem; }
+    .s-title { font-weight:900; font-size:1.8rem; color:#0d1b2a; margin-bottom:.35rem; letter-spacing:-.01em; }
+    .s-sub { color:#6c757d; font-size:.92rem; line-height:1.5; }
 
     /* ABOUT STRIP */
-    .about-strip { background:linear-gradient(135deg,#001952,#003DA6); color:white; padding:4rem 0; overflow:hidden; position:relative; }
-    .about-strip::after { content:''; position:absolute; right:-120px; bottom:-120px; width:400px; height:400px; border-radius:50%; background:rgba(255,255,255,.04); }
-    .af { display:flex; align-items:flex-start; gap:.85rem; margin-bottom:1.5rem; }
-    .af-icon { width:46px; height:46px; border-radius:13px; background:rgba(255,255,255,.14); display:flex; align-items:center; justify-content:center; font-size:1.2rem; flex-shrink:0; }
+    .about-strip { background:linear-gradient(135deg,#001030 0%,#002570 40%,#003DA6 100%); color:white; padding:5rem 0; overflow:hidden; position:relative; }
+    .about-strip::before { content:''; position:absolute; top:-150px; left:-100px; width:400px; height:400px; border-radius:50%; background:rgba(0,86,204,.12); }
+    .about-strip::after { content:''; position:absolute; right:-120px; bottom:-120px; width:450px; height:450px; border-radius:50%; background:rgba(255,255,255,.03); }
+    .af { display:flex; align-items:flex-start; gap:1rem; margin-bottom:1.65rem; }
+    .af-icon { width:48px; height:48px; border-radius:14px; background:rgba(255,255,255,.1); backdrop-filter:blur(6px); display:flex; align-items:center; justify-content:center; font-size:1.25rem; flex-shrink:0; border:1px solid rgba(255,255,255,.08); }
 
     /* ACTIVITY CARDS */
-    .act-card { border:none; border-radius:18px; box-shadow:0 2px 18px rgba(0,61,166,.07); transition:transform .2s,box-shadow .2s; height:100%; }
-    .act-card:hover { transform:translateY(-5px); box-shadow:0 10px 30px rgba(0,61,166,.14); }
-    .act-icon { width:58px; height:58px; border-radius:15px; display:flex; align-items:center; justify-content:center; font-size:1.55rem; margin-bottom:1rem; }
-    .act-cnt { background:#dc3545; color:#fff; border-radius:999px; font-size:.66rem; font-weight:700; padding:.18rem .5rem; margin-left:.35rem; vertical-align:middle; }
+    .act-card { border:1px solid rgba(0,61,166,.06); border-radius:20px; box-shadow:0 2px 16px rgba(0,61,166,.06); transition:all .3s cubic-bezier(.4,0,.2,1); height:100%; background:#fff; }
+    .act-card:hover { transform:translateY(-6px); box-shadow:0 16px 40px rgba(0,61,166,.13); border-color:transparent; }
+    .act-icon { width:56px; height:56px; border-radius:16px; display:flex; align-items:center; justify-content:center; font-size:1.5rem; margin-bottom:1rem; }
+    .act-cnt { background:#dc3545; color:#fff; border-radius:999px; font-size:.64rem; font-weight:700; padding:.2rem .55rem; margin-left:.4rem; vertical-align:middle; }
 
     /* ADS */
     .ads-wrap { background:#f4f6fb; }
-    .ad-card { border-radius:16px; overflow:hidden; border:none; box-shadow:0 2px 14px rgba(0,0,0,.07); transition:transform .2s; }
-    .ad-card:hover { transform:scale(1.025); }
+    .ad-card { border-radius:18px; overflow:hidden; border:1px solid rgba(0,0,0,.05); box-shadow:0 2px 16px rgba(0,0,0,.06); transition:all .3s cubic-bezier(.4,0,.2,1); background:#fff; }
+    .ad-card:hover { transform:translateY(-4px) scale(1.01); box-shadow:0 12px 36px rgba(0,0,0,.12); }
     .ad-card img { width:100%; height:210px; object-fit:cover; }
-    .ad-card .ac-body { padding:1rem 1.15rem 1.2rem; }
+    .ad-card .ac-body { padding:1.1rem 1.25rem 1.3rem; }
 
     /* EVENTS LIST */
-    .ev-row { display:flex; align-items:flex-start; gap:1rem; padding:1rem 1.1rem; border-radius:13px; border:1px solid #e9ecef; background:#fff; margin-bottom:.75rem; transition:box-shadow .15s; }
-    .ev-row:hover { box-shadow:0 4px 16px rgba(0,61,166,.1); }
-    .ev-date { min-width:52px; text-align:center; background:var(--cp); color:white; border-radius:10px; padding:.4rem .5rem; flex-shrink:0; }
-    .ev-date .day { font-size:1.45rem; font-weight:900; line-height:1; }
-    .ev-date .mon { font-size:.68rem; text-transform:uppercase; letter-spacing:.05em; opacity:.88; }
+    .ev-row { display:flex; align-items:flex-start; gap:1.1rem; padding:1.1rem 1.25rem; border-radius:14px; border:1px solid #edf0f5; background:#fff; margin-bottom:.85rem; transition:all .25s cubic-bezier(.4,0,.2,1); }
+    .ev-row:hover { box-shadow:0 6px 24px rgba(0,61,166,.1); border-color:transparent; transform:translateX(3px); }
+    .ev-date { min-width:54px; text-align:center; background:var(--cp); color:white; border-radius:12px; padding:.45rem .55rem; flex-shrink:0; box-shadow:0 3px 10px rgba(0,61,166,.2); }
+    .ev-date .day { font-size:1.5rem; font-weight:900; line-height:1; }
+    .ev-date .mon { font-size:.66rem; text-transform:uppercase; letter-spacing:.06em; opacity:.85; font-weight:600; }
 
     /* CTA */
-    .cta-box { background:linear-gradient(135deg,#001952,#003DA6); border-radius:22px; padding:3rem 2.5rem; text-align:center; color:white; }
+    .cta-box { background:linear-gradient(135deg,#001030 0%,#002570 40%,#003DA6 100%); border-radius:var(--radius-xl, 24px); padding:3.5rem 2.5rem; text-align:center; color:white; position:relative; overflow:hidden; box-shadow:0 16px 48px rgba(0,30,80,.25); }
+    .cta-box::before { content:''; position:absolute; top:-80px; right:-60px; width:250px; height:250px; border-radius:50%; background:rgba(255,193,7,.06); }
+    .cta-box::after { content:''; position:absolute; bottom:-100px; left:-40px; width:200px; height:200px; border-radius:50%; background:rgba(255,255,255,.03); }
 
-    /* FOOTER */
-    footer { background:#0d1b2a; color:#fff; }
-    footer a { color:rgba(255,255,255,.55); text-decoration:none; font-size:.88rem; }
-    footer a:hover { color:#fff; }
+    /* FOOTER — handled by style.css */
 
     /* BUTTONS */
-    .btn-attt { background:var(--cp); color:#fff; border:none; border-radius:10px; font-weight:700; padding:.65rem 1.6rem; transition:background .2s,transform .15s; }
-    .btn-attt:hover { background:#004fd6; color:#fff; transform:translateY(-1px); }
-    .btn-oa { border:2px solid var(--cp); color:var(--cp); border-radius:10px; font-weight:700; padding:.6rem 1.4rem; background:transparent; transition:all .2s; }
-    .btn-oa:hover { background:var(--cp); color:#fff; }
+    .btn-attt { background:var(--cp); color:#fff; border:none; border-radius:10px; font-weight:700; padding:.65rem 1.6rem; transition:all .25s cubic-bezier(.4,0,.2,1); box-shadow:0 2px 8px rgba(0,61,166,.2); }
+    .btn-attt:hover { background:#004fd6; color:#fff; transform:translateY(-2px); box-shadow:0 6px 20px rgba(0,61,166,.3); }
+    .btn-oa { border:2px solid var(--cp); color:var(--cp); border-radius:10px; font-weight:700; padding:.6rem 1.4rem; background:transparent; transition:all .25s cubic-bezier(.4,0,.2,1); }
+    .btn-oa:hover { background:var(--cp); color:#fff; box-shadow:0 4px 16px rgba(0,61,166,.2); }
 
-    @media(max-width:768px){ .hero-section{min-height:auto;padding:3rem 0;} .cta-box{padding:2rem 1rem;} }
+    @media(max-width:768px){ .hero-section{min-height:auto;padding:3rem 0;} .cta-box{padding:2rem 1.25rem;} }
   </style>
 </head>
 <body>
@@ -105,14 +113,28 @@
       </button>
       <div class="collapse navbar-collapse" id="navMenu">
         <ul class="navbar-nav ms-auto gap-1">
-          <li class="nav-item"><a class="nav-link active" href="index.html">Accueil</a></li>
-          <li class="nav-item"><a class="nav-link" href="a-propos.html">L'association</a></li>
-          <li class="nav-item"><a class="nav-link" href="activites.html">Activités</a></li>
-          <li class="nav-item"><a class="nav-link" href="evenements.html">Événements</a></li>
-          <li class="nav-item"><a class="nav-link" href="actualites.html">Actualités</a></li>
-          <li class="nav-item"><a class="nav-link" href="galerie.html">Galerie</a></li>
-          <li class="nav-item"><a class="nav-link" href="telechargements.html">Téléchargements</a></li>
-          <li class="nav-item"><a class="nav-link" href="contact.html">Contact</a></li>
+          <li class="nav-item"><a class="nav-link active" href="index.html"><i class="bi bi-house me-1"></i>Accueil</a></li>
+          <li class="nav-item dropdown">
+            <a class="nav-link dropdown-toggle" href="#" data-bs-toggle="dropdown"><i class="bi bi-building me-1"></i>L'Amicale</a>
+            <ul class="dropdown-menu">
+              <li><a class="dropdown-item" href="a-propos.html"><i class="bi bi-info-circle me-2"></i>L'association</a></li>
+              <li><a class="dropdown-item" href="activites.html"><i class="bi bi-calendar-plus me-2"></i>Activités</a></li>
+              <li><a class="dropdown-item" href="contact.html"><i class="bi bi-envelope me-2"></i>Contact</a></li>
+            </ul>
+          </li>
+          <li class="nav-item dropdown">
+            <a class="nav-link dropdown-toggle" href="#" data-bs-toggle="dropdown"><i class="bi bi-compass me-1"></i>Découvrir</a>
+            <ul class="dropdown-menu">
+              <li><a class="dropdown-item" href="evenements.html"><i class="bi bi-calendar-event me-2"></i>Événements</a></li>
+              <li><a class="dropdown-item" href="voyages.html"><i class="bi bi-airplane me-2"></i>Voyages</a></li>
+              <li><a class="dropdown-item" href="offres.html"><i class="bi bi-tag me-2"></i>Offres</a></li>
+              <li><a class="dropdown-item" href="conventions.html"><i class="bi bi-award me-2"></i>Conventions</a></li>
+              <li><hr class="dropdown-divider" /></li>
+              <li><a class="dropdown-item" href="galerie.html"><i class="bi bi-images me-2"></i>Galerie</a></li>
+              <li><a class="dropdown-item" href="actualites.html"><i class="bi bi-newspaper me-2"></i>Actualités</a></li>
+            </ul>
+          </li>
+          <li class="nav-item"><a class="nav-link" href="telechargements.html"><i class="bi bi-download me-1"></i>Téléchargements</a></li>
           <li class="nav-item ms-2">
             <a class="btn btn-warning fw-bold btn-sm px-3 py-2" href="login.html" style="color:#000;border-radius:10px;">
               <i class="bi bi-person-circle me-1"></i>Connexion
@@ -379,23 +401,54 @@
   </section>
 
   <!-- ══ FOOTER ════════════════════════════════════════════════════ -->
-  <footer class="py-4">
+  <footer class="pt-5 pb-3">
     <div class="container">
-      <div class="row align-items-center">
-        <div class="col-md-6 text-center text-md-start mb-3 mb-md-0">
-          <p class="mb-1 fw-bold" style="color:rgba(255,255,255,.9);">Amicale de l'ATTT</p>
-          <p class="mb-0 small" style="color:rgba(255,255,255,.5);">Association du personnel — Agence Technique des Transports Terrestres</p>
-        </div>
-        <div class="col-md-6 text-center text-md-end">
-          <div class="d-flex justify-content-center justify-content-md-end gap-3 mb-2 flex-wrap">
-            <a href="a-propos.html">L'association</a>
-            <a href="actualites.html">Actualités</a>
-            <a href="activites.html">Activités</a>
-            <a href="contact.html">Contact</a>
+      <div class="row g-4 mb-4">
+        <!-- Brand -->
+        <div class="col-lg-4 col-md-6">
+          <div class="d-flex align-items-center gap-2 mb-3">
+            <img src="img/logo_attt.jpeg" alt="Logo ATTT" style="height:36px;border-radius:8px;" onerror="this.style.display='none'">
+            <span class="footer-brand">Amicale ATTT</span>
           </div>
-          <p class="mb-0 small" style="color:rgba(255,255,255,.3);">&copy; 2026 Amicale ATTT — Tous droits réservés</p>
-          <p class="mb-0 mt-1"><a href="hebergement.html" class="small" style="opacity:.3;">Guide webmaster</a></p>
+          <p class="footer-desc mb-3">Association du personnel de l'Agence Technique des Transports Terrestres. Créer du lien, partager des moments.</p>
+          <div class="footer-social d-flex gap-2">
+            <a href="#" aria-label="Facebook"><i class="bi bi-facebook"></i></a>
+            <a href="#" aria-label="Instagram"><i class="bi bi-instagram"></i></a>
+            <a href="#" aria-label="WhatsApp"><i class="bi bi-whatsapp"></i></a>
+          </div>
         </div>
+        <!-- Liens rapides -->
+        <div class="col-lg-2 col-md-3 col-6">
+          <h6>L'Amicale</h6>
+          <ul class="list-unstyled d-flex flex-column gap-2">
+            <li><a href="a-propos.html">L'association</a></li>
+            <li><a href="activites.html">Activités</a></li>
+            <li><a href="contact.html">Contact</a></li>
+          </ul>
+        </div>
+        <div class="col-lg-2 col-md-3 col-6">
+          <h6>Découvrir</h6>
+          <ul class="list-unstyled d-flex flex-column gap-2">
+            <li><a href="evenements.html">Événements</a></li>
+            <li><a href="voyages.html">Voyages</a></li>
+            <li><a href="offres.html">Offres</a></li>
+            <li><a href="conventions.html">Conventions</a></li>
+            <li><a href="galerie.html">Galerie</a></li>
+            <li><a href="actualites.html">Actualités</a></li>
+          </ul>
+        </div>
+        <!-- Contact rapide -->
+        <div class="col-lg-4 col-md-6">
+          <h6>Contact</h6>
+          <ul class="list-unstyled d-flex flex-column gap-2">
+            <li><a href="mailto:attt.amicale.tunisie@gmail.com"><i class="bi bi-envelope me-2"></i>attt.amicale.tunisie@gmail.com</a></li>
+            <li><a href="contact.html"><i class="bi bi-geo-alt me-2"></i>Tunis, Tunisie</a></li>
+          </ul>
+        </div>
+      </div>
+      <div class="footer-bottom d-flex flex-wrap justify-content-between align-items-center gap-2">
+        <p class="mb-0 small" style="color:rgba(255,255,255,.35);">&copy; 2026 Amicale ATTT — Tous droits réservés</p>
+        <p class="mb-0"><a href="hebergement.html" class="small" style="color:rgba(255,255,255,.2);">Guide webmaster</a></p>
       </div>
     </div>
   </footer>

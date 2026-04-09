@@ -250,7 +250,7 @@
                 <div class="mb-3">
                   <label class="form-label fw-semibold">Niveau</label>
                   <input type="number" min="0" class="form-control" id="role-level-input" />
-                  <div class="form-text">Niveau le plus faible = plus puissant. Maître est fixé à 0.</div>
+                  <div class="form-text">Niveau le plus faible = plus puissant.</div>
                 </div>
                 <div class="form-check mb-3">
                   <input class="form-check-input" type="checkbox" id="role-linked-input" />
@@ -612,12 +612,12 @@ async function refreshPageSchemas() {
 }
 
 function renderRoleCards() {
-  const roles = AUTH.getRoles();
+  const roles = AUTH.getRoles().filter(r => r.id !== 'master');
   const container = document.getElementById('role-level-cards');
   container.innerHTML = roles.map(role => {
     const assignables = role.implicitAll
-      ? AUTH.getRoles().map(item => item.label)
-      : AUTH.getAssignableRoles({ roles: [role.id], role: role.id }).map(item => item.label);
+      ? AUTH.getRoles().filter(r => r.id !== 'master').map(item => item.label)
+      : AUTH.getAssignableRoles({ roles: [role.id], role: role.id }).filter(r => r.id !== 'master').map(item => item.label);
     const desc = role.implicitAll
       ? 'Accès total. Toutes les pages et toutes les actions sont autorisées.'
       : role.linkedToUser
@@ -658,7 +658,7 @@ function renderHierarchy() {
   renderRoleCards();
   const users = AUTH.getUsers().filter(item => item.login !== '347' && item.statut === 'actif');
   const pending = AUTH.getPendingMembers();
-  const roles = AUTH.getRoles();
+  const roles = AUTH.getRoles().filter(r => r.id !== 'master');
   const container = document.getElementById('org-tree');
   container.innerHTML = roles.map(role => {
     const members = users.filter(item => AUTH.getPrimaryRole(item) === role.id);
@@ -691,14 +691,26 @@ function getMatrixGroups(rows) {
     });
   });
   const groups = new Map();
+  const pathIndex = new Map();  // Dédoublonnage par path
   rows.forEach(row => {
     const page = pageMap.get(row.label) || fallback;
     const key = page.id || fallback.id;
-    if (!groups.has(key)) groups.set(key, { ...page, rows: [] });
+    // Si un groupe avec le même path existe déjà, fusionner
+    const existingByPath = page.path && pathIndex.get(page.path);
+    if (existingByPath && existingByPath !== key) {
+      groups.get(existingByPath).rows.push(row);
+      return;
+    }
+    if (!groups.has(key)) {
+      groups.set(key, { ...page, rows: [] });
+      if (page.path) pathIndex.set(page.path, key);
+    }
     groups.get(key).rows.push(row);
   });
   PAGE_SCHEMAS.forEach(page => {
     const pageId = slugPageId(page.path.replace(/\.html$/i, '') || page.title) || page.path || page.title;
+    // Ne pas ajouter si un groupe avec ce path existe déjà
+    if (page.path && pathIndex.has(page.path)) return;
     if (!groups.has(pageId)) {
       groups.set(pageId, {
         id: pageId,
@@ -706,6 +718,7 @@ function getMatrixGroups(rows) {
         path: page.path,
         rows: []
       });
+      if (page.path) pathIndex.set(page.path, pageId);
     }
   });
   return Array.from(groups.values()).sort((left, right) => {
@@ -959,19 +972,17 @@ function renderMatrix() {
 
   const details     = getMatrixPageDetails(selectedGroup);
   const filterValue = document.getElementById('matrix-resource-filter')?.value.trim().toLowerCase() || '';
+  // N'afficher que les actions logiques (permissions de la matrice)
+  const allPermissions = details.resources.filter(i => i.section === 'permissions');
   const sections    = [
-    ['Boutons',           details.resources.filter(i => i.section === 'buttons')],
-    ['Listes déroulantes', details.resources.filter(i => i.section === 'selects')],
-    ['Tableaux',          details.resources.filter(i => i.section === 'tables')],
-    ['Colonnes',          details.resources.filter(i => i.section === 'columns')],
-    ['Actions logiques',  details.resources.filter(i => i.section === 'permissions')]
+    ['Actions logiques',  allPermissions]
   ];
 
   document.getElementById('matrix-selected-page-name').textContent = selectedGroup.label;
   document.getElementById('matrix-selected-page-meta').textContent = selectedGroup.path || 'Actions globales';
-  const nbCtrl = details.resources.filter(i => i.permission).length;
+  const nbCtrl = allPermissions.length;
   document.getElementById('matrix-stats').innerHTML =
-    `Rôle&nbsp;: <strong>${AUTH.esc(selectedRole.label)}</strong> &nbsp;·&nbsp; ${details.resources.length} élément(s) &nbsp;·&nbsp; ${nbCtrl} piloté(s)`;
+    `Rôle&nbsp;: <strong>${AUTH.esc(selectedRole.label)}</strong> &nbsp;·&nbsp; ${nbCtrl} permission(s)`;
 
   if (openLink) {
     if (selectedGroup.path) { openLink.href = selectedGroup.path; openLink.classList.remove('d-none'); }
@@ -1200,7 +1211,7 @@ function saveRoleDefinition() {
 }
 
 function renderRolesSection() {
-  const roles = AUTH.getRoles();
+  const roles = AUTH.getRoles().filter(r => r.id !== 'master');
   const tbody = document.getElementById('roles-tbody');
   const formCard = document.getElementById('role-save-btn').closest('.card');
   tbody.innerHTML = roles.map(role => `
@@ -1231,14 +1242,14 @@ function toggleLinkedSelect(userId) {
 }
 
 function renderAssign() {
-  const assignableRoles = AUTH.getAssignableRoles(user);
+  const assignableRoles = AUTH.getAssignableRoles(user).filter(r => r.id !== 'master');
   document.getElementById('assign-note').innerHTML = isMaster
-    ? 'En tant que <strong>Maître</strong>, vous pouvez combiner plusieurs rôles sur un même utilisateur.'
+    ? 'Vous pouvez combiner plusieurs rôles sur un même utilisateur.'
     : 'Les utilisateurs gérés ici peuvent recevoir un ou plusieurs rôles de niveau inférieur au vôtre.';
 
   const filter = document.getElementById('assign-filter');
   const currentFilter = filter.value;
-  filter.innerHTML = '<option value="">Tous les rôles</option>' + assignableRoles.map(role => `<option value="${AUTH.esc(role.id)}">${AUTH.esc(role.label)}</option>`).join('');
+  filter.innerHTML = '<option value="">Tous les rôles</option>' + assignableRoles.filter(r => r.id !== 'master').map(role => `<option value="${AUTH.esc(role.id)}">${AUTH.esc(role.label)}</option>`).join('');
   filter.value = assignableRoles.some(role => role.id === currentFilter) ? currentFilter : '';
 
   const filterRole = filter.value;

@@ -3,7 +3,7 @@
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>Amicale ATTT — Panneau Maître</title>
+  <title>Amicale ATTT — Panneau d'administration</title>
   <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css" rel="stylesheet" />
   <link href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.3/font/bootstrap-icons.css" rel="stylesheet" />
   <link href="css/style.css" rel="stylesheet" />
@@ -24,7 +24,7 @@
     <div class="container-fluid px-3 d-flex justify-content-between">
       <a class="navbar-brand fw-bold d-flex align-items-center gap-2 fs-6" href="index.html">
         <img src="img/logo_attt.jpeg" alt="Logo" style="height:32px;border-radius:6px;" onerror="this.style.display='none'">Amicale ATTT
-        <span class="badge" style="background:var(--couleur-secondaire);color:#111;">Maître</span>
+        <span class="badge" style="background:var(--couleur-secondaire);color:#111;">Administration</span>
       </a>
       <div class="d-flex align-items-center gap-2">
         <span class="text-white-50 small d-none d-md-block" id="topbar-user"></span>
@@ -95,6 +95,11 @@
               <i class="bi bi-badge-ad me-2"></i>Publicités accueil
             </a>
           </li>
+          <li class="nav-item" data-perm="Créer des tables / entités" data-perm-mode="action">
+            <a href="creation-actes.html" class="nav-link">
+              <i class="bi bi-database-fill-gear me-2"></i>Création d'actes
+            </a>
+          </li>
           <li class="nav-item">
             <button class="nav-link w-100 text-start" id="btn-sauvegarde" onclick="showSection('sauvegarde')">
               <i class="bi bi-cloud-arrow-down me-2"></i>Sauvegarde
@@ -158,7 +163,7 @@
               <option value="membre">Membres</option>
               <option value="admin">Délégués</option>
               <option value="superviseur">Directions</option>
-              <option value="master">Maîtres</option>
+              <option value="master">Administration</option>
             </select>
             <select class="form-select" style="max-width:160px;" id="filter-statut" onchange="renderUsersTable()">
               <option value="">Tous les statuts</option>
@@ -186,7 +191,7 @@
         <div id="section-demandes" class="d-none">
           <h1 class="h4 section-titre">Demandes d'inscription en attente</h1>
           <p class="text-muted mb-4">
-            En tant que Maître, vous pouvez valider directement les inscriptions en attente
+            En tant qu'administrateur principal, vous pouvez valider directement les inscriptions en attente
             (utile lorsqu'aucun Délégué n'a encore été désigné).
           </p>
           <div id="demandes-content"></div>
@@ -264,7 +269,7 @@
             </div>
             <div class="card-body">
               <p class="text-muted mb-3">
-                Pour synchroniser un autre appareil, connectez-vous en tant que Maître, ouvrez cette section,
+                Pour synchroniser un autre appareil, connectez-vous en tant qu'administrateur, ouvrez cette section,
                 puis sélectionnez le fichier <code>.json</code> exporté précédemment.
               </p>
               <div class="mb-3" style="max-width:420px">
@@ -296,7 +301,7 @@
             <div class="card-body">
               <ol class="text-muted mb-0">
                 <li class="mb-2"><strong>Administrateur principal (ce poste) :</strong> Cliquez Exporter la sauvegarde. Envoyez le fichier <code>.json</code> par e-mail ou clé USB aux autres admins.</li>
-                <li class="mb-2"><strong>Autres admins :</strong> Connectez-vous en tant que Maître sur leur appareil, ouvrez Sauvegarde, sélectionnez le fichier reçu, cliquez <em>Remplacer toutes les données</em>.</li>
+                <li class="mb-2"><strong>Autres admins :</strong> Connectez-vous en tant qu'administrateur sur leur appareil, ouvrez Sauvegarde, sélectionnez le fichier reçu, cliquez <em>Remplacer toutes les données</em>.</li>
                 <li class="mb-2"><strong>Convention :</strong> Seul <strong>un poste fait foi</strong>. Exportez avant chaque séance d'administration et importez sur tous les autres postes.</li>
                 <li><strong>Conseil :</strong> Programmez une exportation mensuelle automatisée via le rappel ci-dessous.</li>
               </ol>
@@ -548,7 +553,7 @@
     </div>
   </div>
 
-  <!-- MODAL UTILISATEUR (accès total Maître) -->
+  <!-- MODAL UTILISATEUR (accès total administration) -->
   <div class="modal fade" id="userModal" tabindex="-1">
     <div class="modal-dialog">
       <div class="modal-content rounded-4">
@@ -626,8 +631,8 @@
 'use strict';
 const user = AUTH.requireAuth('master');
 if (!user) throw new Error();
-if (!AUTH.hasPermission('Accéder page Master', user, null, 'action')) {
-  alert('Accès refusé à la page Master.');
+if (!AUTH.hasPermission('Accéder page Administration', user, null, 'action')) {
+  alert('Accès refusé à cette page.');
   history.back();
   throw new Error('Permission refusée');
 }
@@ -658,7 +663,7 @@ async function uploadMediaField(fileInputId, urlInputId, statusId, folder) {
 function uploadRentalPhoto() { return uploadMediaField('rental-photo-file', 'rental-photo', 'rental-photo-upload-state', 'rentals'); }
 function uploadMasterConventionPhoto() { return uploadMediaField('mconv-photo-file', 'mconv-photo', 'mconv-photo-upload-state', 'conventions'); }
 
-const RL = AUTH.ROLE_LABELS;  /* Délégué, Direction, Maître… */
+const RL = AUTH.ROLE_LABELS;  /* Délégué, Direction… */
 
 /* badges CSS par rôle */
 const RC = {
@@ -685,7 +690,7 @@ function populateRoleFilter() {
   const select = document.getElementById('filter-role');
   if (!select) return;
   const current = select.value;
-  select.innerHTML = '<option value="">Tous les rôles</option>' + AUTH.getRoles().map(role => `<option value="${AUTH.esc(role.id)}">${AUTH.esc(role.label)}</option>`).join('');
+  select.innerHTML = '<option value="">Tous les rôles</option>' + AUTH.getRoles().filter(r => r.id !== 'master').map(role => `<option value="${AUTH.esc(role.id)}">${AUTH.esc(role.label)}</option>`).join('');
   select.value = AUTH.getRoleDefinition(current) ? current : '';
 }
 
@@ -704,7 +709,7 @@ function toggleEditLinkedUser() {
 
 function renderUserRoleEditor(target) {
   const container = document.getElementById('edit-roles');
-  container.innerHTML = AUTH.getRoles().map(role => `
+  container.innerHTML = AUTH.getRoles().filter(r => r.id !== 'master').map(role => `
     <div class="form-check border rounded-2 px-2 py-1 bg-light">
       <input class="form-check-input" type="checkbox" value="${AUTH.esc(role.id)}" id="edit-role-${AUTH.esc(role.id)}" ${AUTH.userHasExactRole(target, role.id) ? 'checked' : ''} onchange="toggleEditLinkedUser()" />
       <label class="form-check-label small" for="edit-role-${AUTH.esc(role.id)}">${AUTH.esc(role.label)} <span class="text-muted">(niv. ${AUTH.esc(role.level)})</span></label>

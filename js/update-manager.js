@@ -40,13 +40,15 @@ const UPDATE_MANAGER = (() => {
     /* Vérifier si une nouvelle version du SW est prête */
     reg.addEventListener('updatefound', () => {
       const newWorker = reg.installing;
-      console.log('[UPDATE] Nouvelle version du SW trouvée → activation');
+      if (!newWorker) return;
+      console.log('[UPDATE] Nouvelle version du SW trouvée');
       
       newWorker.addEventListener('statechange', () => {
         if (newWorker.state === 'installed' && navigator.serviceWorker.controller) {
-          console.log('[UPDATE] Nouvelle version du SW prête → forcer activation');
+          // Ne PAS reload automatiquement — ça cause une boucle infinie sur smartphone
+          // La mise à jour sera effective au prochain reload naturel de la page
+          console.log('[UPDATE] Nouvelle version du SW prête — sera active au prochain rechargement');
           newWorker.postMessage({ type: 'SKIP_WAITING' });
-          window.location.reload();
         }
       });
     });
@@ -64,24 +66,31 @@ const UPDATE_MANAGER = (() => {
     // 1. Enregistrer le Service Worker
     await registerServiceWorker();
 
-    // 2. Appeler version-check si disponible
+    // 2. Attendre la synchronisation Firestore AVANT de vérifier les versions
+    if (typeof DB_READY !== 'undefined') {
+      try { await DB_READY; } catch {}
+    }
+
+    // 3. Appeler version-check si disponible
     if (typeof VERSION_CHECK !== 'undefined' && VERSION_CHECK.checkAndNotify) {
       console.log('[UPDATE] Vérification des versions d\'application');
       await VERSION_CHECK.checkAndNotify();
     }
 
-    // 3. Vérifier les mises à jour en arrière-plan (Background Sync)
+    // 4. Vérifier les mises à jour en arrière-plan (Background Sync)
     if ('serviceWorker' in navigator && 'SyncManager' in window) {
       setupBackgroundSync();
     }
 
-    // 4. Vérifier les mises à jour régulièrement (toutes les 2 heures)
+    // 5. Vérifier les mises à jour régulièrement (toutes les 30 min)
     _updateCheckInterval = setInterval(async () => {
       if (typeof VERSION_CHECK !== 'undefined' && VERSION_CHECK.checkAndNotify) {
         console.log('[UPDATE] Vérification périodique des versions');
+        // Forcer le clear cache pour relire Firestore
+        if (VERSION_CHECK.clearCache) VERSION_CHECK.clearCache();
         await VERSION_CHECK.checkAndNotify();
       }
-    }, 2 * 60 * 60 * 1000);
+    }, 30 * 60 * 1000);
   }
 
   /* ── Synchronisation en arrière-plan (PWA/Android) ── */

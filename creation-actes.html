@@ -1,0 +1,1241 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Amicale ATTT — Création d'actes</title>
+  <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css" rel="stylesheet" />
+  <link href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.3/font/bootstrap-icons.css" rel="stylesheet" />
+  <link href="css/style.css" rel="stylesheet" />
+  <link rel="manifest" href="manifest.json" />
+  <meta name="theme-color" content="#003DA6" />
+  <style>
+    .entity-card { border:1px solid #dee2e6; border-radius:12px; padding:1.5rem; transition:box-shadow .2s; }
+    .entity-card:hover { box-shadow:0 4px 16px rgba(0,61,166,.1); }
+    .field-row { border:1px solid #e9ecef; border-radius:8px; padding:.75rem 1rem; margin-bottom:.5rem; background:#fafbfc; }
+    .field-row:hover { background:#f0f4ff; }
+    .field-type-badge { font-size:.7rem; padding:.25rem .5rem; border-radius:6px; white-space:nowrap; }
+    /* ── Types de base ── */
+    .type-text      { background:#d1ecf1; color:#0c5460; }
+    .type-number    { background:#d4edda; color:#155724; }
+    .type-date      { background:#fff3cd; color:#856404; }
+    .type-select    { background:#cce5ff; color:#004085; }
+    .type-checkbox  { background:#e2d5f1; color:#432b7a; }
+    .type-textarea  { background:#fde2d4; color:#7a3616; }
+    .type-email     { background:#d1ecf1; color:#0c5460; }
+    .type-tel       { background:#d6d8db; color:#383d41; }
+    .type-url       { background:#bee5eb; color:#0c5460; }
+    .type-file      { background:#f8d7da; color:#721c24; }
+    .type-color     { background:#e0cffc; color:#3d1f6d; }
+    .type-time      { background:#ffeaa7; color:#7d6608; }
+    .type-range     { background:#dfe6e9; color:#2d3436; }
+    .type-radio     { background:#fab1a0; color:#6c3530; }
+    .type-hidden    { background:#b2bec3; color:#2d3436; }
+    /* ── Sélection avancée ── */
+    .type-checkbox-group { background:#d5a6e6; color:#3b1560; }
+    .type-image-select   { background:#fce4ec; color:#880e4f; }
+    /* ── Évaluation & opinion ── */
+    .type-rating    { background:#fff9c4; color:#f57f17; }
+    .type-likert    { background:#e8f5e9; color:#1b5e20; }
+    .type-matrix    { background:#e3f2fd; color:#0d47a1; }
+    /* ── Mise en page ── */
+    .type-separator { background:#eceff1; color:#546e7a; }
+    .type-heading   { background:#f3e5f5; color:#4a148c; }
+    .type-pagebreak { background:#fbe9e7; color:#bf360c; }
+    /* ── Technique ── */
+    .type-signature { background:#e0f2f1; color:#004d40; }
+    .type-captcha   { background:#fff3e0; color:#e65100; }
+    /* ── Calcul & géo ── */
+    .type-calc      { background:#e8eaf6; color:#283593; }
+    .type-location  { background:#c8e6c9; color:#1b5e20; }
+    /* ── Divers UI ── */
+    .drag-handle  { cursor:grab; color:#adb5bd; }
+    .drag-handle:hover { color:#495057; }
+    .preview-form .form-label { font-weight:600; font-size:.85rem; }
+    .sidebar-types .list-group-item { cursor:pointer; border:0; border-radius:8px !important; margin-bottom:2px; font-size:.82rem; padding:.45rem .65rem; }
+    .sidebar-types .list-group-item:hover { background:#e8f0fe; }
+    .sidebar-types .cat-header { font-size:.65rem; text-transform:uppercase; letter-spacing:.08em; color:#6c757d; padding:.35rem .65rem; font-weight:700; margin-top:.5rem; }
+    .status-dot { width:8px; height:8px; border-radius:50%; display:inline-block; }
+    .status-actif  { background:#28a745; }
+    .status-bloque { background:#dc3545; }
+    .status-archive{ background:#6c757d; }
+    .record-row { cursor:pointer; transition:background .15s; }
+    .record-row:hover { background:#f0f4ff; }
+    /* Star rating */
+    .star-rating { display:inline-flex; gap:2px; }
+    .star-rating .star { font-size:1.5rem; cursor:pointer; color:#dee2e6; transition:color .15s; }
+    .star-rating .star.active, .star-rating .star:hover { color:#f9a825; }
+    .star-rating:hover .star { color:#dee2e6; }
+    .star-rating:hover .star:hover, .star-rating:hover .star:hover ~ .star-rev { color:#f9a825; }
+    /* Likert */
+    .likert-row { display:flex; gap:0; }
+    .likert-row label { flex:1; text-align:center; padding:.5rem .25rem; border:1px solid #dee2e6; font-size:.75rem; cursor:pointer; transition:background .15s; }
+    .likert-row label:first-child { border-radius:6px 0 0 6px; }
+    .likert-row label:last-child  { border-radius:0 6px 6px 0; }
+    .likert-row input:checked + span { background:var(--couleur-principale); color:#fff; }
+    .likert-row input { display:none; }
+    .likert-cell { padding:.4rem .5rem; text-align:center; border:1px solid #dee2e6; cursor:pointer; font-size:.78rem; transition:background .15s; border-radius:4px; }
+    .likert-cell:hover { background:#e8f0fe; }
+    .likert-cell.selected { background:var(--couleur-principale); color:#fff; }
+    /* Image selector */
+    .img-select-grid { display:flex; gap:.5rem; flex-wrap:wrap; }
+    .img-select-item { width:100px; height:100px; border:3px solid #dee2e6; border-radius:10px; overflow:hidden; cursor:pointer; transition:border-color .2s, transform .15s; position:relative; }
+    .img-select-item:hover { transform:scale(1.05); }
+    .img-select-item.selected { border-color:var(--couleur-principale); box-shadow:0 0 0 3px rgba(0,61,166,.2); }
+    .img-select-item img { width:100%; height:100%; object-fit:cover; }
+    .img-select-item .img-label { position:absolute; bottom:0; left:0; right:0; background:rgba(0,0,0,.55); color:#fff; font-size:.6rem; text-align:center; padding:2px 4px; }
+    /* Signature */
+    .sig-canvas { border:1px solid #dee2e6; border-radius:8px; background:#fff; cursor:crosshair; touch-action:none; }
+    /* Matrix */
+    .matrix-grid { overflow-x:auto; }
+    .matrix-grid table { border-collapse:collapse; }
+    .matrix-grid th, .matrix-grid td { border:1px solid #dee2e6; padding:.4rem .6rem; text-align:center; font-size:.8rem; }
+    .matrix-grid th { background:#f8f9fa; font-weight:600; }
+    /* Page break */
+    .page-break-bar { border:2px dashed #adb5bd; border-radius:8px; padding:.75rem; text-align:center; color:#6c757d; font-weight:600; font-size:.85rem; margin:1rem 0; background:#f8f9fa; }
+  </style>
+</head>
+<body>
+
+  <!-- NAVBAR -->
+  <nav class="navbar navbar-expand-lg navbar-dark">
+    <div class="container">
+      <a class="navbar-brand fw-bold d-flex align-items-center gap-2" href="index.html">
+        <img src="img/logo_attt.jpeg" alt="Logo" style="height:32px;border-radius:6px;" onerror="this.style.display='none'">Amicale ATTT
+      </a>
+      <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navMenu" aria-label="Menu">
+        <span class="navbar-toggler-icon"></span>
+      </button>
+      <div class="collapse navbar-collapse" id="navMenu">
+        <ul class="navbar-nav ms-auto gap-1">
+          <li class="nav-item"><a class="nav-link" href="espace-membre.html">Mon espace</a></li>
+        </ul>
+      </div>
+    </div>
+  </nav>
+
+  <!-- EN-TÊTE -->
+  <div class="page-header">
+    <div class="container">
+      <h1><i class="bi bi-database-fill-gear me-2"></i>Création d'actes</h1>
+      <p class="mb-0 opacity-75">Définir des types d'entités, créer des tables et gérer les enregistrements</p>
+    </div>
+  </div>
+
+  <main class="py-4">
+    <div class="container">
+
+      <!-- ═══ ONGLETS ═══ -->
+      <ul class="nav nav-pills mb-4 gap-2 flex-wrap" role="tablist">
+        <li class="nav-item">
+          <button class="nav-link active" data-bs-toggle="pill" data-bs-target="#tab-types" id="btn-tab-types">
+            <i class="bi bi-diagram-3 me-1"></i>Types d'actes
+          </button>
+        </li>
+        <li class="nav-item">
+          <button class="nav-link" data-bs-toggle="pill" data-bs-target="#tab-records" id="btn-tab-records">
+            <i class="bi bi-table me-1"></i>Enregistrements
+          </button>
+        </li>
+      </ul>
+
+      <div class="tab-content">
+
+        <!-- ═══ ONGLET 1 : TYPES D'ACTES ═══ -->
+        <div class="tab-pane fade show active" id="tab-types">
+
+          <div class="d-flex justify-content-between align-items-center mb-4 flex-wrap gap-2">
+            <div>
+              <h2 class="h5 mb-1">Types d'actes définis</h2>
+              <p class="text-muted small mb-0">Chaque type crée une « table » dans la base avec ses champs personnalisés.</p>
+            </div>
+            <button class="btn btn-attt" data-perm="Créer des tables / entités" onclick="openTypeModal()">
+              <i class="bi bi-plus-circle me-1"></i>Nouveau type d'acte
+            </button>
+          </div>
+
+          <div id="entity-types-list"></div>
+
+        </div>
+
+        <!-- ═══ ONGLET 2 : ENREGISTREMENTS ═══ -->
+        <div class="tab-pane fade" id="tab-records">
+
+          <div class="row g-3 mb-4">
+            <div class="col-md-4">
+              <label class="form-label fw-semibold small">Type d'acte</label>
+              <select class="form-select" id="rec-type-sel" onchange="renderRecords()">
+                <option value="">— Sélectionner —</option>
+              </select>
+            </div>
+            <div class="col-md-4">
+              <label class="form-label fw-semibold small">Filtrer par statut</label>
+              <select class="form-select" id="rec-status-filter" onchange="renderRecords()">
+                <option value="">Tous</option>
+                <option value="actif">Actif</option>
+                <option value="bloque">Bloqué</option>
+                <option value="archive">Archivé</option>
+              </select>
+            </div>
+            <div class="col-md-4 d-flex align-items-end">
+              <button class="btn btn-attt w-100" id="btn-new-record" onclick="openRecordModal()" disabled>
+                <i class="bi bi-plus-circle me-1"></i>Nouvel enregistrement
+              </button>
+            </div>
+          </div>
+
+          <div id="records-list"></div>
+
+        </div>
+
+      </div>
+    </div>
+  </main>
+
+  <!-- ════ MODAL : DÉFINIR UN TYPE D'ACTE ════ -->
+  <div class="modal fade" id="typeModal" tabindex="-1">
+    <div class="modal-dialog modal-xl">
+      <div class="modal-content rounded-4">
+        <div class="modal-header text-white" style="background:var(--couleur-principale);">
+          <h2 class="modal-title h5" id="typeModalLabel"><i class="bi bi-diagram-3 me-2"></i>Nouveau type d'acte</h2>
+          <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal"></button>
+        </div>
+        <div class="modal-body p-4">
+          <input type="hidden" id="type-id" />
+
+          <div class="row g-3 mb-4">
+            <div class="col-md-6">
+              <label class="form-label fw-semibold">Nom du type <span class="text-danger">*</span></label>
+              <input type="text" class="form-control" id="type-name" placeholder="Ex : Sortie culturelle, Cérémonie, Formation…" maxlength="80" />
+            </div>
+            <div class="col-md-6">
+              <label class="form-label fw-semibold">Icône Bootstrap <small class="text-muted">(optionnel)</small></label>
+              <input type="text" class="form-control" id="type-icon" placeholder="bi-calendar-event, bi-trophy…" maxlength="40" />
+            </div>
+            <div class="col-12">
+              <label class="form-label fw-semibold">Description</label>
+              <textarea class="form-control" id="type-desc" rows="2" maxlength="250" placeholder="Description courte de ce type d'acte…"></textarea>
+            </div>
+          </div>
+
+          <!-- ── Contraintes & Limites ── -->
+          <div class="card border-0 bg-light rounded-3 mt-3 mb-3">
+            <div class="card-body py-3">
+              <h4 class="h6 mb-3 fw-bold"><i class="bi bi-sliders me-1"></i>Contraintes &amp; Limites <span class="text-muted fw-normal small">(optionnel)</span></h4>
+              <div class="row g-3">
+                <div class="col-md-3">
+                  <label class="form-label small fw-semibold">Date de début</label>
+                  <input type="datetime-local" class="form-control form-control-sm" id="type-date-debut" />
+                </div>
+                <div class="col-md-3">
+                  <label class="form-label small fw-semibold">Date de fin</label>
+                  <input type="datetime-local" class="form-control form-control-sm" id="type-date-fin" />
+                </div>
+                <div class="col-md-3">
+                  <label class="form-label small fw-semibold">Nb max participants</label>
+                  <input type="number" class="form-control form-control-sm" id="type-max-participants" min="0" placeholder="Illimité" />
+                </div>
+                <div class="col-md-3">
+                  <label class="form-label small fw-semibold">Participations / utilisateur</label>
+                  <input type="number" class="form-control form-control-sm" id="type-max-per-user" min="1" placeholder="1" />
+                </div>
+                <div class="col-md-6">
+                  <label class="form-label small fw-semibold">Qui peut participer <small class="text-muted">(rôles autorisés)</small></label>
+                  <div class="d-flex flex-wrap gap-2" id="type-roles-allowed">
+                    <!-- Rempli dynamiquement -->
+                  </div>
+                </div>
+                <div class="col-md-3">
+                  <label class="form-label small fw-semibold">Nb min choix</label>
+                  <input type="number" class="form-control form-control-sm" id="type-min-choix" min="0" placeholder="0" />
+                </div>
+                <div class="col-md-3">
+                  <label class="form-label small fw-semibold">Nb max choix</label>
+                  <input type="number" class="form-control form-control-sm" id="type-max-choix" min="0" placeholder="Illimité" />
+                </div>
+              </div>
+            </div>
+          </div>
+
+          <hr />
+
+          <div class="row">
+            <!-- PALETTE DE CHAMPS -->
+            <div class="col-lg-3 mb-3 mb-lg-0">
+              <h3 class="h6 mb-2"><i class="bi bi-palette me-1"></i>Ajouter un champ</h3>
+              <div class="list-group sidebar-types" id="field-palette" style="max-height:65vh;overflow-y:auto;">
+                <div class="cat-header">Saisie de base</div>
+                <button class="list-group-item list-group-item-action d-flex align-items-center gap-2" onclick="addField('text')">
+                  <span class="field-type-badge type-text">Aa</span> Texte court
+                </button>
+                <button class="list-group-item list-group-item-action d-flex align-items-center gap-2" onclick="addField('textarea')">
+                  <span class="field-type-badge type-textarea">¶</span> Texte long
+                </button>
+                <button class="list-group-item list-group-item-action d-flex align-items-center gap-2" onclick="addField('number')">
+                  <span class="field-type-badge type-number">123</span> Nombre
+                </button>
+                <button class="list-group-item list-group-item-action d-flex align-items-center gap-2" onclick="addField('date')">
+                  <span class="field-type-badge type-date">📅</span> Date
+                </button>
+                <button class="list-group-item list-group-item-action d-flex align-items-center gap-2" onclick="addField('time')">
+                  <span class="field-type-badge type-time">⏰</span> Heure
+                </button>
+                <button class="list-group-item list-group-item-action d-flex align-items-center gap-2" onclick="addField('email')">
+                  <span class="field-type-badge type-email">@</span> E-mail
+                </button>
+                <button class="list-group-item list-group-item-action d-flex align-items-center gap-2" onclick="addField('tel')">
+                  <span class="field-type-badge type-tel">📞</span> Téléphone
+                </button>
+                <button class="list-group-item list-group-item-action d-flex align-items-center gap-2" onclick="addField('url')">
+                  <span class="field-type-badge type-url">🔗</span> URL / Lien
+                </button>
+                <button class="list-group-item list-group-item-action d-flex align-items-center gap-2" onclick="addField('file')">
+                  <span class="field-type-badge type-file">📎</span> Fichier
+                </button>
+                <button class="list-group-item list-group-item-action d-flex align-items-center gap-2" onclick="addField('color')">
+                  <span class="field-type-badge type-color">🎨</span> Couleur
+                </button>
+                <button class="list-group-item list-group-item-action d-flex align-items-center gap-2" onclick="addField('range')">
+                  <span class="field-type-badge type-range">━</span> Curseur
+                </button>
+
+                <div class="cat-header">Sélection avancée</div>
+                <button class="list-group-item list-group-item-action d-flex align-items-center gap-2" onclick="addField('select')">
+                  <span class="field-type-badge type-select">▼</span> Liste déroulante
+                </button>
+                <button class="list-group-item list-group-item-action d-flex align-items-center gap-2" onclick="addField('radio')">
+                  <span class="field-type-badge type-radio">◉</span> Choix unique (radio)
+                </button>
+                <button class="list-group-item list-group-item-action d-flex align-items-center gap-2" onclick="addField('checkbox')">
+                  <span class="field-type-badge type-checkbox">☑</span> Case à cocher
+                </button>
+                <button class="list-group-item list-group-item-action d-flex align-items-center gap-2" onclick="addField('checkbox-group')">
+                  <span class="field-type-badge type-checkbox-group">☑☑</span> Cases multiples
+                </button>
+                <button class="list-group-item list-group-item-action d-flex align-items-center gap-2" onclick="addField('image-select')">
+                  <span class="field-type-badge type-image-select">🖼</span> Sélecteur d'image
+                </button>
+
+                <div class="cat-header">Évaluation & opinion</div>
+                <button class="list-group-item list-group-item-action d-flex align-items-center gap-2" onclick="addField('rating')">
+                  <span class="field-type-badge type-rating">★</span> Étoiles (1–5)
+                </button>
+                <button class="list-group-item list-group-item-action d-flex align-items-center gap-2" onclick="addField('likert')">
+                  <span class="field-type-badge type-likert">≡</span> Échelle de Likert
+                </button>
+                <button class="list-group-item list-group-item-action d-flex align-items-center gap-2" onclick="addField('matrix')">
+                  <span class="field-type-badge type-matrix">▦</span> Matrice / Grille
+                </button>
+
+                <div class="cat-header">Mise en page</div>
+                <button class="list-group-item list-group-item-action d-flex align-items-center gap-2" onclick="addField('separator')">
+                  <span class="field-type-badge type-separator">—</span> Séparateur
+                </button>
+                <button class="list-group-item list-group-item-action d-flex align-items-center gap-2" onclick="addField('heading')">
+                  <span class="field-type-badge type-heading">H</span> Titre / paragraphe
+                </button>
+                <button class="list-group-item list-group-item-action d-flex align-items-center gap-2" onclick="addField('pagebreak')">
+                  <span class="field-type-badge type-pagebreak">⏎</span> Saut de page
+                </button>
+
+                <div class="cat-header">Technique & sécurité</div>
+                <button class="list-group-item list-group-item-action d-flex align-items-center gap-2" onclick="addField('signature')">
+                  <span class="field-type-badge type-signature">✍</span> Signature
+                </button>
+                <button class="list-group-item list-group-item-action d-flex align-items-center gap-2" onclick="addField('captcha')">
+                  <span class="field-type-badge type-captcha">🤖</span> Captcha
+                </button>
+                <button class="list-group-item list-group-item-action d-flex align-items-center gap-2" onclick="addField('hidden')">
+                  <span class="field-type-badge type-hidden">…</span> Champ caché
+                </button>
+
+                <div class="cat-header">Calcul & géographie</div>
+                <button class="list-group-item list-group-item-action d-flex align-items-center gap-2" onclick="addField('calc')">
+                  <span class="field-type-badge type-calc">Σ</span> Champ de calcul
+                </button>
+                <button class="list-group-item list-group-item-action d-flex align-items-center gap-2" onclick="addField('location')">
+                  <span class="field-type-badge type-location">📍</span> Localisation / Carte
+                </button>
+              </div>
+            </div>
+
+            <!-- CHAMPS DÉFINIS -->
+            <div class="col-lg-9">
+              <div class="d-flex justify-content-between align-items-center mb-3">
+                <h3 class="h6 mb-0"><i class="bi bi-list-columns-reverse me-1"></i>Champs définis</h3>
+                <span class="badge bg-light text-dark border" id="field-count">0 champ(s)</span>
+              </div>
+              <div id="field-list">
+                <div class="text-muted text-center py-4" id="field-empty">
+                  <i class="bi bi-arrow-left fs-3 d-block mb-2"></i>
+                  Cliquez sur un type de champ pour l'ajouter
+                </div>
+              </div>
+            </div>
+          </div>
+
+        </div>
+        <div class="modal-footer">
+          <button class="btn btn-secondary" data-bs-dismiss="modal">Annuler</button>
+          <button class="btn btn-outline-primary" onclick="previewType()"><i class="bi bi-eye me-1"></i>Aperçu</button>
+          <button class="btn btn-attt" onclick="saveType()"><i class="bi bi-check-lg me-1"></i>Enregistrer</button>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- ════ MODAL : APERÇU DU FORMULAIRE ════ -->
+  <div class="modal fade" id="previewModal" tabindex="-1">
+    <div class="modal-dialog modal-lg">
+      <div class="modal-content rounded-4">
+        <div class="modal-header">
+          <h2 class="modal-title h5"><i class="bi bi-eye me-2"></i>Aperçu du formulaire</h2>
+          <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+        </div>
+        <div class="modal-body p-4" id="preview-body"></div>
+        <div class="modal-footer">
+          <button class="btn btn-secondary" data-bs-dismiss="modal">Fermer</button>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- ════ MODAL : CRÉER / MODIFIER UN ENREGISTREMENT ════ -->
+  <div class="modal fade" id="recordModal" tabindex="-1">
+    <div class="modal-dialog modal-lg">
+      <div class="modal-content rounded-4">
+        <div class="modal-header text-white" style="background:var(--couleur-principale);">
+          <h2 class="modal-title h5" id="recordModalLabel"><i class="bi bi-plus-circle me-2"></i>Nouvel enregistrement</h2>
+          <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal"></button>
+        </div>
+        <div class="modal-body p-4" id="record-form-body"></div>
+        <div class="modal-footer">
+          <button class="btn btn-secondary" data-bs-dismiss="modal">Annuler</button>
+          <button class="btn btn-attt" onclick="saveRecord()"><i class="bi bi-check-lg me-1"></i>Enregistrer</button>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <footer class="py-3 text-white text-center small">
+    <div class="container"><p class="mb-0 opacity-75">&copy; 2026 Amicale ATTT</p></div>
+  </footer>
+
+<script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js"></script>
+<script src="https://www.gstatic.com/firebasejs/10.14.1/firebase-app-compat.js"></script>
+<script src="https://www.gstatic.com/firebasejs/10.14.1/firebase-firestore-compat.js"></script>
+<script src="js/firebase-config.js"></script>
+<script src="js/db.js"></script>
+<script src="js/auth.js"></script>
+<script src="js/log.js"></script>
+<script>
+'use strict';
+
+const K_TYPES   = 'attt_entity_types';
+const K_RECORDS = 'attt_entity_records';
+
+const user = AUTH.requireAuth('admin');
+if (!user) throw new Error();
+if (!AUTH.hasPermission('Créer des tables / entités', user)) {
+  alert('Vous n\'avez pas la permission d\'accéder à cette page.');
+  history.back();
+  throw new Error('Permission refusée');
+}
+
+const FIELD_LABELS = {
+  text:'Texte court', textarea:'Texte long', number:'Nombre', date:'Date', time:'Heure',
+  select:'Liste déroulante', radio:'Choix unique', checkbox:'Case à cocher', email:'E-mail',
+  tel:'Téléphone', url:'URL / Lien', file:'Fichier', color:'Couleur', range:'Curseur', hidden:'Champ caché',
+  'checkbox-group':'Cases multiples', 'image-select':'Sélecteur d\'image',
+  rating:'Étoiles (1–5)', likert:'Échelle de Likert', matrix:'Matrice / Grille',
+  separator:'Séparateur', heading:'Titre / Paragraphe', pagebreak:'Saut de page',
+  signature:'Signature', captcha:'Captcha',
+  calc:'Champ de calcul', location:'Localisation'
+};
+
+const LAYOUT_TYPES = new Set(['separator','heading','pagebreak']);
+const HAS_OPTIONS  = new Set(['select','radio','checkbox-group','image-select','likert']);
+
+let _fields = [];
+let _editRecordId = null;
+
+/* ═══ STOCKAGE ═══ */
+function getTypes()   { try { return JSON.parse(localStorage.getItem(K_TYPES) || '[]'); } catch { return []; } }
+function saveTypes(t) { localStorage.setItem(K_TYPES, JSON.stringify(t)); if (typeof DB !== 'undefined') DB.push(K_TYPES, t); }
+function getRecords() { try { return JSON.parse(localStorage.getItem(K_RECORDS) || '[]'); } catch { return []; } }
+function saveRecords(r){ localStorage.setItem(K_RECORDS, JSON.stringify(r)); if (typeof DB !== 'undefined') DB.push(K_RECORDS, r); }
+
+/* ═══ INIT ═══ */
+DB_READY.then(() => { renderTypesList(); populateRecordTypeSelect(); renderRecords(); });
+
+/* ═══ TYPES D'ACTES ═══ */
+function renderTypesList() {
+  const types = getTypes();
+  const container = document.getElementById('entity-types-list');
+  if (!types.length) {
+    container.innerHTML = `<div class="text-center py-5 text-muted">
+      <i class="bi bi-database fs-1 d-block mb-2"></i>
+      <p>Aucun type d'acte défini.</p>
+      <p class="small">Cliquez sur « Nouveau type d'acte » pour créer votre première table.</p>
+    </div>`;
+    return;
+  }
+  container.innerHTML = types.map(t => {
+    const records = getRecords().filter(r => r._typeId === t.id);
+    const icon = t.icon || 'bi-file-earmark';
+    const dataFields = t.fields.filter(f => !LAYOUT_TYPES.has(f.type));
+    return `<div class="entity-card mb-3">
+      <div class="d-flex justify-content-between align-items-start flex-wrap gap-2">
+        <div>
+          <h3 class="h6 mb-1"><i class="${AUTH.esc(icon)} me-2 text-primary"></i>${AUTH.esc(t.name)}</h3>
+          ${t.description ? `<p class="text-muted small mb-1">${AUTH.esc(t.description)}</p>` : ''}
+          <div class="d-flex gap-2 flex-wrap mt-2">
+            ${dataFields.slice(0,8).map(f => `<span class="field-type-badge type-${f.type}">${AUTH.esc(f.label)}</span>`).join('')}
+            ${dataFields.length > 8 ? `<span class="field-type-badge bg-light text-dark border">+${dataFields.length - 8}</span>` : ''}
+          </div>
+        </div>
+        <div class="d-flex gap-1 flex-shrink-0">
+          <span class="badge bg-light text-dark border">${records.length} enreg.</span>
+          <button class="btn btn-sm btn-outline-primary" onclick="editType('${t.id}')" title="Modifier"><i class="bi bi-pencil"></i></button>
+          <button class="btn btn-sm btn-outline-danger" onclick="deleteType('${t.id}')" title="Supprimer"><i class="bi bi-trash"></i></button>
+        </div>
+      </div>
+      <div class="mt-2 small text-muted">
+        ${t.fields.length} champ(s) · Créé le ${AUTH.esc(t.createdAt?.slice(0,10) || '—')}
+        ${t.dateDebut ? ` · <i class="bi bi-calendar-event"></i> ${AUTH.esc(t.dateDebut.slice(0,16).replace('T',' '))}` : ''}
+        ${t.dateFin ? ` → ${AUTH.esc(t.dateFin.slice(0,16).replace('T',' '))}` : ''}
+        ${t.maxParticipants ? ` · <i class="bi bi-people"></i> max ${t.maxParticipants}` : ''}
+        ${t.rolesAutorises?.length ? ` · <i class="bi bi-person-badge"></i> ${t.rolesAutorises.join(', ')}` : ''}
+      </div>
+    </div>`;
+  }).join('');
+}
+
+/* ═══ MODAL TYPE ═══ */
+function _populateRolesCheckboxes(selected) {
+  const container = document.getElementById('type-roles-allowed');
+  const roles = typeof AUTH !== 'undefined' && AUTH.getRoles ? AUTH.getRoles().filter(r => !r.implicitAll) : [];
+  container.innerHTML = roles.map(r =>
+    `<div class="form-check"><input class="form-check-input" type="checkbox" id="role-${r.id}" value="${r.id}"
+      ${(selected||[]).includes(r.id)?'checked':''} /><label class="form-check-label small" for="role-${r.id}">${AUTH.esc(r.label)}</label></div>`
+  ).join('');
+}
+
+function openTypeModal(typeId) {
+  _fields = [];
+  document.getElementById('type-id').value = '';
+  document.getElementById('type-name').value = '';
+  document.getElementById('type-icon').value = '';
+  document.getElementById('type-desc').value = '';
+  document.getElementById('type-date-debut').value = '';
+  document.getElementById('type-date-fin').value = '';
+  document.getElementById('type-max-participants').value = '';
+  document.getElementById('type-max-per-user').value = '';
+  document.getElementById('type-min-choix').value = '';
+  document.getElementById('type-max-choix').value = '';
+  document.getElementById('typeModalLabel').textContent = 'Nouveau type d\'acte';
+  _populateRolesCheckboxes([]);
+  if (typeId) {
+    const t = getTypes().find(x => x.id === typeId);
+    if (t) {
+      document.getElementById('type-id').value = t.id;
+      document.getElementById('type-name').value = t.name;
+      document.getElementById('type-icon').value = t.icon || '';
+      document.getElementById('type-desc').value = t.description || '';
+      document.getElementById('type-date-debut').value = t.dateDebut || '';
+      document.getElementById('type-date-fin').value = t.dateFin || '';
+      document.getElementById('type-max-participants').value = t.maxParticipants || '';
+      document.getElementById('type-max-per-user').value = t.maxPerUser || '';
+      document.getElementById('type-min-choix').value = t.minChoix || '';
+      document.getElementById('type-max-choix').value = t.maxChoix || '';
+      document.getElementById('typeModalLabel').textContent = 'Modifier : ' + t.name;
+      _populateRolesCheckboxes(t.rolesAutorises || []);
+      _fields = JSON.parse(JSON.stringify(t.fields));
+    }
+  }
+  renderFieldList();
+  new bootstrap.Modal(document.getElementById('typeModal')).show();
+}
+function editType(id) { openTypeModal(id); }
+
+function deleteType(id) {
+  const t = getTypes().find(x => x.id === id);
+  if (!t) return;
+  const records = getRecords().filter(r => r._typeId === id);
+  if (!confirm(`Supprimer le type « ${t.name} » et ses ${records.length} enregistrement(s) ?`)) return;
+  saveTypes(getTypes().filter(x => x.id !== id));
+  saveRecords(getRecords().filter(r => r._typeId !== id));
+  LOG.add('ENTITY_TYPE_DELETE', { acteurId:user.id, detail: t.name });
+  renderTypesList(); populateRecordTypeSelect(); renderRecords();
+}
+
+/* ═══ GESTION DES CHAMPS ═══ */
+function _defaultFieldData(type) {
+  const base = { type, label: FIELD_LABELS[type] || type, required: false, placeholder: '' };
+  if (HAS_OPTIONS.has(type)) base.options = ['Option 1', 'Option 2'];
+  if (type === 'number')  { base.min = ''; base.max = ''; }
+  if (type === 'range')   { base.min = 0; base.max = 100; }
+  if (type === 'color')   base.defaultValue = '#003DA6';
+  if (type === 'rating')  { base.min = 1; base.max = 5; }
+  if (type === 'date' || type === 'time') { base.minValue = ''; base.maxValue = ''; }
+  if (type === 'checkbox-group') { base.options = ['Option 1', 'Option 2']; base.maxSelections = 0; }
+  if (type === 'select') { base.options = ['Option 1', 'Option 2']; base.maxPerOption = 0; }
+  if (type === 'radio') { base.options = ['Option 1', 'Option 2']; base.maxPerOption = 0; }
+  if (type === 'likert')  base.options = ['Pas du tout d\'accord','Peu d\'accord','Neutre','D\'accord','Tout à fait d\'accord'];
+  if (type === 'matrix')  { base.rows = ['Question 1','Question 2']; base.options = ['Oui','Non','Ne sait pas']; }
+  if (type === 'heading') { base.label = 'Titre de section'; base.placeholder = 'Texte explicatif optionnel…'; }
+  if (type === 'pagebreak') base.label = 'Page suivante';
+  if (type === 'separator') base.label = '───';
+  if (type === 'signature') base.label = 'Signature';
+  if (type === 'captcha')   base.label = 'Vérification';
+  if (type === 'calc')    { base.label = 'Total'; base.formula = 'SUM'; base.sourceFields = []; }
+  if (type === 'location') base.label = 'Localisation';
+  if (type === 'image-select') base.images = [
+    { url: 'https://via.placeholder.com/100?text=A', label: 'Option A' },
+    { url: 'https://via.placeholder.com/100?text=B', label: 'Option B' }
+  ];
+  return base;
+}
+
+function addField(type) {
+  const id = 'f_' + Date.now() + '_' + Math.random().toString(36).slice(2,6);
+  _fields.push({ id, ..._defaultFieldData(type) });
+  renderFieldList();
+}
+
+function removeField(id) { _fields = _fields.filter(f => f.id !== id); renderFieldList(); }
+function moveField(id, dir) {
+  const i = _fields.findIndex(f => f.id === id); const j = i + dir;
+  if (j < 0 || j >= _fields.length) return;
+  [_fields[i], _fields[j]] = [_fields[j], _fields[i]];
+  renderFieldList();
+}
+
+function updateFieldProp(id, prop, value) {
+  const f = _fields.find(x => x.id === id);
+  if (!f) return;
+  if (prop === 'options' || prop === 'rows') {
+    f[prop] = String(value).split(/[;\n]/).map(s => s.trim()).filter(Boolean);
+  } else if (prop === 'required') {
+    f.required = value;
+  } else if (prop === 'images') {
+    // JSON format
+    try { f.images = JSON.parse(value); } catch { /* ignore */ }
+  } else {
+    f[prop] = value;
+  }
+}
+
+/* ═══ RENDU LISTE DES CHAMPS ═══ */
+function renderFieldList() {
+  const container = document.getElementById('field-list');
+  const empty = document.getElementById('field-empty');
+  document.getElementById('field-count').textContent = _fields.length + ' champ(s)';
+  if (!_fields.length) { container.innerHTML = ''; if (empty) empty.style.display = ''; return; }
+  if (empty) empty.style.display = 'none';
+
+  container.innerHTML = _fields.map((f, idx) => {
+    const isLayout = LAYOUT_TYPES.has(f.type);
+    const hasOpts  = HAS_OPTIONS.has(f.type);
+    return `
+    <div class="field-row${isLayout ? ' bg-light' : ''}" data-id="${f.id}">
+      <div class="d-flex align-items-start gap-2">
+        <div class="d-flex flex-column gap-1 mt-1">
+          <button class="btn btn-sm btn-link p-0 drag-handle" onclick="moveField('${f.id}',-1)" ${idx===0?'disabled':''}><i class="bi bi-chevron-up"></i></button>
+          <button class="btn btn-sm btn-link p-0 drag-handle" onclick="moveField('${f.id}',1)" ${idx===_fields.length-1?'disabled':''}><i class="bi bi-chevron-down"></i></button>
+        </div>
+        <div class="flex-grow-1">
+          <div class="d-flex align-items-center gap-2 mb-2 flex-wrap">
+            <span class="field-type-badge type-${f.type}">${AUTH.esc(FIELD_LABELS[f.type] || f.type)}</span>
+            <input type="text" class="form-control form-control-sm" value="${AUTH.esc(f.label)}" placeholder="Libellé"
+                   onchange="updateFieldProp('${f.id}','label',this.value)" style="max-width:220px;" />
+            ${!isLayout && f.type !== 'captcha' ? `<div class="form-check ms-1">
+              <input class="form-check-input" type="checkbox" id="req-${f.id}" ${f.required?'checked':''}
+                     onchange="updateFieldProp('${f.id}','required',this.checked)" />
+              <label class="form-check-label small" for="req-${f.id}">Obligatoire</label>
+            </div>` : ''}
+          </div>
+          <div class="row g-2">
+            ${!isLayout && f.type !== 'captcha' && f.type !== 'signature' && f.type !== 'calc' && f.type !== 'location' ? `
+            <div class="col-md-5">
+              <input type="text" class="form-control form-control-sm" value="${AUTH.esc(f.placeholder || '')}"
+                     placeholder="Placeholder…" onchange="updateFieldProp('${f.id}','placeholder',this.value)" />
+            </div>` : ''}
+
+            ${hasOpts ? `<div class="col-md-7">
+              <input type="text" class="form-control form-control-sm" value="${AUTH.esc((f.options||[]).join('; '))}"
+                     placeholder="Options (séparées par ;)" onchange="updateFieldProp('${f.id}','options',this.value)" />
+            </div>` : ''}
+
+            ${f.type === 'range' || f.type === 'rating' ? `
+            <div class="col-3"><input type="number" class="form-control form-control-sm" value="${f.min??0}" placeholder="Min" onchange="updateFieldProp('${f.id}','min',+this.value)" /></div>
+            <div class="col-3"><input type="number" class="form-control form-control-sm" value="${f.max??100}" placeholder="Max" onchange="updateFieldProp('${f.id}','max',+this.value)" /></div>` : ''}
+
+            ${f.type === 'matrix' ? `<div class="col-md-7">
+              <input type="text" class="form-control form-control-sm mb-1" value="${AUTH.esc((f.rows||[]).join('; '))}"
+                     placeholder="Lignes / questions (séparées par ;)" onchange="updateFieldProp('${f.id}','rows',this.value)" />
+            </div>` : ''}
+
+            ${f.type === 'color' ? `<div class="col-md-3">
+              <input type="color" class="form-control form-control-sm form-control-color" value="${f.defaultValue || '#003DA6'}" onchange="updateFieldProp('${f.id}','defaultValue',this.value)" />
+            </div>` : ''}
+
+            ${f.type === 'hidden' ? `<div class="col-md-6">
+              <input type="text" class="form-control form-control-sm" value="${AUTH.esc(f.defaultValue || '')}" placeholder="Valeur par défaut" onchange="updateFieldProp('${f.id}','defaultValue',this.value)" />
+            </div>` : ''}
+
+            ${f.type === 'heading' ? `<div class="col-md-7">
+              <input type="text" class="form-control form-control-sm" value="${AUTH.esc(f.placeholder || '')}" placeholder="Texte descriptif (paragraphe)…" onchange="updateFieldProp('${f.id}','placeholder',this.value)" />
+            </div>` : ''}
+
+            ${f.type === 'calc' ? `
+            <div class="col-md-4">
+              <select class="form-select form-select-sm" onchange="updateFieldProp('${f.id}','formula',this.value)">
+                <option ${f.formula==='SUM'?'selected':''} value="SUM">Somme (SUM)</option>
+                <option ${f.formula==='AVG'?'selected':''} value="AVG">Moyenne (AVG)</option>
+                <option ${f.formula==='COUNT'?'selected':''} value="COUNT">Comptage (COUNT)</option>
+                <option ${f.formula==='MIN'?'selected':''} value="MIN">Minimum</option>
+                <option ${f.formula==='MAX'?'selected':''} value="MAX">Maximum</option>
+              </select>
+            </div>
+            <div class="col-md-5">
+              <input type="text" class="form-control form-control-sm" value="${AUTH.esc((f.sourceFields||[]).join(', '))}"
+                     placeholder="Champs source (libellés, virgule)" onchange="updateFieldProp('${f.id}','sourceFields',this.value.split(',').map(s=>s.trim()).filter(Boolean))" />
+            </div>` : ''}
+
+            ${f.type === 'image-select' ? `<div class="col-12">
+              <textarea class="form-control form-control-sm" rows="2" placeholder='[{"url":"https://...","label":"A"},...]'
+                        onchange="updateFieldProp('${f.id}','images',this.value)">${AUTH.esc(JSON.stringify(f.images||[]))}</textarea>
+              <div class="form-text">Format JSON : tableau d'objets {url, label}</div>
+            </div>` : ''}
+
+            ${f.type === 'number' ? `
+            <div class="col-3"><input type="number" class="form-control form-control-sm" value="${f.min??''}" placeholder="Min" onchange="updateFieldProp('${f.id}','min',this.value===''?'':+this.value)" /></div>
+            <div class="col-3"><input type="number" class="form-control form-control-sm" value="${f.max??''}" placeholder="Max" onchange="updateFieldProp('${f.id}','max',this.value===''?'':+this.value)" /></div>` : ''}
+
+            ${f.type === 'date' ? `
+            <div class="col-3"><input type="date" class="form-control form-control-sm" value="${AUTH.esc(f.minValue||'')}" title="Date min" onchange="updateFieldProp('${f.id}','minValue',this.value)" /><div class="form-text">Date min</div></div>
+            <div class="col-3"><input type="date" class="form-control form-control-sm" value="${AUTH.esc(f.maxValue||'')}" title="Date max" onchange="updateFieldProp('${f.id}','maxValue',this.value)" /><div class="form-text">Date max</div></div>` : ''}
+
+            ${f.type === 'time' ? `
+            <div class="col-3"><input type="time" class="form-control form-control-sm" value="${AUTH.esc(f.minValue||'')}" title="Heure min" onchange="updateFieldProp('${f.id}','minValue',this.value)" /><div class="form-text">Heure min</div></div>
+            <div class="col-3"><input type="time" class="form-control form-control-sm" value="${AUTH.esc(f.maxValue||'')}" title="Heure max" onchange="updateFieldProp('${f.id}','maxValue',this.value)" /><div class="form-text">Heure max</div></div>` : ''}
+
+            ${f.type === 'checkbox-group' ? `
+            <div class="col-3"><input type="number" class="form-control form-control-sm" value="${f.maxSelections||''}" min="0" placeholder="Max sélections" onchange="updateFieldProp('${f.id}','maxSelections',+this.value||0)" /><div class="form-text">Max sélections</div></div>` : ''}
+
+            ${f.type === 'select' || f.type === 'radio' ? `
+            <div class="col-3"><input type="number" class="form-control form-control-sm" value="${f.maxPerOption||''}" min="0" placeholder="Max / option" onchange="updateFieldProp('${f.id}','maxPerOption',+this.value||0)" /><div class="form-text">Max utilisateurs / option</div></div>` : ''}
+          </div>
+        </div>
+        <button class="btn btn-sm btn-outline-danger ms-2" onclick="removeField('${f.id}')" title="Supprimer ce champ">
+          <i class="bi bi-x-lg"></i>
+        </button>
+      </div>
+    </div>`;
+  }).join('');
+}
+
+/* ═══ APERÇU ═══ */
+function previewType() {
+  const name = document.getElementById('type-name').value.trim() || 'Sans nom';
+  const body = document.getElementById('preview-body');
+  if (!_fields.length) { body.innerHTML = '<div class="alert alert-warning">Aucun champ défini.</div>'; new bootstrap.Modal(document.getElementById('previewModal')).show(); return; }
+
+  // Découper en pages si pagebreak
+  const pages = [[]];
+  _fields.forEach(f => {
+    if (f.type === 'pagebreak') pages.push([]);
+    else pages[pages.length - 1].push(f);
+  });
+
+  const multiPage = pages.length > 1;
+  body.innerHTML = `<h3 class="h5 mb-4">${AUTH.esc(name)}</h3>
+    ${multiPage ? `<div class="mb-3"><span class="badge bg-primary">Formulaire multi-pages · ${pages.length} étapes</span></div>` : ''}
+    <form class="preview-form" onsubmit="return false">
+      ${pages.map((page, pi) => `
+        ${multiPage ? `<div class="page-break-bar">Étape ${pi+1} / ${pages.length}</div>` : ''}
+        <div class="row g-3">
+          ${page.filter(f => f.type !== 'hidden').map(f => renderPreviewField(f)).join('')}
+        </div>`).join('')}
+    </form>`;
+  new bootstrap.Modal(document.getElementById('previewModal')).show();
+}
+
+function renderPreviewField(f) {
+  const req = f.required ? '<span class="text-danger">*</span>' : '';
+  const ph = AUTH.esc(f.placeholder || '');
+  const uid = 'pv_' + f.id;
+
+  switch (f.type) {
+    case 'text': case 'email': case 'tel': case 'url':
+      return `<div class="col-md-6"><label class="form-label">${AUTH.esc(f.label)} ${req}</label><input type="${f.type}" class="form-control" placeholder="${ph}" /></div>`;
+    case 'textarea':
+      return `<div class="col-12"><label class="form-label">${AUTH.esc(f.label)} ${req}</label><textarea class="form-control" rows="3" placeholder="${ph}"></textarea></div>`;
+    case 'number':
+      return `<div class="col-md-4"><label class="form-label">${AUTH.esc(f.label)} ${req}</label><input type="number" class="form-control" placeholder="${ph}" /></div>`;
+    case 'date':
+      return `<div class="col-md-4"><label class="form-label">${AUTH.esc(f.label)} ${req}</label><input type="date" class="form-control" /></div>`;
+    case 'time':
+      return `<div class="col-md-4"><label class="form-label">${AUTH.esc(f.label)} ${req}</label><input type="time" class="form-control" /></div>`;
+    case 'select':
+      return `<div class="col-md-6"><label class="form-label">${AUTH.esc(f.label)} ${req}</label><select class="form-select"><option value="">— Choisir —</option>${(f.options||[]).map(o=>`<option>${AUTH.esc(o)}</option>`).join('')}</select></div>`;
+    case 'radio':
+      return `<div class="col-md-6"><label class="form-label d-block">${AUTH.esc(f.label)} ${req}</label>${(f.options||[]).map((o,i)=>`<div class="form-check"><input class="form-check-input" type="radio" name="${uid}" id="${uid}-${i}"><label class="form-check-label" for="${uid}-${i}">${AUTH.esc(o)}</label></div>`).join('')}</div>`;
+    case 'checkbox':
+      return `<div class="col-md-6"><div class="form-check mt-4"><input class="form-check-input" type="checkbox" id="${uid}"><label class="form-check-label" for="${uid}">${AUTH.esc(f.label)}</label></div></div>`;
+    case 'checkbox-group':
+      return `<div class="col-md-6"><label class="form-label d-block">${AUTH.esc(f.label)} ${req}</label>${(f.options||[]).map((o,i)=>`<div class="form-check"><input class="form-check-input" type="checkbox" id="${uid}-${i}"><label class="form-check-label" for="${uid}-${i}">${AUTH.esc(o)}</label></div>`).join('')}</div>`;
+    case 'image-select':
+      return `<div class="col-12"><label class="form-label">${AUTH.esc(f.label)} ${req}</label><div class="img-select-grid">${(f.images||[]).map((img,i)=>`<div class="img-select-item" onclick="this.classList.toggle('selected')"><img src="${AUTH.esc(img.url)}" alt="${AUTH.esc(img.label)}" onerror="this.src='https://via.placeholder.com/100?text=${i+1}'"><div class="img-label">${AUTH.esc(img.label)}</div></div>`).join('')}</div></div>`;
+    case 'file':
+      return `<div class="col-md-6"><label class="form-label">${AUTH.esc(f.label)} ${req}</label><input type="file" class="form-control" /></div>`;
+    case 'color':
+      return `<div class="col-md-3"><label class="form-label">${AUTH.esc(f.label)}</label><input type="color" class="form-control form-control-color" value="${f.defaultValue||'#003DA6'}" /></div>`;
+    case 'range':
+      return `<div class="col-md-6"><label class="form-label">${AUTH.esc(f.label)} <span class="text-muted small">(${f.min??0} — ${f.max??100})</span></label><input type="range" class="form-range" min="${f.min??0}" max="${f.max??100}" oninput="this.nextElementSibling.textContent=this.value" /><span class="small fw-bold text-primary">${Math.round(((f.min??0)+(f.max??100))/2)}</span></div>`;
+
+    // ── Évaluation ──
+    case 'rating': {
+      const max = f.max || 5;
+      return `<div class="col-md-6"><label class="form-label">${AUTH.esc(f.label)} ${req}</label><div class="star-rating" data-field="${f.id}">${Array.from({length:max},(_,i)=>`<span class="star" data-val="${i+1}" onclick="setRating(this)">★</span>`).join('')}</div></div>`;
+    }
+    case 'likert':
+      return `<div class="col-12"><label class="form-label">${AUTH.esc(f.label)} ${req}</label><div class="d-flex gap-0">${(f.options||[]).map((o,i)=>`<label class="flex-fill text-center border p-2" style="font-size:.78rem;cursor:pointer;${i===0?'border-radius:6px 0 0 6px':''}${i===(f.options||[]).length-1?'border-radius:0 6px 6px 0':''}"><input type="radio" name="${uid}" class="d-none" value="${AUTH.esc(o)}" onclick="this.parentElement.parentElement.querySelectorAll('label').forEach(l=>l.style.background='');this.parentElement.style.background='var(--couleur-principale)';this.parentElement.style.color='#fff'"><span>${AUTH.esc(o)}</span></label>`).join('')}</div></div>`;
+    case 'matrix': {
+      const rows = f.rows || []; const cols = f.options || [];
+      return `<div class="col-12"><label class="form-label">${AUTH.esc(f.label)} ${req}</label><div class="matrix-grid"><table class="w-100"><thead><tr><th></th>${cols.map(c=>`<th>${AUTH.esc(c)}</th>`).join('')}</tr></thead><tbody>${rows.map((r,ri)=>`<tr><td class="text-start fw-semibold">${AUTH.esc(r)}</td>${cols.map((c,ci)=>`<td><div class="likert-cell" onclick="selectMatrixCell(this,'${uid}',${ri},${ci})">&nbsp;</div></td>`).join('')}</tr>`).join('')}</tbody></table></div></div>`;
+    }
+
+    // ── Mise en page ──
+    case 'separator':
+      return `<div class="col-12"><hr class="my-2" /></div>`;
+    case 'heading':
+      return `<div class="col-12"><h4 class="h6 fw-bold mt-2 mb-1">${AUTH.esc(f.label)}</h4>${f.placeholder ? `<p class="text-muted small mb-0">${AUTH.esc(f.placeholder)}</p>` : ''}</div>`;
+
+    // ── Technique ──
+    case 'signature':
+      return `<div class="col-md-6"><label class="form-label">${AUTH.esc(f.label)} ${req}</label><canvas class="sig-canvas d-block" width="340" height="120" id="${uid}" onmousedown="startSig(this,event)" ontouchstart="startSig(this,event)"></canvas><button type="button" class="btn btn-sm btn-outline-secondary mt-1" onclick="clearSig('${uid}')"><i class="bi bi-eraser me-1"></i>Effacer</button></div>`;
+    case 'captcha': {
+      const a = Math.floor(Math.random()*10)+1, b = Math.floor(Math.random()*10)+1;
+      return `<div class="col-md-4"><label class="form-label">${AUTH.esc(f.label)} — Combien font ${a} + ${b} ?</label><input type="number" class="form-control" data-answer="${a+b}" placeholder="Réponse" /></div>`;
+    }
+
+    // ── Calcul & Géo ──
+    case 'calc':
+      return `<div class="col-md-4"><label class="form-label">${AUTH.esc(f.label)} <span class="badge bg-primary-subtle text-primary-emphasis border">${f.formula||'SUM'}</span></label><input type="text" class="form-control" readonly placeholder="Calculé automatiquement" /></div>`;
+    case 'location':
+      return `<div class="col-12"><label class="form-label">${AUTH.esc(f.label)} ${req}</label><div class="row g-2"><div class="col-md-5"><input type="text" class="form-control" placeholder="Latitude" /></div><div class="col-md-5"><input type="text" class="form-control" placeholder="Longitude" /></div><div class="col-md-2"><button type="button" class="btn btn-outline-primary w-100" onclick="getGeoLocation(this)"><i class="bi bi-geo-alt me-1"></i>GPS</button></div></div><div class="mt-2 rounded border" style="height:200px;background:#e8f0fe;display:flex;align-items:center;justify-content:center;color:#6c757d;"><i class="bi bi-map fs-3 me-2"></i>Aperçu de la carte</div></div>`;
+    default:
+      return '';
+  }
+}
+
+/* ═══ Helpers interactifs ═══ */
+function setRating(star) {
+  const val = +star.dataset.val;
+  const container = star.parentElement;
+  container.querySelectorAll('.star').forEach(s => s.classList.toggle('active', +s.dataset.val <= val));
+  container.dataset.value = val;
+}
+
+function selectMatrixCell(cell, uid, row, col) {
+  const tr = cell.closest('tr');
+  tr.querySelectorAll('.likert-cell').forEach(c => c.classList.remove('selected'));
+  cell.classList.add('selected');
+  cell.textContent = '✓';
+}
+
+let _sigDrawing = false;
+function startSig(canvas, e) {
+  _sigDrawing = true;
+  const ctx = canvas.getContext('2d');
+  ctx.lineWidth = 2; ctx.lineCap = 'round'; ctx.strokeStyle = '#1a1a2e';
+  const rect = canvas.getBoundingClientRect();
+  const getPos = ev => {
+    const t = ev.touches ? ev.touches[0] : ev;
+    return [t.clientX - rect.left, t.clientY - rect.top];
+  };
+  ctx.beginPath();
+  ctx.moveTo(...getPos(e));
+  const move = ev => { if (!_sigDrawing) return; ev.preventDefault(); ctx.lineTo(...getPos(ev)); ctx.stroke(); };
+  const stop = () => { _sigDrawing = false; document.removeEventListener('mousemove', move); document.removeEventListener('mouseup', stop); document.removeEventListener('touchmove', move); document.removeEventListener('touchend', stop); };
+  document.addEventListener('mousemove', move);
+  document.addEventListener('mouseup', stop);
+  document.addEventListener('touchmove', move, { passive: false });
+  document.addEventListener('touchend', stop);
+}
+function clearSig(canvasId) {
+  const c = document.getElementById(canvasId);
+  if (c) c.getContext('2d').clearRect(0, 0, c.width, c.height);
+}
+
+function getGeoLocation(btn) {
+  if (!navigator.geolocation) { alert('Géolocalisation non supportée.'); return; }
+  btn.disabled = true; btn.innerHTML = '<span class="spinner-border spinner-border-sm"></span>';
+  navigator.geolocation.getCurrentPosition(pos => {
+    const row = btn.closest('.row');
+    const inputs = row.querySelectorAll('input[type="text"]');
+    if (inputs[0]) inputs[0].value = pos.coords.latitude.toFixed(6);
+    if (inputs[1]) inputs[1].value = pos.coords.longitude.toFixed(6);
+    btn.disabled = false; btn.innerHTML = '<i class="bi bi-geo-alt me-1"></i>GPS';
+  }, () => {
+    alert('Impossible d\'obtenir la position.'); btn.disabled = false; btn.innerHTML = '<i class="bi bi-geo-alt me-1"></i>GPS';
+  });
+}
+
+/* ═══ SAUVEGARDER TYPE ═══ */
+function saveType() {
+  const name = document.getElementById('type-name').value.trim();
+  if (!name) { alert('Le nom du type est obligatoire.'); return; }
+  const dataFields = _fields.filter(f => !LAYOUT_TYPES.has(f.type));
+  if (!dataFields.length) { alert('Ajoutez au moins un champ de données.'); return; }
+
+  const rolesAutorises = Array.from(document.querySelectorAll('#type-roles-allowed input:checked')).map(el => el.value);
+
+  const types = getTypes();
+  const existingId = document.getElementById('type-id').value;
+  const id = existingId || 'etype_' + Date.now();
+  const entry = {
+    id, name,
+    icon: document.getElementById('type-icon').value.trim() || 'bi-file-earmark',
+    description: document.getElementById('type-desc').value.trim(),
+    dateDebut: document.getElementById('type-date-debut').value || '',
+    dateFin: document.getElementById('type-date-fin').value || '',
+    maxParticipants: +document.getElementById('type-max-participants').value || 0,
+    maxPerUser: +document.getElementById('type-max-per-user').value || 1,
+    rolesAutorises,
+    minChoix: +document.getElementById('type-min-choix').value || 0,
+    maxChoix: +document.getElementById('type-max-choix').value || 0,
+    fields: JSON.parse(JSON.stringify(_fields)),
+    createdAt: existingId ? (types.find(x=>x.id===existingId)?.createdAt || new Date().toISOString()) : new Date().toISOString(),
+    updatedAt: new Date().toISOString(),
+    createdBy: user.id
+  };
+  const idx = types.findIndex(x => x.id === id);
+  if (idx >= 0) types[idx] = entry; else types.push(entry);
+  saveTypes(types);
+  LOG.add(existingId ? 'ENTITY_TYPE_UPDATE' : 'ENTITY_TYPE_CREATE', { acteurId:user.id, detail: name });
+  bootstrap.Modal.getInstance(document.getElementById('typeModal')).hide();
+  renderTypesList(); populateRecordTypeSelect();
+}
+
+/* ═══ ENREGISTREMENTS ═══ */
+function populateRecordTypeSelect() {
+  const sel = document.getElementById('rec-type-sel');
+  const old = sel.value;
+  sel.innerHTML = '<option value="">— Sélectionner —</option>' + getTypes().map(t => `<option value="${t.id}">${AUTH.esc(t.name)}</option>`).join('');
+  if (old && getTypes().find(x => x.id === old)) sel.value = old;
+}
+
+function renderRecords() {
+  const typeId = document.getElementById('rec-type-sel').value;
+  const container = document.getElementById('records-list');
+  const btnNew = document.getElementById('btn-new-record');
+  btnNew.disabled = !typeId;
+  if (!typeId) { container.innerHTML = '<div class="text-center py-5 text-muted"><i class="bi bi-table fs-1 d-block mb-2"></i>Sélectionnez un type d\'acte.</div>'; return; }
+  const type = getTypes().find(x => x.id === typeId);
+  if (!type) { container.innerHTML = '<div class="alert alert-warning">Type introuvable.</div>'; return; }
+  const statusFilter = document.getElementById('rec-status-filter').value;
+  let records = getRecords().filter(r => r._typeId === typeId);
+  if (statusFilter) records = records.filter(r => r._status === statusFilter);
+  if (!records.length) { container.innerHTML = `<div class="text-center py-5 text-muted"><i class="bi bi-inbox fs-1 d-block mb-2"></i>Aucun enregistrement${statusFilter ? ' ('+statusFilter+')' : ''} pour « ${AUTH.esc(type.name)} ».</div>`; return; }
+
+  const visibleFields = type.fields.filter(f => !LAYOUT_TYPES.has(f.type) && f.type !== 'hidden' && f.type !== 'signature' && f.type !== 'captcha').slice(0, 5);
+  container.innerHTML = `<div class="card p-0 overflow-hidden"><div class="table-responsive"><table class="table table-hover mb-0"><thead class="table-light"><tr>
+    <th style="width:40px">Statut</th>
+    ${visibleFields.map(f => `<th>${AUTH.esc(f.label)}</th>`).join('')}
+    <th style="width:130px">Date</th><th style="width:100px">Actions</th>
+  </tr></thead><tbody>
+    ${records.map(rec => {
+      const sc = rec._status==='actif'?'status-actif':rec._status==='bloque'?'status-bloque':'status-archive';
+      return `<tr class="record-row">
+        <td><span class="status-dot ${sc}" title="${AUTH.esc(rec._status||'actif')}"></span></td>
+        ${visibleFields.map(f => `<td class="small">${AUTH.esc(formatFieldValue(rec[f.id], f))}</td>`).join('')}
+        <td class="small text-muted">${AUTH.esc((rec._createdAt||'').slice(0,10))}</td>
+        <td><div class="btn-group btn-group-sm">
+          <button class="btn btn-outline-primary" onclick="editRecord('${rec._id}')" title="Modifier"><i class="bi bi-pencil"></i></button>
+          <button class="btn btn-outline-warning" onclick="toggleRecordBlock('${rec._id}')" title="${rec._status==='bloque'?'Débloquer':'Bloquer'}"><i class="bi bi-${rec._status==='bloque'?'unlock':'lock'}"></i></button>
+          <button class="btn btn-outline-danger" onclick="deleteRecord('${rec._id}')" title="Supprimer"><i class="bi bi-trash"></i></button>
+        </div></td></tr>`;
+    }).join('')}
+  </tbody></table></div></div>`;
+}
+
+function formatFieldValue(val, field) {
+  if (val == null || val === '') return '—';
+  if (field.type === 'checkbox') return val ? '✓' : '—';
+  if (field.type === 'color') return `● ${val}`;
+  if (field.type === 'file') return '📎 fichier';
+  if (field.type === 'rating') return '★'.repeat(+val || 0);
+  if (field.type === 'checkbox-group' && Array.isArray(val)) return val.join(', ');
+  if (field.type === 'location' && typeof val === 'object') return `${val.lat||'?'}, ${val.lng||'?'}`;
+  if (field.type === 'matrix' && typeof val === 'object') return Object.keys(val).length + ' rép.';
+  return String(val).slice(0, 60);
+}
+
+/* ═══ MODAL ENREGISTREMENT ═══ */
+function openRecordModal(recordId) {
+  const typeId = document.getElementById('rec-type-sel').value;
+  const type = getTypes().find(x => x.id === typeId);
+  if (!type) return;
+  _editRecordId = recordId || null;
+  const rec = recordId ? getRecords().find(r => r._id === recordId) : {};
+  document.getElementById('recordModalLabel').textContent = recordId ? 'Modifier l\'enregistrement' : 'Nouvel enregistrement — ' + type.name;
+
+  // Découper en pages si pagebreak
+  const pages = [[]];
+  type.fields.forEach(f => { if (f.type === 'pagebreak') pages.push([]); else pages[pages.length - 1].push(f); });
+  const multiPage = pages.length > 1;
+
+  document.getElementById('record-form-body').innerHTML =
+    `${multiPage ? `<div class="mb-3"><span class="badge bg-primary">Formulaire multi-pages · ${pages.length} étapes</span></div>` : ''}
+    ${pages.map((page, pi) => `
+      ${multiPage ? `<div class="page-break-bar">Étape ${pi+1} / ${pages.length}</div>` : ''}
+      <div class="row g-3">${page.map(f => renderRecordField(f, rec[f.id])).join('')}</div>
+    `).join('')}`;
+
+  // Init star ratings
+  setTimeout(() => {
+    document.querySelectorAll('#record-form-body .star-rating').forEach(sr => {
+      const val = +(rec[sr.dataset.field] || 0);
+      if (val) sr.querySelectorAll('.star').forEach(s => s.classList.toggle('active', +s.dataset.val <= val));
+    });
+    // Init signature if editing
+    document.querySelectorAll('#record-form-body .sig-canvas').forEach(c => {
+      const v = rec[c.dataset.field];
+      if (v) { const img = new Image(); img.onload = () => c.getContext('2d').drawImage(img,0,0); img.src = v; }
+    });
+  }, 100);
+
+  new bootstrap.Modal(document.getElementById('recordModal')).show();
+}
+
+function editRecord(id) {
+  const rec = getRecords().find(r => r._id === id);
+  if (!rec) return;
+  document.getElementById('rec-type-sel').value = rec._typeId;
+  openRecordModal(id);
+}
+
+function renderRecordField(f, value) {
+  const req = f.required ? 'required' : '';
+  const reqMark = f.required ? '<span class="text-danger">*</span>' : '';
+  const ph = AUTH.esc(f.placeholder || '');
+  const val = AUTH.esc(value ?? f.defaultValue ?? '');
+  const uid = 'rec_' + f.id;
+
+  switch (f.type) {
+    case 'text': case 'email': case 'tel': case 'url':
+      return `<div class="col-md-6"><label class="form-label fw-semibold">${AUTH.esc(f.label)} ${reqMark}</label><input type="${f.type}" class="form-control" data-field="${f.id}" placeholder="${ph}" value="${val}" ${req} /></div>`;
+    case 'textarea':
+      return `<div class="col-12"><label class="form-label fw-semibold">${AUTH.esc(f.label)} ${reqMark}</label><textarea class="form-control" data-field="${f.id}" rows="3" placeholder="${ph}" ${req}>${val}</textarea></div>`;
+    case 'number':
+      return `<div class="col-md-4"><label class="form-label fw-semibold">${AUTH.esc(f.label)} ${reqMark}</label><input type="number" class="form-control" data-field="${f.id}" placeholder="${ph}" value="${val}" ${req} /></div>`;
+    case 'date':
+      return `<div class="col-md-4"><label class="form-label fw-semibold">${AUTH.esc(f.label)} ${reqMark}</label><input type="date" class="form-control" data-field="${f.id}" value="${val}" ${req} /></div>`;
+    case 'time':
+      return `<div class="col-md-4"><label class="form-label fw-semibold">${AUTH.esc(f.label)} ${reqMark}</label><input type="time" class="form-control" data-field="${f.id}" value="${val}" ${req} /></div>`;
+    case 'select':
+      return `<div class="col-md-6"><label class="form-label fw-semibold">${AUTH.esc(f.label)} ${reqMark}</label><select class="form-select" data-field="${f.id}" ${req}><option value="">— Choisir —</option>${(f.options||[]).map(o => `<option ${val===AUTH.esc(o)?'selected':''}>${AUTH.esc(o)}</option>`).join('')}</select></div>`;
+    case 'radio':
+      return `<div class="col-md-6"><label class="form-label fw-semibold d-block">${AUTH.esc(f.label)} ${reqMark}</label>${(f.options||[]).map((o,i) => `<div class="form-check"><input class="form-check-input" type="radio" name="${uid}" data-field="${f.id}" value="${AUTH.esc(o)}" id="${uid}-${i}" ${val===AUTH.esc(o)?'checked':''}><label class="form-check-label" for="${uid}-${i}">${AUTH.esc(o)}</label></div>`).join('')}</div>`;
+    case 'checkbox':
+      return `<div class="col-md-6"><div class="form-check mt-4"><input class="form-check-input" type="checkbox" data-field="${f.id}" id="${uid}" ${value?'checked':''}><label class="form-check-label" for="${uid}">${AUTH.esc(f.label)}</label></div></div>`;
+    case 'checkbox-group': {
+      const selected = Array.isArray(value) ? value : [];
+      return `<div class="col-md-6"><label class="form-label fw-semibold d-block">${AUTH.esc(f.label)} ${reqMark}</label>${(f.options||[]).map((o,i) => `<div class="form-check"><input class="form-check-input" type="checkbox" data-field="${f.id}" data-group="1" value="${AUTH.esc(o)}" id="${uid}-${i}" ${selected.includes(o)?'checked':''}><label class="form-check-label" for="${uid}-${i}">${AUTH.esc(o)}</label></div>`).join('')}</div>`;
+    }
+    case 'image-select':
+      return `<div class="col-12"><label class="form-label fw-semibold">${AUTH.esc(f.label)} ${reqMark}</label><div class="img-select-grid" data-field="${f.id}">${(f.images||[]).map((img,i) => `<div class="img-select-item ${val===AUTH.esc(img.label)?'selected':''}" onclick="this.parentElement.querySelectorAll('.img-select-item').forEach(x=>x.classList.remove('selected'));this.classList.add('selected');this.parentElement.dataset.value='${AUTH.esc(img.label)}'"><img src="${AUTH.esc(img.url)}" alt="${AUTH.esc(img.label)}" onerror="this.src='https://via.placeholder.com/100?text=${i+1}'"><div class="img-label">${AUTH.esc(img.label)}</div></div>`).join('')}</div></div>`;
+    case 'file':
+      return `<div class="col-md-6"><label class="form-label fw-semibold">${AUTH.esc(f.label)} ${reqMark}</label><input type="file" class="form-control" data-field="${f.id}" ${req} /></div>`;
+    case 'color':
+      return `<div class="col-md-3"><label class="form-label fw-semibold">${AUTH.esc(f.label)}</label><input type="color" class="form-control form-control-color" data-field="${f.id}" value="${val||'#003DA6'}" /></div>`;
+    case 'range':
+      return `<div class="col-md-6"><label class="form-label fw-semibold">${AUTH.esc(f.label)} <span class="text-muted small">(${f.min??0}—${f.max??100})</span></label><input type="range" class="form-range" data-field="${f.id}" min="${f.min??0}" max="${f.max??100}" value="${val||f.min||0}" oninput="this.nextElementSibling.textContent=this.value" /><span class="small fw-bold text-primary">${val||f.min||0}</span></div>`;
+    case 'rating': {
+      const max = f.max || 5;
+      return `<div class="col-md-6"><label class="form-label fw-semibold">${AUTH.esc(f.label)} ${reqMark}</label><div class="star-rating" data-field="${f.id}">${Array.from({length:max},(_,i)=>`<span class="star" data-val="${i+1}" onclick="setRating(this)">★</span>`).join('')}</div></div>`;
+    }
+    case 'likert':
+      return `<div class="col-12"><label class="form-label fw-semibold">${AUTH.esc(f.label)} ${reqMark}</label><div class="d-flex gap-0" data-field="${f.id}">${(f.options||[]).map((o,i)=>`<label class="flex-fill text-center border p-2" style="font-size:.78rem;cursor:pointer;${i===0?'border-radius:6px 0 0 6px;':''}${i===(f.options||[]).length-1?'border-radius:0 6px 6px 0;':''}${val===AUTH.esc(o)?'background:var(--couleur-principale);color:#fff;':''}"><input type="radio" name="${uid}" class="d-none" value="${AUTH.esc(o)}" onclick="this.parentElement.parentElement.querySelectorAll('label').forEach(l=>{l.style.background='';l.style.color=''});this.parentElement.style.background='var(--couleur-principale)';this.parentElement.style.color='#fff'"><span>${AUTH.esc(o)}</span></label>`).join('')}</div></div>`;
+    case 'matrix': {
+      const rows = f.rows || []; const cols = f.options || []; const matVal = (typeof value === 'object' && value) ? value : {};
+      return `<div class="col-12"><label class="form-label fw-semibold">${AUTH.esc(f.label)} ${reqMark}</label><div class="matrix-grid" data-field="${f.id}"><table class="w-100"><thead><tr><th></th>${cols.map(c=>`<th>${AUTH.esc(c)}</th>`).join('')}</tr></thead><tbody>${rows.map((r,ri)=>`<tr data-row="${ri}"><td class="text-start fw-semibold">${AUTH.esc(r)}</td>${cols.map((c,ci)=>`<td><div class="likert-cell${matVal[r]===c?' selected':''}" onclick="selectMatrixCell(this,'${uid}',${ri},${ci})" data-col="${AUTH.esc(c)}">${matVal[r]===c?'✓':'&nbsp;'}</div></td>`).join('')}</tr>`).join('')}</tbody></table></div></div>`;
+    }
+
+    // Mise en page
+    case 'separator': return `<div class="col-12"><hr class="my-2" /></div>`;
+    case 'heading': return `<div class="col-12"><h4 class="h6 fw-bold mt-2 mb-1">${AUTH.esc(f.label)}</h4>${f.placeholder ? `<p class="text-muted small mb-0">${AUTH.esc(f.placeholder)}</p>` : ''}</div>`;
+
+    // Technique
+    case 'signature':
+      return `<div class="col-md-6"><label class="form-label fw-semibold">${AUTH.esc(f.label)} ${reqMark}</label><canvas class="sig-canvas d-block" width="340" height="120" id="${uid}" data-field="${f.id}" onmousedown="startSig(this,event)" ontouchstart="startSig(this,event)"></canvas><button type="button" class="btn btn-sm btn-outline-secondary mt-1" onclick="clearSig('${uid}')"><i class="bi bi-eraser me-1"></i>Effacer</button></div>`;
+    case 'captcha': {
+      const a = Math.floor(Math.random()*10)+1, b = Math.floor(Math.random()*10)+1;
+      return `<div class="col-md-4"><label class="form-label fw-semibold">${AUTH.esc(f.label)} — ${a} + ${b} = ?</label><input type="number" class="form-control" data-field="${f.id}" data-answer="${a+b}" placeholder="Réponse" required /></div>`;
+    }
+    case 'hidden':
+      return `<input type="hidden" data-field="${f.id}" value="${val}" />`;
+
+    // Calcul & Géo
+    case 'calc':
+      return `<div class="col-md-4"><label class="form-label fw-semibold">${AUTH.esc(f.label)} <span class="badge bg-primary-subtle text-primary-emphasis border">${f.formula||'SUM'}</span></label><input type="text" class="form-control" data-field="${f.id}" readonly placeholder="Calculé automatiquement" /></div>`;
+    case 'location':
+      return `<div class="col-12"><label class="form-label fw-semibold">${AUTH.esc(f.label)} ${reqMark}</label><div class="row g-2"><div class="col-md-5"><input type="text" class="form-control" data-field="${f.id}" data-coord="lat" placeholder="Latitude" value="${typeof value==='object'?value?.lat||'':''}" /></div><div class="col-md-5"><input type="text" class="form-control" data-field="${f.id}" data-coord="lng" placeholder="Longitude" value="${typeof value==='object'?value?.lng||'':''}" /></div><div class="col-md-2"><button type="button" class="btn btn-outline-primary w-100" onclick="getGeoLocation(this)"><i class="bi bi-geo-alt me-1"></i>GPS</button></div></div></div>`;
+    default:
+      return '';
+  }
+}
+
+/* ═══ SAUVEGARDER ENREGISTREMENT ═══ */
+function saveRecord() {
+  const typeId = document.getElementById('rec-type-sel').value;
+  const type = getTypes().find(x => x.id === typeId);
+  if (!type) return;
+
+  // Vérifications au niveau du type
+  const now = new Date();
+  if (type.dateDebut && new Date(type.dateDebut) > now) { alert('Cet acte n\'est pas encore ouvert (début : ' + type.dateDebut.slice(0,16).replace('T',' ') + ').'); return; }
+  if (type.dateFin && new Date(type.dateFin) < now) { alert('Cet acte est terminé (fin : ' + type.dateFin.slice(0,16).replace('T',' ') + ').'); return; }
+  if (type.maxParticipants > 0 && !_editRecordId) {
+    const existing = getRecords().filter(r => r._typeId === typeId && r._status === 'actif').length;
+    if (existing >= type.maxParticipants) { alert('Nombre maximum de participants atteint (' + type.maxParticipants + ').'); return; }
+  }
+  if (type.maxPerUser > 0 && !_editRecordId) {
+    const userRecords = getRecords().filter(r => r._typeId === typeId && r._createdBy === user.id && r._status === 'actif').length;
+    if (userRecords >= type.maxPerUser) { alert('Vous avez atteint le nombre maximum de participations (' + type.maxPerUser + ').'); return; }
+  }
+
+  const formBody = document.getElementById('record-form-body');
+  const record = { _typeId: typeId };
+
+  for (const f of type.fields) {
+    if (LAYOUT_TYPES.has(f.type)) continue;
+
+    let val;
+    if (f.type === 'checkbox') {
+      const el = formBody.querySelector(`[data-field="${f.id}"]`);
+      val = el ? el.checked : false;
+    } else if (f.type === 'checkbox-group') {
+      val = Array.from(formBody.querySelectorAll(`[data-field="${f.id}"][data-group]:checked`)).map(el => el.value);
+    } else if (f.type === 'radio') {
+      const checked = formBody.querySelector(`input[data-field="${f.id}"]:checked`);
+      val = checked ? checked.value : '';
+    } else if (f.type === 'likert') {
+      const container = formBody.querySelector(`[data-field="${f.id}"]`);
+      const checked = container?.querySelector('input:checked');
+      val = checked ? checked.value : '';
+    } else if (f.type === 'matrix') {
+      const grid = formBody.querySelector(`[data-field="${f.id}"]`);
+      val = {};
+      if (grid) {
+        grid.querySelectorAll('tr[data-row]').forEach(tr => {
+          const rowLabel = (f.rows||[])[+tr.dataset.row] || '';
+          const sel = tr.querySelector('.likert-cell.selected');
+          if (sel && rowLabel) val[rowLabel] = sel.dataset.col || '';
+        });
+      }
+    } else if (f.type === 'rating') {
+      const sr = formBody.querySelector(`.star-rating[data-field="${f.id}"]`);
+      val = +(sr?.dataset.value || 0);
+    } else if (f.type === 'image-select') {
+      const grid = formBody.querySelector(`.img-select-grid[data-field="${f.id}"]`);
+      val = grid?.dataset.value || '';
+    } else if (f.type === 'signature') {
+      const canvas = formBody.querySelector(`canvas[data-field="${f.id}"]`);
+      val = canvas ? canvas.toDataURL('image/png') : '';
+    } else if (f.type === 'captcha') {
+      const el = formBody.querySelector(`[data-field="${f.id}"]`);
+      if (el && +el.value !== +el.dataset.answer) { alert('Captcha incorrect.'); el.focus(); return; }
+      val = true;
+    } else if (f.type === 'location') {
+      const lat = formBody.querySelector(`[data-field="${f.id}"][data-coord="lat"]`);
+      const lng = formBody.querySelector(`[data-field="${f.id}"][data-coord="lng"]`);
+      val = { lat: lat?.value || '', lng: lng?.value || '' };
+    } else if (f.type === 'calc') {
+      // Auto-calculated — collect from source number fields
+      const sourceLabels = f.sourceFields || [];
+      const nums = [];
+      sourceLabels.forEach(label => {
+        const sf = type.fields.find(x => x.label === label && x.type === 'number');
+        if (!sf) return;
+        const el = formBody.querySelector(`[data-field="${sf.id}"]`);
+        if (el && el.value) nums.push(+el.value);
+      });
+      if (f.formula === 'SUM') val = nums.reduce((a,b)=>a+b, 0);
+      else if (f.formula === 'AVG') val = nums.length ? nums.reduce((a,b)=>a+b,0)/nums.length : 0;
+      else if (f.formula === 'COUNT') val = nums.length;
+      else if (f.formula === 'MIN') val = nums.length ? Math.min(...nums) : 0;
+      else if (f.formula === 'MAX') val = nums.length ? Math.max(...nums) : 0;
+      else val = 0;
+    } else if (f.type === 'file') {
+      const el = formBody.querySelector(`[data-field="${f.id}"]`);
+      val = el?.files?.[0]?.name || '';
+    } else {
+      const el = formBody.querySelector(`[data-field="${f.id}"]`);
+      val = el ? el.value : '';
+    }
+
+    if (f.required && !val && val !== false && val !== 0) {
+      const el = formBody.querySelector(`[data-field="${f.id}"]`);
+      alert('Le champ « ' + f.label + ' » est obligatoire.');
+      el?.focus?.();
+      return;
+    }
+
+    // Contraintes de champ
+    if (f.type === 'number' && val !== '' && val != null) {
+      if (f.min !== '' && f.min != null && +val < +f.min) { alert('« ' + f.label + ' » : valeur minimum = ' + f.min); return; }
+      if (f.max !== '' && f.max != null && +val > +f.max) { alert('« ' + f.label + ' » : valeur maximum = ' + f.max); return; }
+    }
+    if ((f.type === 'date' || f.type === 'time') && val) {
+      if (f.minValue && val < f.minValue) { alert('« ' + f.label + ' » : valeur minimum = ' + f.minValue); return; }
+      if (f.maxValue && val > f.maxValue) { alert('« ' + f.label + ' » : valeur maximum = ' + f.maxValue); return; }
+    }
+    if (f.type === 'checkbox-group' && Array.isArray(val) && f.maxSelections > 0 && val.length > f.maxSelections) {
+      alert('« ' + f.label + ' » : maximum ' + f.maxSelections + ' sélection(s) autorisée(s).');
+      return;
+    }
+
+    record[f.id] = val;
+  }
+
+  const records = getRecords();
+  if (_editRecordId) {
+    const idx = records.findIndex(r => r._id === _editRecordId);
+    if (idx >= 0) records[idx] = { ...records[idx], ...record, _updatedAt: new Date().toISOString() };
+    LOG.add('ENTITY_RECORD_UPDATE', { acteurId:user.id, detail: type.name });
+  } else {
+    record._id = 'erec_' + Date.now();
+    record._status = 'actif';
+    record._createdAt = new Date().toISOString();
+    record._createdBy = user.id;
+    records.push(record);
+    LOG.add('ENTITY_RECORD_CREATE', { acteurId:user.id, detail: type.name });
+  }
+  saveRecords(records);
+  bootstrap.Modal.getInstance(document.getElementById('recordModal')).hide();
+  _editRecordId = null;
+  renderRecords();
+}
+
+function toggleRecordBlock(id) {
+  const records = getRecords();
+  const rec = records.find(r => r._id === id);
+  if (!rec) return;
+  rec._status = rec._status === 'bloque' ? 'actif' : 'bloque';
+  rec._updatedAt = new Date().toISOString();
+  saveRecords(records);
+  renderRecords();
+}
+
+function deleteRecord(id) {
+  if (!confirm('Supprimer cet enregistrement ?')) return;
+  saveRecords(getRecords().filter(r => r._id !== id));
+  renderRecords();
+}
+</script>
+</body>
+</html>

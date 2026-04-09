@@ -27,267 +27,180 @@ const AUTH = (() => {
   ];
 
   // Version de la matrice — incrémenter pour forcer un reset du localStorage
-  const K_RIGHTS_VERSION = 'attt_droits_v3';
+  const K_RIGHTS_VERSION = 'attt_droits_v6';
 
   // Colonnes : [label, _master(ignoré), Direction(superviseur), Délégué(admin), Membre]
   // Maître a implicitAll=true → il a tout automatiquement, n'apparaît pas dans la matrice
-  // Direction (superviseur) a TOUS les droits sauf "Promouvoir → Maître"
+  // Famille hérite de Membre par défaut (sauf si 6e colonne explicite)
   const LEGACY_RIGHTS_MATRIX_DEFAULT = [
-    ['Se connecter',                         '✓','✓','✓','✓'],
-    ['Consulter événements (publics)',        '✓','✓','✓','✓'],
-    ['Consulter événements (membres)',        '✓','✓','✓','✓'],
-    ['Consulter offres',                      '✓','✓','✓','✓'],
-    ['Consulter articles / actualités',       '✓','✓','✓','⚠'],
-    ['Ajouter / modifier événement',          '✓','✓','✓','—'],
+    // ── Connexion ──
+    ['Se connecter',                          '✓','✓','✓','✓'],
+
+    // ── 1. Événements (programmer, modifier, bloquer, supprimer) ──
+    ['Consulter événements',                  '✓','✓','✓','✓'],
+    ['Créer événement',                       '✓','✓','✓','—'],
+    ['Modifier événement',                    '✓','✓','✓','—'],
+    ['Bloquer événement',                     '✓','✓','✓','—'],
     ['Supprimer événement',                   '✓','✓','✓','—'],
-    ['Ajouter / modifier offre',              '✓','✓','✓','—'],
-    ['Supprimer offre',                       '✓','✓','✓','—'],
-    ['Publier article avec photo',            '✓','✓','✓','—'],
-    ['Modifier / supprimer article',          '✓','✓','✓','—'],
-    ['Valider inscription (en attente)',       '✓','✓','✓','—'],
-    ['Rejeter inscription',                   '✓','✓','✓','—'],
-    ['Suspendre / réactiver utilisateur',     '✓','✓','✓','—'],
-    ['Supprimer utilisateur',                 '✓','✓','✓','—'],
-    ['Promouvoir → Délégué',                  '✓','✓','—','—'],
-    ['Promouvoir → Direction',                '✓','✓','—','—'],
-    ['Promouvoir → Maître',                   '✓','—','—','—'],  /* Réservé Maître uniquement */
-    ['Rétrograder un utilisateur',            '✓','✓','—','—'],
-    ['Supprimer définitivement utilisateur',  '✓','✓','—','—'],
-    ['Voir journal des opérations',           '✓','✓','—','—'],
-    ['Effacer journal',                       '✓','✓','—','—'],
-    ['Accéder page Droits',                   '✓','✓','—','—'],
-    ['Accéder page Journal',                  '✓','✓','—','—'],
-    ['Accéder page Guide technique',          '✓','✓','—','—'],
-    ['Accéder page Paramètres site',          '✓','✓','—','—'],
-    ['Modifier paramètres site',              '✓','✓','—','—'],
-    ['Accéder page Publicités accueil',       '✓','✓','✓','—'],
-    ['Ajouter / modifier publicité accueil',  '✓','✓','✓','—'],
-    ['Supprimer publicité accueil',           '✓','✓','✓','—'],
-    ['Voir bouton Ajouter publicité accueil', '✓','✓','✓','—'],
-    ['Accéder page Actualités',               '✓','✓','✓','—'],
-    ['Accéder page Superviseur',              '✓','✓','—','—'],
-    ['Accéder page Admin',                    '✓','✓','✓','—'],
-    ['Accéder page Master',                   '✓','—','—','—'],
-    ['Accéder page Espace membre',            '✓','✓','✓','✓'],
-    ['Accéder page Profil',                   '✓','✓','✓','✓'],
-    ['Accéder page Messagerie',               '✓','✓','✓','✓'],
-    ['Accéder page Locations',                '✓','✓','✓','✓'],
-    ['Accéder page Voyages',                  '✓','✓','✓','✓'],
-    ['Accéder page Votes',                    '✓','✓','✓','✓'],
-    ['Accéder page Versions',                 '✓','✓','✓','—'],
-    ['Réserver location vacances',            '✓','✓','✓','✓'],
-    ['Voir colonne E-mail',                   '✓','✓','✓','—'],
-    ['Voir colonne Inscrits',                 '✓','✓','✓','—'],
-    ['Voir bouton Ajouter événement',         '✓','✓','✓','—'],
-    ['Voir bouton Supprimer événement',       '✓','✓','✓','—'],
-    ['Voir bouton Ajouter offre',             '✓','✓','✓','—'],
-    ['Voir bouton Supprimer offre',           '✓','✓','✓','—'],
-    ['Voir bouton Ajouter convention',        '✓','✓','✓','—'],
-    ['Consulter conventions réservées',       '✓','✓','✓','✓'],
-    ['Voir détail convention réservée',       '✓','✓','✓','✓'],
-    ['Voir bouton Modifier matrice',          '✓','✓','—','—'],
-    ['Ajouter photo galerie',                 '✓','✓','✓','—'],
-    ['Supprimer photo galerie',               '✓','✓','✓','—'],
+
+    // ── 1. Voyages & Sorties (programmer, modifier, bloquer, supprimer) ──
     ['Consulter voyages',                     '✓','✓','✓','✓'],
-    ['Créer / modifier voyage',               '✓','✓','✓','—'],
+    ['Créer voyage',                          '✓','✓','✓','—'],
+    ['Modifier voyage',                       '✓','✓','✓','—'],
+    ['Bloquer voyage',                        '✓','✓','✓','—'],
     ['Supprimer voyage',                      '✓','✓','✓','—'],
-    ['S\'inscrire voyage',                    '✓','✓','✓','✓'],
-    ['Gérer inscriptions voyage',             '✓','✓','—','—'],
-    ['Voir bouton Ajouter voyage',            '✓','✓','✓','—'],
+    ['S\'inscrire à un voyage',               '✓','✓','✓','✓'],
+    ['Gérer inscriptions voyage',             '✓','✓','✓','—'],
+
+    // ── 1. Votes (programmer, modifier, bloquer, supprimer) ──
     ['Consulter votes',                       '✓','✓','✓','✓'],
-    ['Créer / modifier vote',                 '✓','✓','✓','—'],
+    ['Créer vote',                            '✓','✓','✓','—'],
+    ['Modifier vote',                         '✓','✓','✓','—'],
+    ['Bloquer vote',                          '✓','✓','✓','—'],
     ['Supprimer vote',                        '✓','✓','✓','—'],
     ['Participer au vote',                    '✓','✓','✓','✓'],
     ['Voir résultats vote',                   '✓','✓','✓','✓'],
-    ['Gérer votes',                           '✓','✓','✓','—'],
-    ['Voir bouton Créer vote',                '✓','✓','✓','—']
+
+    // ── 1. Offres (programmer, modifier, bloquer, supprimer) ──
+    ['Consulter offres',                      '✓','✓','✓','✓'],
+    ['Créer offre',                           '✓','✓','✓','—'],
+    ['Modifier offre',                        '✓','✓','✓','—'],
+    ['Bloquer offre',                         '✓','✓','✓','—'],
+    ['Supprimer offre',                       '✓','✓','✓','—'],
+
+    // ── 1. Locations vacances (programmer, modifier, bloquer, supprimer) ──
+    ['Consulter locations',                   '✓','✓','✓','✓'],
+    ['Créer location',                        '✓','✓','✓','—'],
+    ['Modifier location',                     '✓','✓','✓','—'],
+    ['Bloquer location',                      '✓','✓','✓','—'],
+    ['Supprimer location',                    '✓','✓','✓','—'],
+    ['Réserver location vacances',            '✓','✓','✓','✓'],
+
+    // ── 1. Conventions (programmer, modifier, bloquer, supprimer) ──
+    ['Consulter conventions',                 '✓','✓','✓','✓'],
+    ['Créer convention',                      '✓','✓','✓','—'],
+    ['Modifier convention',                   '✓','✓','✓','—'],
+    ['Bloquer convention',                    '✓','✓','✓','—'],
+    ['Supprimer convention',                  '✓','✓','✓','—'],
+
+    // ── Actualités ──
+    ['Consulter articles',                    '✓','✓','✓','⚠'],
+    ['Publier article',                       '✓','✓','✓','—'],
+    ['Modifier article',                      '✓','✓','✓','—'],
+    ['Supprimer article',                     '✓','✓','✓','—'],
+
+    // ── Galerie ──
+    ['Ajouter photo galerie',                 '✓','✓','✓','—'],
+    ['Supprimer photo galerie',               '✓','✓','✓','—'],
+
+    // ── 2. Utilisateurs (valider, affecter à un groupe) ──
+    ['Valider inscription',                   '✓','✓','✓','—'],
+    ['Rejeter inscription',                   '✓','✓','✓','—'],
+    ['Affecter à un groupe',                  '✓','✓','—','—'],
+    ['Suspendre utilisateur',                 '✓','✓','✓','—'],
+    ['Réactiver utilisateur',                 '✓','✓','✓','—'],
+    ['Supprimer utilisateur',                 '✓','✓','✓','—'],
+    ['Supprimer définitivement',              '✓','✓','—','—'],
+    ['Promouvoir → Délégué',                  '✓','✓','—','—'],
+    ['Promouvoir → Direction',                '✓','✓','—','—'],
+    ['Promouvoir → Administration',           '✓','—','—','—'],
+    ['Rétrograder un utilisateur',            '✓','✓','—','—'],
+    ['Voir colonne E-mail',                   '✓','✓','✓','—'],
+    ['Voir colonne Inscrits',                 '✓','✓','✓','—'],
+
+    // ── 3. Groupes — modifier, ajouter, supprimer, bloquer ──
+    ['Consulter les groupes',                 '✓','✓','—','—'],
+    ['Créer un groupe',                       '✓','✓','—','—'],
+    ['Modifier un groupe',                    '✓','✓','—','—'],
+    ['Bloquer un groupe',                     '✓','✓','—','—'],
+    ['Supprimer un groupe',                   '✓','✓','—','—'],
+
+    // ── 4. Droits — donner ou modifier les droits (groupes) ──
+    ['Consulter les droits',                  '✓','✓','—','—'],
+    ['Modifier les droits',                   '✓','✓','—','—'],
+
+    // ── 5. Messages (modifier, bloquer, supprimer) ──
+    ['Consulter messages',                    '✓','✓','✓','✓'],
+    ['Envoyer message',                       '✓','✓','✓','✓'],
+    ['Modifier message',                      '✓','✓','✓','—'],
+    ['Bloquer messages (un utilisateur)',      '✓','✓','—','—'],
+    ['Bloquer messages (tous)',               '✓','✓','—','—'],
+    ['Supprimer message',                     '✓','✓','✓','—'],
+
+    // ── 6. Publicité accueil (modifier, ajouter, supprimer) ──
+    ['Consulter publicités accueil',          '✓','✓','✓','—'],
+    ['Ajouter publicité accueil',             '✓','✓','✓','—'],
+    ['Modifier publicité accueil',            '✓','✓','✓','—'],
+    ['Supprimer publicité accueil',           '✓','✓','✓','—'],
+
+    // ── 7. Pages & Configuration (réorganiser, modifier les noms, ordre…) ──
+    ['Réorganiser les pages',                 '✓','✓','—','—'],
+    ['Modifier les paramètres du site',       '✓','✓','—','—'],
+
+    // ── 3bis. Création avancée (tables, entités, paramétrage complet) ──
+    ['Créer des tables / entités',            '✓','✓','—','—'],
+    ['Vider un acte',                         '✓','✓','—','—'],
+    ['Supprimer un acte',                     '✓','✓','—','—'],
+
+    // ── 8. Mises à jour (tester puis publier) ──
+    ['Tester mise à jour',                    '✓','✓','—','—'],
+    ['Publier mise à jour',                   '✓','—','—','—'],
+
+    // ── Système ──
+    ['Voir journal des opérations',           '✓','✓','—','—'],
+    ['Effacer journal',                       '✓','✓','—','—'],
+
+    // ── Accès pages ──
+    ['Accéder Espace membre',                 '✓','✓','✓','✓'],
+    ['Accéder Profil',                        '✓','✓','✓','✓'],
+    ['Accéder Messagerie',                    '✓','✓','✓','✓'],
+    ['Accéder Événements',                    '✓','✓','✓','✓'],
+    ['Accéder Offres',                        '✓','✓','✓','✓'],
+    ['Accéder Voyages',                       '✓','✓','✓','✓'],
+    ['Accéder Votes',                         '✓','✓','✓','✓'],
+    ['Accéder Locations',                     '✓','✓','✓','✓'],
+    ['Accéder Conventions',                   '✓','✓','✓','✓'],
+    ['Accéder Galerie',                       '✓','✓','✓','✓'],
+    ['Accéder Actualités',                    '✓','✓','✓','—'],
+    ['Accéder Administration',                '✓','✓','✓','—'],
+    ['Accéder Superviseur',                   '✓','✓','—','—'],
+    ['Accéder page Administration',           '✓','—','—','—'],
+    ['Accéder Droits',                        '✓','✓','—','—'],
+    ['Accéder Journal',                       '✓','✓','—','—'],
+    ['Accéder Guide technique',               '✓','✓','—','—'],
+    ['Accéder Paramètres site',               '✓','✓','—','—'],
+    ['Accéder Publicités accueil',            '✓','✓','✓','—'],
+    ['Accéder Versions',                      '✓','✓','✓','—'],
   ];
 
   const DEFAULT_PERMISSION_PAGES = [
     {
       id: 'global',
-      label: 'Global',
+      label: 'Connexion',
       path: '',
       permissions: ['Se connecter']
     },
+
+    // ── 1. Actes : programmer, modifier, bloquer, supprimer ──
     {
       id: 'evenements',
       label: 'Événements',
       path: 'evenements.html',
       permissions: [
-        'Consulter événements (publics)',
-        'Consulter événements (membres)',
-        'Ajouter / modifier événement',
-        'Supprimer événement',
-        'Voir bouton Ajouter événement',
-        'Voir bouton Supprimer événement',
-        'Voir colonne Inscrits'
+        'Consulter événements', 'Créer événement', 'Modifier événement',
+        'Bloquer événement', 'Supprimer événement',
+        'Accéder Événements', 'Voir colonne Inscrits'
       ]
-    },
-    {
-      id: 'offres',
-      label: 'Offres',
-      path: 'offres.html',
-      permissions: [
-        'Consulter offres',
-        'Ajouter / modifier offre',
-        'Supprimer offre',
-        'Voir bouton Ajouter offre',
-        'Voir bouton Supprimer offre'
-      ]
-    },
-    {
-      id: 'actualites',
-      label: 'Actualités',
-      path: 'contenu-admin.html',
-      permissions: [
-        'Accéder page Actualités',
-        'Consulter articles / actualités',
-        'Publier article avec photo',
-        'Modifier / supprimer article'
-      ]
-    },
-    {
-      id: 'superviseur',
-      label: 'Superviseur',
-      path: 'superviseur.html',
-      permissions: ['Accéder page Superviseur']
-    },
-    {
-      id: 'admin-page',
-      label: 'Administration',
-      path: 'admin.html',
-      permissions: ['Accéder page Admin']
-    },
-    {
-      id: 'master-page',
-      label: 'Panneau maître',
-      path: 'master.html',
-      permissions: ['Accéder page Master']
-    },
-    {
-      id: 'espace-membre-page',
-      label: 'Espace membre',
-      path: 'espace-membre.html',
-      permissions: ['Accéder page Espace membre']
-    },
-    {
-      id: 'profil-page',
-      label: 'Profil',
-      path: 'profil.html',
-      permissions: ['Accéder page Profil']
-    },
-    {
-      id: 'messagerie-page',
-      label: 'Messagerie',
-      path: 'messagerie.html',
-      permissions: ['Accéder page Messagerie']
-    },
-    {
-      id: 'locations-page',
-      label: 'Locations',
-      path: 'location.html',
-      permissions: ['Accéder page Locations', 'Réserver location vacances']
-    },
-    {
-      id: 'voyages-page',
-      label: 'Voyages',
-      path: 'voyages.html',
-      permissions: ['Accéder page Voyages', 'Consulter voyages', 'Créer / modifier voyage', 'Supprimer voyage', 'S\'inscrire voyage', 'Gérer inscriptions voyage', 'Voir bouton Ajouter voyage']
-    },
-    {
-      id: 'votes-page',
-      label: 'Votes',
-      path: 'votes.html',
-      permissions: ['Accéder page Votes', 'Consulter votes', 'Créer / modifier vote', 'Supprimer vote', 'Participer au vote', 'Voir résultats vote', 'Gérer votes', 'Voir bouton Créer vote']
-    },
-    {
-      id: 'versions-page',
-      label: 'Versions',
-      path: 'versions.html',
-      permissions: ['Accéder page Versions']
-    },
-    {
-      id: 'utilisateurs',
-      label: 'Utilisateurs',
-      path: 'master.html',
-      permissions: [
-        'Valider inscription (en attente)',
-        'Rejeter inscription',
-        'Suspendre / réactiver utilisateur',
-        'Supprimer utilisateur',
-        'Supprimer définitivement utilisateur',
-        'Promouvoir → Délégué',
-        'Promouvoir → Direction',
-        'Promouvoir → Maître',
-        'Rétrograder un utilisateur',
-        'Voir colonne E-mail'
-      ]
-    },
-    {
-      id: 'droits',
-      label: 'Droits',
-      path: 'droits.html',
-      permissions: ['Accéder page Droits', 'Voir bouton Modifier matrice']
-    },
-    {
-      id: 'journal',
-      label: 'Journal',
-      path: 'journal.html',
-      permissions: ['Accéder page Journal', 'Voir journal des opérations', 'Effacer journal']
-    },
-    {
-      id: 'guide',
-      label: 'Guide technique',
-      path: 'guide.html',
-      permissions: ['Accéder page Guide technique']
-    },
-    {
-      id: 'parametres',
-      label: 'Paramètres site',
-      path: 'parametres.html',
-      permissions: ['Accéder page Paramètres site', 'Modifier paramètres site']
-    },
-    {
-      id: 'publicites',
-      label: 'Publicités accueil',
-      path: 'publicites.html',
-      permissions: [
-        'Accéder page Publicités accueil',
-        'Ajouter / modifier publicité accueil',
-        'Supprimer publicité accueil',
-        'Voir bouton Ajouter publicité accueil'
-      ]
-    },
-    {
-      id: 'conventions',
-      label: 'Conventions',
-      path: 'conventions.html',
-      permissions: ['Voir bouton Ajouter convention', 'Consulter conventions réservées', 'Voir détail convention réservée']
-    },
-    {
-      id: 'galerie',
-      label: 'Galerie',
-      path: 'galerie.html',
-      permissions: ['Ajouter photo galerie', 'Supprimer photo galerie']
-    },
-    {
-      id: 'locations',
-      label: 'Locations',
-      path: 'location.html',
-      permissions: ['Réserver location vacances']
     },
     {
       id: 'voyages',
-      label: 'Voyages',
+      label: 'Voyages & Sorties',
       path: 'voyages.html',
       permissions: [
-        'Consulter voyages',
-        'Créer / modifier voyage',
-        'Supprimer voyage',
-        'S\'inscrire voyage',
-        'Gérer inscriptions voyage',
-        'Voir bouton Ajouter voyage'
+        'Consulter voyages', 'Créer voyage', 'Modifier voyage',
+        'Bloquer voyage', 'Supprimer voyage',
+        'S\'inscrire à un voyage', 'Gérer inscriptions voyage',
+        'Accéder Voyages'
       ]
     },
     {
@@ -295,13 +208,161 @@ const AUTH = (() => {
       label: 'Votes',
       path: 'votes.html',
       permissions: [
-        'Consulter votes',
-        'Créer / modifier vote',
-        'Supprimer vote',
-        'Participer au vote',
-        'Voir résultats vote',
-        'Gérer votes',
-        'Voir bouton Créer vote'
+        'Consulter votes', 'Créer vote', 'Modifier vote',
+        'Bloquer vote', 'Supprimer vote',
+        'Participer au vote', 'Voir résultats vote',
+        'Accéder Votes'
+      ]
+    },
+    {
+      id: 'offres',
+      label: 'Offres',
+      path: 'offres.html',
+      permissions: [
+        'Consulter offres', 'Créer offre', 'Modifier offre',
+        'Bloquer offre', 'Supprimer offre',
+        'Accéder Offres'
+      ]
+    },
+    {
+      id: 'locations',
+      label: 'Locations vacances',
+      path: 'location.html',
+      permissions: [
+        'Consulter locations', 'Créer location', 'Modifier location',
+        'Bloquer location', 'Supprimer location',
+        'Réserver location vacances',
+        'Accéder Locations'
+      ]
+    },
+    {
+      id: 'conventions',
+      label: 'Conventions',
+      path: 'conventions.html',
+      permissions: [
+        'Consulter conventions', 'Créer convention', 'Modifier convention',
+        'Bloquer convention', 'Supprimer convention',
+        'Accéder Conventions'
+      ]
+    },
+    {
+      id: 'actualites',
+      label: 'Actualités',
+      path: 'contenu-admin.html',
+      permissions: [
+        'Consulter articles', 'Publier article', 'Modifier article', 'Supprimer article',
+        'Accéder Actualités'
+      ]
+    },
+    {
+      id: 'galerie',
+      label: 'Galerie',
+      path: 'galerie.html',
+      permissions: ['Ajouter photo galerie', 'Supprimer photo galerie', 'Accéder Galerie']
+    },
+
+    // ── 2. Utilisateurs : valider, affecter à un groupe ──
+    {
+      id: 'utilisateurs',
+      label: 'Utilisateurs',
+      path: 'admin.html',
+      permissions: [
+        'Valider inscription', 'Rejeter inscription', 'Affecter à un groupe',
+        'Suspendre utilisateur', 'Réactiver utilisateur',
+        'Supprimer utilisateur', 'Supprimer définitivement',
+        'Promouvoir → Délégué', 'Promouvoir → Direction', 'Promouvoir → Administration',
+        'Rétrograder un utilisateur',
+        'Voir colonne E-mail',
+        'Accéder Administration', 'Accéder Superviseur'
+      ]
+    },
+
+    // ── 3. Groupes : modifier, ajouter, supprimer, bloquer ──
+    {
+      id: 'groupes',
+      label: 'Groupes & Rôles',
+      path: 'droits.html',
+      permissions: [
+        'Consulter les groupes', 'Créer un groupe', 'Modifier un groupe',
+        'Bloquer un groupe', 'Supprimer un groupe'
+      ]
+    },
+
+    // ── 4. Droits : donner ou modifier les droits (groupes) ──
+    {
+      id: 'droits',
+      label: 'Droits & Permissions',
+      path: 'droits.html',
+      permissions: ['Consulter les droits', 'Modifier les droits', 'Accéder Droits']
+    },
+
+    // ── 5. Messages : modifier, bloquer, supprimer ──
+    {
+      id: 'messages',
+      label: 'Messages',
+      path: 'messagerie.html',
+      permissions: [
+        'Consulter messages', 'Envoyer message', 'Modifier message',
+        'Bloquer messages (un utilisateur)', 'Bloquer messages (tous)',
+        'Supprimer message',
+        'Accéder Messagerie'
+      ]
+    },
+
+    // ── 6. Publicité accueil (page publique avant login) ──
+    {
+      id: 'publicites',
+      label: 'Publicité accueil',
+      path: 'publicites.html',
+      permissions: [
+        'Consulter publicités accueil', 'Ajouter publicité accueil',
+        'Modifier publicité accueil', 'Supprimer publicité accueil',
+        'Accéder Publicités accueil'
+      ]
+    },
+
+    // ── 7. Pages & Configuration : réorganiser, noms, ordre… ──
+    {
+      id: 'pages-config',
+      label: 'Pages & Configuration',
+      path: 'parametres.html',
+      permissions: [
+        'Réorganiser les pages', 'Modifier les paramètres du site',
+        'Créer des tables / entités', 'Vider un acte', 'Supprimer un acte',
+        'Accéder Paramètres site'
+      ]
+    },
+
+    // ── 8. Mises à jour ──
+    {
+      id: 'mises-a-jour',
+      label: 'Mises à jour',
+      path: 'versions.html',
+      permissions: [
+        'Tester mise à jour', 'Publier mise à jour',
+        'Accéder Versions'
+      ]
+    },
+
+    // ── Système ──
+    {
+      id: 'systeme',
+      label: 'Système',
+      path: 'journal.html',
+      permissions: [
+        'Voir journal des opérations', 'Effacer journal',
+        'Accéder Journal', 'Accéder Guide technique'
+      ]
+    },
+
+    // ── Accès pages (navigation) ──
+    {
+      id: 'acces-pages',
+      label: 'Accès pages',
+      path: '',
+      permissions: [
+        'Accéder Espace membre', 'Accéder Profil',
+        'Accéder page Administration'
       ]
     }
   ];
@@ -310,10 +371,75 @@ const AUTH = (() => {
   const SYMBOL_PRIORITY = { '—': 0, '⚠': 1, '✓': 2 };
   const PERMISSION_AXES = ['visible', 'action'];
   const PERMISSION_ALIASES = {
-    'Créer vote': 'Voir bouton Créer vote',
-    'Creer vote': 'Voir bouton Créer vote',
-    'Acceder page Superviseur': 'Accéder page Superviseur',
-    'Acceder page Admin': 'Accéder page Admin'
+    // ── Événements (ancien → nouveau) ──
+    'Consulter événements (publics)':         'Consulter événements',
+    'Consulter événements (membres)':         'Consulter événements',
+    'Ajouter / modifier événement':           'Modifier événement',
+    'Voir bouton Ajouter événement':          'Créer événement',
+    'Voir bouton Supprimer événement':        'Supprimer événement',
+
+    // ── Offres ──
+    'Ajouter / modifier offre':               'Modifier offre',
+    'Voir bouton Ajouter offre':              'Créer offre',
+    'Voir bouton Supprimer offre':            'Supprimer offre',
+
+    // ── Voyages ──
+    'Créer / modifier voyage':                'Modifier voyage',
+    'S\'inscrire voyage':                     'S\'inscrire à un voyage',
+    'Voir bouton Ajouter voyage':             'Créer voyage',
+
+    // ── Votes ──
+    'Créer / modifier vote':                  'Modifier vote',
+    'Gérer votes':                            'Modifier vote',
+    'Voir bouton Créer vote':                 'Créer vote',
+    'Créer vote':                             'Créer vote',
+    'Creer vote':                             'Créer vote',
+
+    // ── Conventions ──
+    'Voir bouton Ajouter convention':         'Créer convention',
+    'Consulter conventions réservées':        'Consulter conventions',
+    'Voir détail convention réservée':        'Consulter conventions',
+
+    // ── Actualités ──
+    'Consulter articles / actualités':        'Consulter articles',
+    'Publier article avec photo':             'Publier article',
+    'Modifier / supprimer article':           'Modifier article',
+
+    // ── Publicités ──
+    'Ajouter / modifier publicité accueil':   'Modifier publicité accueil',
+    'Voir bouton Ajouter publicité accueil':  'Ajouter publicité accueil',
+
+    // ── Utilisateurs ──
+    'Valider inscription (en attente)':       'Valider inscription',
+    'Suspendre / réactiver utilisateur':      'Suspendre utilisateur',
+    'Supprimer définitivement utilisateur':   'Supprimer définitivement',
+
+    // ── Droits ──
+    'Voir bouton Modifier matrice':           'Modifier les droits',
+
+    // ── Paramètres ──
+    'Modifier paramètres site':               'Modifier les paramètres du site',
+
+    // ── Accès pages (ancien "Accéder page X" → nouveau "Accéder X") ──
+    'Accéder page Droits':                    'Accéder Droits',
+    'Accéder page Journal':                   'Accéder Journal',
+    'Accéder page Guide technique':           'Accéder Guide technique',
+    'Accéder page Paramètres site':           'Accéder Paramètres site',
+    'Accéder page Publicités accueil':        'Accéder Publicités accueil',
+    'Accéder page Actualités':                'Accéder Actualités',
+    'Accéder page Superviseur':               'Accéder Superviseur',
+    'Accéder page Admin':                     'Accéder Administration',
+    'Accéder page Espace membre':             'Accéder Espace membre',
+    'Accéder page Profil':                    'Accéder Profil',
+    'Accéder page Messagerie':                'Accéder Messagerie',
+    'Accéder page Locations':                 'Accéder Locations',
+    'Accéder page Voyages':                   'Accéder Voyages',
+    'Accéder page Votes':                     'Accéder Votes',
+    'Accéder page Versions':                  'Accéder Versions',
+
+    // ── Sans accent (saisie rapide) ──
+    'Acceder page Superviseur':               'Accéder Superviseur',
+    'Acceder page Admin':                     'Accéder Administration',
   };
 
   function _hash(str) {
@@ -385,24 +511,35 @@ const AUTH = (() => {
 
   function _normalizePermissionCatalog(catalog) {
     const savedPages = Array.isArray(catalog?.pages) ? catalog.pages : Array.isArray(catalog) ? catalog : [];
-    const byId = new Map(savedPages.map((page, index) => {
-      const normalized = _normalizePermissionPage(page, index);
-      return [normalized.id, normalized];
-    }));
+    const byId = new Map();
+    const byPath = new Map();  // Dédoublonnage par path
+
+    // Insérer d'abord les DEFAULT pour qu'ils servent de référence
     DEFAULT_PERMISSION_PAGES.forEach((page, index) => {
       const normalized = _normalizePermissionPage(page, index);
-      if (!byId.has(normalized.id)) {
-        byId.set(normalized.id, normalized);
-        return;
-      }
-      const merged = byId.get(normalized.id);
-      byId.set(normalized.id, {
-        ...merged,
-        label: merged.label || normalized.label,
-        path: merged.path || normalized.path,
-        permissions: [...new Set([...(normalized.permissions || []), ...(merged.permissions || [])])].sort((left, right) => left.localeCompare(right, 'fr'))
-      });
+      byId.set(normalized.id, normalized);
+      if (normalized.path) byPath.set(normalized.path, normalized.id);
     });
+
+    // Fusionner les pages sauvegardées
+    savedPages.forEach((page, index) => {
+      const normalized = _normalizePermissionPage(page, index);
+      // Si une page avec le même path existe déjà sous un autre ID, fusionner
+      const existingIdByPath = normalized.path && byPath.get(normalized.path);
+      const targetId = (existingIdByPath && existingIdByPath !== normalized.id) ? existingIdByPath : normalized.id;
+
+      if (byId.has(targetId)) {
+        const existing = byId.get(targetId);
+        byId.set(targetId, {
+          ...existing,
+          permissions: [...new Set([...(existing.permissions || []), ...(normalized.permissions || [])])].sort((left, right) => left.localeCompare(right, 'fr'))
+        });
+      } else {
+        byId.set(normalized.id, normalized);
+        if (normalized.path) byPath.set(normalized.path, normalized.id);
+      }
+    });
+
     return {
       pages: Array.from(byId.values()).sort((left, right) => {
         if (left.id === 'global') return -1;
@@ -414,10 +551,40 @@ const AUTH = (() => {
 
   function _loadPermissionCatalog() {
     try {
-      return _normalizePermissionCatalog(JSON.parse(localStorage.getItem(K_PERMISSION_CATALOG) || 'null'));
+      const raw = _normalizePermissionCatalog(JSON.parse(localStorage.getItem(K_PERMISSION_CATALOG) || 'null'));
+      return _injectEntityTypePermissions(raw);
     } catch {
-      return _normalizePermissionCatalog({ pages: DEFAULT_PERMISSION_PAGES });
+      return _injectEntityTypePermissions(_normalizePermissionCatalog({ pages: DEFAULT_PERMISSION_PAGES }));
     }
+  }
+
+  /* Injecte dynamiquement les permissions des actes créés via creation-actes.html */
+  function _injectEntityTypePermissions(catalog) {
+    let entityTypes = [];
+    try { entityTypes = JSON.parse(localStorage.getItem('attt_entity_types') || '[]'); } catch { /* */ }
+    if (!entityTypes.length) return catalog;
+
+    const pages = [...catalog.pages];
+    entityTypes.forEach(t => {
+      const pageId = 'entity-' + (t.id || '');
+      if (pages.some(p => p.id === pageId)) return; // déjà présent
+      pages.push({
+        id: pageId,
+        label: t.name || 'Acte',
+        path: 'espace-membre.html',
+        permissions: [
+          'Consulter ' + t.name,
+          'Créer ' + t.name,
+          'Modifier ' + t.name,
+          'Bloquer ' + t.name,
+          'Supprimer ' + t.name,
+          'Vider ' + t.name,
+          'Supprimer acte ' + t.name,
+          'Accéder ' + t.name
+        ]
+      });
+    });
+    return { pages };
   }
 
   function _savePermissionCatalog(catalog) {
@@ -572,7 +739,7 @@ const AUTH = (() => {
   }
 
   function canManageRoleDefinitions(actorOrUser = getCurrentUser()) {
-    return hasPermission('Voir bouton Modifier matrice', actorOrUser);
+    return hasPermission('Modifier les droits', actorOrUser);
   }
 
   function _getUsers() {
@@ -615,7 +782,8 @@ const AUTH = (() => {
 
   function _buildDefaultRightsMatrix() {
     const visibleRoles = getVisibleMatrixRoles();
-    const legacyRows = LEGACY_RIGHTS_MATRIX_DEFAULT.map(([label, _master, direction, delegue, membre]) => {
+    const legacyRows = LEGACY_RIGHTS_MATRIX_DEFAULT.map(row => {
+      const [label, _master, direction, delegue, membre] = row;
       const legacyValues = { superviseur: direction, admin: delegue, membre, famille: membre };
       const values = {};
       visibleRoles.forEach(role => {
@@ -655,7 +823,7 @@ const AUTH = (() => {
   }
 
   function _isLegacyRightsMatrix(rows) {
-    return Array.isArray(rows) && rows.some(row => Array.isArray(row) && row[0] === 'Promouvoir → Maître');
+    return Array.isArray(rows) && rows.some(row => Array.isArray(row) && (row[0] === 'Promouvoir → Administration' || row[0] === 'Créer événement'));
   }
 
   function _isAllDenied(state) {
@@ -694,6 +862,7 @@ const AUTH = (() => {
       // Reset automatique si la version de la matrice est obsolète
       if (localStorage.getItem('attt_droits_version') !== K_RIGHTS_VERSION) {
         localStorage.removeItem(K_RIGHTS);
+        localStorage.removeItem(K_PERMISSION_CATALOG);
         localStorage.setItem('attt_droits_version', K_RIGHTS_VERSION);
       }
       return _syncRightsMatrix(JSON.parse(localStorage.getItem(K_RIGHTS) || 'null'));
@@ -876,7 +1045,7 @@ const AUTH = (() => {
     const user = users.find(item => item.login === loginVal && item.passwordHash === hash);
     if (!user) return { ok: false, msg: 'Identifiant ou mot de passe incorrect.' };
     if (user.statut === 'en_attente') return { ok: false, pending: true, msg: 'Votre inscription est en attente de validation par un Délégué de l\'Amicale. Vous serez contacté dès l\'activation de votre compte.' };
-    if (user.statut === 'supprime') return { ok: false, msg: 'Compte supprimé. Contactez la Direction ou le Maître pour une réactivation.' };
+    if (user.statut === 'supprime') return { ok: false, msg: 'Compte supprimé. Contactez la Direction pour une réactivation.' };
     if (user.statut !== 'actif') return { ok: false, msg: 'Compte suspendu. Contactez un Délégué ou la Direction.' };
     _setSession(user);
     if (typeof LOG !== 'undefined') LOG.add('LOGIN', { acteurId: user.id, acteurLogin: user.login, acteurRole: user.role });
@@ -981,7 +1150,7 @@ const AUTH = (() => {
     else if (changes.role !== undefined) next.roles = [changes.role];
     const normalized = _normalizeUser(next);
     if (changes.statut !== undefined && changes.statut !== before.statut) {
-      if (!hasPermission('Suspendre / réactiver utilisateur', actor, before)) return false;
+      if (!hasPermission('Suspendre utilisateur', actor, before)) return false;
     }
     if ((changes.role !== undefined || changes.roles !== undefined) && actor && !hasImplicitAllRole(actor)) {
       const forbidden = normalized.roles.some(roleId => getRoleLevel(roleId) <= getHighestPrivilegeLevel(actor));
@@ -1032,18 +1201,13 @@ const AUTH = (() => {
     const user = users.find(item => item.id === userId);
     const actor = getCurrentUser();
     if (!user || user.login === '347') return false;
-    if (!hasPermission('Supprimer définitivement utilisateur', actor, user)) return false;
+    if (!hasPermission('Supprimer définitivement', actor, user)) return false;
     _saveUsers(users.filter(item => item.id !== userId));
     if (typeof LOG !== 'undefined') LOG.add('ACCOUNT_DELETE', { acteurId: actor?.id, acteurLogin: actor?.login, acteurRole: actor?.role, cibleId: user.id, cibleLogin: user.login, detail: user.prenom + ' ' + user.nom });
     return true;
   }
 
   function dashUrl(roleOrUser) {
-    const roleId = typeof roleOrUser === 'string' ? roleOrUser : getPrimaryRole(roleOrUser || getCurrentUser());
-    const level = getRoleLevel(roleId);
-    if (level <= 0) return 'master.html';
-    if (level <= 1) return 'superviseur.html';
-    if (level <= 2) return 'admin.html';
     return 'espace-membre.html';
   }
 

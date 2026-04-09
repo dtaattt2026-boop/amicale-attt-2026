@@ -27,7 +27,9 @@ const DB = (() => {
                  'attt_rentals', 'attt_bookings', 'attt_participation_history', 'attt_galerie',
                  'attt_special_event_registrations', 'attt_droits_matrix', 'attt_role_defs', 'attt_permission_catalog', 'attt_site_settings', 'attt_home_ads',
                  'attt_vote_subjects', 'attt_vote_ballots',
-                 'attt_contact_messages'];
+                 'attt_contact_messages',
+                 'attt_entity_types', 'attt_entity_records',
+                 'attt_master_settings', 'attt_version_json', 'attt_updates'];
 
   /* Nom de la collection Firestore */
   const COLL = 'site_data';
@@ -104,7 +106,10 @@ const DB = (() => {
   /* ── Accesseur état ────────────────────────────────────────── */
   function isEnabled() { return _enabled; }
 
-  return { init, push, isEnabled, KEYS };
+  /* ── Alias save = push (pour compatibilité) ─────────────── */
+  function save(key, data) { push(key, data); }
+
+  return { init, push, save, isEnabled, KEYS };
 })();
 
 /* ─── Promesse globale — attendez DB_READY avant tout rendu ─── */

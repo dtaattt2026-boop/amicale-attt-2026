@@ -50,12 +50,7 @@
     .welcome-bar h1 { font-size:1.1rem; font-weight:800; margin:0; }
     .welcome-bar p  { margin:0; opacity:.75; font-size:.85rem; }
 
-    /* ── TABS BAR ── */
-    .tabs-bar { background:#fff; border-bottom:2px solid #e9ecef; padding:0 1rem; overflow-x:auto; display:flex; gap:.2rem; flex-wrap:nowrap; white-space:nowrap; flex-shrink:0; box-shadow:0 1px 4px rgba(0,0,0,.05); }
-    .tab-btn { display:inline-flex; align-items:center; gap:.4rem; padding:.75rem .95rem; border:none; background:none; color:#6c757d; font-weight:600; font-size:.88rem; border-bottom:3px solid transparent; cursor:pointer; transition:color .15s,border-color .15s; white-space:nowrap; }
-    .tab-btn:hover { color:var(--cp); }
-    .tab-btn.active { color:var(--cp); border-bottom-color:var(--cp); }
-    .tab-badge { background:#dc3545; color:#fff; border-radius:999px; font-size:.65rem; font-weight:700; padding:.15rem .45rem; min-width:18px; text-align:center; line-height:1.2; }
+
 
     /* ── CONTENT AREA ── */
     .tab-content-area { padding:1.5rem; flex:1; }
@@ -142,11 +137,6 @@
         </div>
       </div>
 
-      <!-- TABS BAR -->
-      <div class="tabs-bar" role="tablist" id="tabs-bar">
-        <!-- Tabs générés dynamiquement -->
-      </div>
-
       <!-- TAB CONTENT -->
       <div class="tab-content-area" id="tab-content">
         <div class="text-center text-muted py-5"><i class="bi bi-hourglass-split me-2"></i>Chargement…</div>
@@ -189,6 +179,7 @@ function buildSidebar() {
   const canAdmin  = AUTH.hasPermission && AUTH.hasPermission('Accéder page Superviseur', user);
   const canDeleg  = AUTH.hasPermission && (AUTH.hasPermission('Accéder page Admin', user) || canAdmin);
   const canDroits = AUTH.hasPermission && AUTH.hasPermission('Accéder page Droits', user);
+  const isMaster  = AUTH.getHighestPrivilegeLevel && AUTH.getHighestPrivilegeLevel(user) <= 0;
 
   const MOIS = ['jan','fév','mar','avr','mai','jun','jul','aoû','sep','oct','nov','déc'];
   const now = new Date().toISOString().slice(0,10);
@@ -202,24 +193,27 @@ function buildSidebar() {
 
   const sections = [];
 
-  // ── Mes activités
+  // ═══ SECTION 1 : ACTIVITÉS ═══
   sections.push(`
-    <div class="sb-sec">Mes activités</div>
-    <button class="sb-link active" onclick="showTab('events',this)">
+    <div class="sb-sec"><i class="bi bi-grid me-1"></i>Activités</div>
+    <button class="sb-link active" onclick="showTab('accueil',this)">
+      <i class="bi bi-house-door"></i>Accueil
+    </button>
+    <button class="sb-link" onclick="showTab('events',this)">
       <i class="bi bi-calendar-event"></i>Événements
       <span class="sb-badge d-none" id="sb-cnt-events"></span>
     </button>
-    <button class="sb-link" onclick="showTab('offres',this)">
-      <i class="bi bi-tag"></i>Offres
-      <span class="sb-badge d-none" id="sb-cnt-offres"></span>
-    </button>
     <button class="sb-link" onclick="showTab('special',this)">
-      <i class="bi bi-stars"></i>Événements spéciaux
+      <i class="bi bi-stars"></i>Spéciaux
       <span class="sb-badge d-none" id="sb-cnt-special"></span>
     </button>
     <button class="sb-link" onclick="showTab('voyages',this)">
       <i class="bi bi-compass"></i>Voyages
       <span class="sb-badge d-none" id="sb-cnt-voyages"></span>
+    </button>
+    <button class="sb-link" onclick="showTab('offres',this)">
+      <i class="bi bi-tag"></i>Offres
+      <span class="sb-badge d-none" id="sb-cnt-offres"></span>
     </button>
     <button class="sb-link" onclick="showTab('conventions',this)">
       <i class="bi bi-award"></i>Conventions
@@ -235,41 +229,61 @@ function buildSidebar() {
     </button>
   `);
 
-  // ── Mon compte
+  // Actes personnalisés — intégrés dans Activités
+  const customEntities = _getEntityTypes().filter(t => {
+    const perm = 'Accéder ' + t.name;
+    return !AUTH.hasPermission || AUTH.hasPermission(perm, user);
+  });
+  if (customEntities.length) {
+    let customHtml = '';
+    customEntities.forEach(t => {
+      const tabId = 'entity_' + t.id;
+      customHtml += `<button class="sb-link" onclick="showTab('${tabId}',this)">
+        <i class="bi ${AUTH.esc(t.icon || 'bi-file-earmark')}"></i>${AUTH.esc(t.name)}
+        <span class="sb-badge d-none" id="sb-cnt-${tabId}"></span>
+      </button>`;
+    });
+    sections.push(customHtml);
+  }
+
+  // ═══ SECTION 2 : MON PROFIL ═══
   sections.push(`
     <hr class="sb-divider" />
-    <div class="sb-sec">Mon compte</div>
-    <a class="sb-link" href="profil.html"><i class="bi bi-person-circle"></i>Mon profil</a>
+    <div class="sb-sec"><i class="bi bi-person me-1"></i>Mon profil</div>
+    <a class="sb-link" href="profil.html"><i class="bi bi-person-circle"></i>Profil</a>
     <a class="sb-link" href="messagerie.html">
       <i class="bi bi-chat-text"></i>Messages
       ${pendingCount > 0 ? `<span class="sb-badge">${pendingCount}</span>` : ''}
     </a>
-    <a class="sb-link" href="location.html"><i class="bi bi-house"></i>Mes locations</a>
   `);
 
-  // ── Administration
-  if (canDeleg || canAdmin || canDroits) {
-    sections.push(`<hr class="sb-divider" /><div class="sb-sec">Administration</div>`);
-    if (canDeleg) sections.push(`<a class="sb-link" href="admin.html"><i class="bi bi-people"></i>Espace délégué</a>`);
-    if (canAdmin) sections.push(`<a class="sb-link" href="superviseur.html"><i class="bi bi-shield-check"></i>Espace direction</a>`);
-    if (canDroits) sections.push(`<a class="sb-link" href="droits.html"><i class="bi bi-shield-lock"></i>Rôles &amp; droits</a>`);
-    sections.push(`
-      <a class="sb-link" href="activites.html"><i class="bi bi-calendar-plus"></i>Programmer activité</a>
-      <a class="sb-link" href="parametres.html"><i class="bi bi-geo-alt"></i>Coordonnées site</a>
-      <a class="sb-link" href="publicites.html"><i class="bi bi-badge-ad"></i>Publicités</a>
-      <a class="sb-link" href="versions.html"><i class="bi bi-cloud-upload"></i>Versions &amp; deploy</a>
-      <a class="sb-link" href="journal.html"><i class="bi bi-journal-text"></i>Journal des opérations</a>
-    `);
+  // ═══ SECTION 3 : ADMINISTRATION (selon droits) ═══
+  const canUpdate = !AUTH.hasPermission || AUTH.hasPermission('Tester mise à jour', user) || AUTH.hasPermission('Publier mise à jour', user);
+  if (canDeleg || canAdmin || canDroits || canUpdate) {
+    let adminHtml = `<hr class="sb-divider" /><div class="sb-sec"><i class="bi bi-gear me-1"></i>Administration</div>`;
+    adminHtml += `<a class="sb-link" href="creation-actes.html"><i class="bi bi-database-fill-gear"></i>Création d'actes</a>`;
+    if (canDroits) adminHtml += `<a class="sb-link" href="droits.html"><i class="bi bi-shield-lock"></i>Droits</a>`;
+    if (canDeleg) adminHtml += `<a class="sb-link" href="admin.html"><i class="bi bi-people"></i>Gestion utilisateurs</a>`;
+    if (canAdmin) adminHtml += `<a class="sb-link" href="superviseur.html"><i class="bi bi-shield-check"></i>Espace direction</a>`;
+    adminHtml += `<a class="sb-link" href="publicites.html"><i class="bi bi-badge-ad"></i>Publicités accueil</a>`;
+    adminHtml += `<a class="sb-link" href="parametres.html"><i class="bi bi-sliders"></i>Paramètres site</a>`;
+    if (canUpdate) adminHtml += `<button class="sb-link" onclick="showTab('mises-a-jour',this)"><i class="bi bi-cloud-arrow-up"></i>Mises à jour</button>`;
+    adminHtml += `<a class="sb-link" href="journal.html"><i class="bi bi-journal-text"></i>Journal</a>`;
+    sections.push(adminHtml);
   }
 
-  // ── Site public
-  sections.push(`
-    <hr class="sb-divider" />
-    <div class="sb-sec">Site public</div>
-    <a class="sb-link" href="index.html" target="_blank"><i class="bi bi-globe2"></i>Voir le site public</a>
-    <a class="sb-link" href="contact.html" target="_blank"><i class="bi bi-envelope"></i>Page contact</a>
-    <a class="sb-link" href="hebergement.html"><i class="bi bi-server"></i>Guide technique</a>
-  `);
+  // ═══ SECTION 4 : MAÎTRE (level 0 uniquement) ═══
+  if (isMaster) {
+    sections.push(`
+      <hr class="sb-divider" />
+      <div class="sb-sec"><i class="bi bi-star me-1"></i>Maître</div>
+      <button class="sb-link" onclick="showTab('master-panel',this)">
+        <i class="bi bi-cpu"></i>Panneau maître
+      </button>
+      <a class="sb-link" href="versions.html"><i class="bi bi-cloud-upload"></i>Versions & deploy</a>
+      <a class="sb-link" href="master.html"><i class="bi bi-terminal"></i>Console master</a>
+    `);
+  }
 
   const html = sections.join('');
   const d = document.getElementById('sidebar-desktop');
@@ -278,42 +292,35 @@ function buildSidebar() {
   if (m) m.innerHTML = html;
 }
 
-/* ═══════════════════════════════════════════════════════
-   TABS BAR BUILDER
-═══════════════════════════════════════════════════════ */
-const TABS = [
-  { id:'events',      icon:'bi-calendar-event', label:'Événements' },
-  { id:'offres',      icon:'bi-tag',            label:'Offres' },
-  { id:'special',     icon:'bi-stars',           label:'Spéciaux' },
-  { id:'voyages',     icon:'bi-compass',         label:'Voyages' },
-  { id:'conventions', icon:'bi-award',           label:'Conventions' },
-  { id:'locations',   icon:'bi-house-heart',     label:'Locations' },
-  { id:'votes',       icon:'bi-ballot',          label:'Votes' },
-];
-
-function buildTabsBar() {
-  const bar = document.getElementById('tabs-bar');
-  bar.innerHTML = TABS.map((t,i) => `
-    <button class="tab-btn ${i===0?'active':''}" id="tab-btn-${t.id}" onclick="showTab('${t.id}',null)">
-      <i class="bi ${t.icon}"></i>${t.label}
-      <span class="tab-badge d-none" id="tbadge-${t.id}">0</span>
-    </button>`).join('');
+/* ── Actes personnalisés (créés via Création d'actes) ── */
+function _getEntityTypes() {
+  try { return JSON.parse(localStorage.getItem('attt_entity_types') || '[]'); } catch { return []; }
+}
+function _getEntityRecords() {
+  try { return JSON.parse(localStorage.getItem('attt_entity_records') || '[]'); } catch { return []; }
+}
+function _saveEntityRecords(records) {
+  localStorage.setItem('attt_entity_records', JSON.stringify(records));
+  if (typeof DB !== 'undefined' && DB.save) DB.save('attt_entity_records', records);
 }
 
 /* ═══════════════════════════════════════════════════════
    TAB RENDERER
 ═══════════════════════════════════════════════════════ */
-let _currentTab = 'events';
+let _currentTab = 'accueil';
 
 function showTab(tabId, sbEl) {
   _currentTab = tabId;
-  // Update tab bar active
-  document.querySelectorAll('.tab-btn').forEach(b => b.classList.remove('active'));
-  const tb = document.getElementById('tab-btn-' + tabId);
-  if (tb) tb.classList.add('active');
   // Update sidebar active
   document.querySelectorAll('.sb-link').forEach(b => b.classList.remove('active'));
-  if (sbEl) sbEl.classList.add('active');
+  if (sbEl) {
+    sbEl.classList.add('active');
+  } else {
+    // find sidebar button matching this tab
+    document.querySelectorAll('.sb-link').forEach(b => {
+      if (b.getAttribute('onclick') && b.getAttribute('onclick').includes("'" + tabId + "'")) b.classList.add('active');
+    });
+  }
   // Render content
   const area = document.getElementById('tab-content');
   area.innerHTML = '<div class="text-center text-muted py-5"><i class="bi bi-hourglass-split me-2"></i>Chargement…</div>';
@@ -332,6 +339,24 @@ function renderTab(tabId, area) {
 
   try {
     switch(tabId) {
+
+      /* ── ACCUEIL (DASHBOARD) ── */
+      case 'accueil': {
+        renderAccueilTab(area);
+        break;
+      }
+
+      /* ── PANNEAU MAÎTRE ── */
+      case 'master-panel': {
+        renderMasterPanel(area);
+        break;
+      }
+
+      /* ── MISES À JOUR ── */
+      case 'mises-a-jour': {
+        renderUpdatesPanel(area);
+        break;
+      }
 
       /* ── ÉVÉNEMENTS ── */
       case 'events': {
@@ -430,7 +455,12 @@ function renderTab(tabId, area) {
       }
 
       default:
-        area.innerHTML = emptyState('question-circle','Section non disponible');
+        // ── ACTES PERSONNALISÉS ──
+        if (tabId.startsWith('entity_')) {
+          renderEntityTab(tabId.replace('entity_', ''), area);
+        } else {
+          area.innerHTML = emptyState('question-circle','Section non disponible');
+        }
     }
   } catch(e) {
     area.innerHTML = `<div class="alert alert-warning">Erreur de chargement : ${e.message}</div>`;
@@ -554,6 +584,483 @@ function openNewVote() {
   window.location.href = 'activites.html?tab=votes&new=1&titre=' + encodeURIComponent(titre);
 }
 
+/* ── Rendu d'un acte personnalisé (avec CRUD selon permissions) ── */
+function renderEntityTab(typeId, area) {
+  const types = _getEntityTypes();
+  const type = types.find(x => x.id === typeId);
+  if (!type) { area.innerHTML = emptyState('exclamation-triangle', 'Type d\'acte introuvable'); return; }
+
+  const LAYOUT = new Set(['separator','heading','pagebreak']);
+  const allRecords = _getEntityRecords();
+  const records = allRecords.filter(r => r._typeId === typeId && r._status !== 'supprime');
+  const activeRecords = records.filter(r => r._status === 'actif');
+  const blockedRecords = records.filter(r => r._status === 'bloque');
+  const visibleFields = type.fields.filter(f => !LAYOUT.has(f.type) && f.type !== 'hidden' && f.type !== 'captcha' && f.type !== 'signature');
+
+  // Permissions
+  const canConsult = !AUTH.hasPermission || AUTH.hasPermission('Consulter ' + type.name, user);
+  const canCreate  = !AUTH.hasPermission || AUTH.hasPermission('Créer ' + type.name, user);
+  const canModify  = !AUTH.hasPermission || AUTH.hasPermission('Modifier ' + type.name, user);
+  const canBlock   = !AUTH.hasPermission || AUTH.hasPermission('Bloquer ' + type.name, user);
+  const canDelete  = !AUTH.hasPermission || AUTH.hasPermission('Supprimer ' + type.name, user);
+  const canEmpty   = !AUTH.hasPermission || AUTH.hasPermission('Vider ' + type.name, user) || AUTH.hasPermission('Vider un acte', user);
+  const canDeleteType = !AUTH.hasPermission || AUTH.hasPermission('Supprimer acte ' + type.name, user) || AUTH.hasPermission('Supprimer un acte', user);
+
+  // Vérifier le rôle et les dates
+  const roleOk = !type.rolesAutorises?.length || type.rolesAutorises.includes(user.role);
+  const now = new Date();
+  const isOpen = (!type.dateDebut || new Date(type.dateDebut) <= now) && (!type.dateFin || new Date(type.dateFin) >= now);
+  const isFuture = type.dateDebut && new Date(type.dateDebut) > now;
+  const isPast = type.dateFin && new Date(type.dateFin) < now;
+
+  // ── En-tête
+  let html = `<div class="d-flex justify-content-between align-items-center mb-3 flex-wrap gap-2">
+    <h2 class="h5 fw-bold mb-0"><i class="bi ${AUTH.esc(type.icon||'bi-file-earmark')} me-2"></i>${AUTH.esc(type.name)}</h2>
+    <div class="d-flex gap-2 align-items-center flex-wrap">
+      ${isPast ? '<span class="badge bg-secondary">Terminé</span>' : isFuture ? '<span class="badge bg-warning text-dark">À venir</span>' : isOpen ? '<span class="badge bg-success">En cours</span>' : ''}
+      <span class="badge bg-primary">${activeRecords.length} actif(s)</span>
+      ${blockedRecords.length ? `<span class="badge bg-warning text-dark">${blockedRecords.length} bloqué(s)</span>` : ''}
+      ${canCreate && roleOk && isOpen ? `<button class="btn btn-attt btn-sm" onclick="entityCreateRecord('${AUTH.esc(typeId)}')"><i class="bi bi-plus-circle me-1"></i>Créer</button>` : ''}
+      ${canEmpty && records.length ? `<button class="btn btn-outline-warning btn-sm" onclick="entityEmptyType('${AUTH.esc(typeId)}')"><i class="bi bi-trash3 me-1"></i>Vider</button>` : ''}
+      ${canDeleteType ? `<button class="btn btn-outline-danger btn-sm" onclick="entityDeleteType('${AUTH.esc(typeId)}')"><i class="bi bi-x-circle me-1"></i>Supprimer acte</button>` : ''}
+    </div>
+  </div>`;
+
+  if (type.description) html += `<p class="text-muted mb-2">${AUTH.esc(type.description)}</p>`;
+
+  // Infos contraintes
+  const infos = [];
+  if (type.dateDebut) infos.push('<i class="bi bi-calendar-event me-1"></i>Début : ' + AUTH.esc(type.dateDebut.slice(0,16).replace('T',' ')));
+  if (type.dateFin) infos.push('<i class="bi bi-calendar-x me-1"></i>Fin : ' + AUTH.esc(type.dateFin.slice(0,16).replace('T',' ')));
+  if (type.maxParticipants) infos.push('<i class="bi bi-people me-1"></i>Max ' + type.maxParticipants + ' participants');
+  if (type.maxPerUser && type.maxPerUser > 1) infos.push('<i class="bi bi-person me-1"></i>Max ' + type.maxPerUser + ' fois / utilisateur');
+  if (type.rolesAutorises?.length) infos.push('<i class="bi bi-person-badge me-1"></i>' + type.rolesAutorises.join(', '));
+  if (infos.length) html += `<div class="d-flex flex-wrap gap-3 mb-3 small text-muted">${infos.join('')}</div>`;
+
+  if (!roleOk) {
+    html += `<div class="alert alert-info py-2"><i class="bi bi-info-circle me-1"></i>Cet acte est réservé aux rôles : ${AUTH.esc(type.rolesAutorises.join(', '))}</div>`;
+  }
+
+  if (!records.length) {
+    html += emptyState('inbox', 'Aucun enregistrement pour « ' + AUTH.esc(type.name) + ' »');
+    area.innerHTML = html;
+    return;
+  }
+
+  // ── Cartes pour chaque enregistrement
+  const displayFields = visibleFields.slice(0, 6);
+  html += records.map(rec => {
+    const title = rec[displayFields[0]?.id] || type.name;
+    const details = displayFields.slice(1).map(f => {
+      const v = rec[f.id];
+      if (v == null || v === '') return '';
+      let display = '';
+      if (f.type === 'checkbox') display = v ? '✓' : '';
+      else if (f.type === 'rating') display = '★'.repeat(+v || 0);
+      else if (f.type === 'color') display = `<span style="display:inline-block;width:12px;height:12px;border-radius:50%;background:${AUTH.esc(String(v))};vertical-align:middle;"></span>`;
+      else if (f.type === 'checkbox-group' && Array.isArray(v)) display = v.join(', ');
+      else if (f.type === 'location' && typeof v === 'object') display = `📍 ${v.lat||'?'}, ${v.lng||'?'}`;
+      else display = AUTH.esc(String(v).slice(0, 80));
+      return display ? `<span class="text-muted small">${AUTH.esc(f.label)}:</span> ${display}` : '';
+    }).filter(Boolean);
+
+    const isBlocked = rec._status === 'bloque';
+    const borderColor = isBlocked ? '#ffc107' : 'var(--cp)';
+
+    // Actions CRUD
+    let actions = '';
+    if (canConsult)                actions += `<button class="btn btn-sm btn-outline-info me-1" title="Aperçu" onclick="entityPreviewRecord('${AUTH.esc(typeId)}','${AUTH.esc(rec._id)}')"><i class="bi bi-eye"></i></button>`;
+    if (canModify && !isBlocked) actions += `<button class="btn btn-sm btn-outline-primary me-1" title="Modifier" onclick="entityEditRecord('${AUTH.esc(typeId)}','${AUTH.esc(rec._id)}')"><i class="bi bi-pencil"></i></button>`;
+    if (canBlock && !isBlocked)  actions += `<button class="btn btn-sm btn-outline-warning me-1" title="Bloquer" onclick="entityBlockRecord('${AUTH.esc(typeId)}','${AUTH.esc(rec._id)}')"><i class="bi bi-lock"></i></button>`;
+    if (canBlock && isBlocked)   actions += `<button class="btn btn-sm btn-outline-success me-1" title="Débloquer" onclick="entityUnblockRecord('${AUTH.esc(typeId)}','${AUTH.esc(rec._id)}')"><i class="bi bi-unlock"></i></button>`;
+    if (canDelete)               actions += `<button class="btn btn-sm btn-outline-danger" title="Supprimer" onclick="entityDeleteRecord('${AUTH.esc(typeId)}','${AUTH.esc(rec._id)}')"><i class="bi bi-trash"></i></button>`;
+
+    return `<div class="act-item d-flex gap-3 align-items-start" style="border-left-color:${borderColor};${isBlocked ? 'opacity:.7;' : ''}">
+      <div class="flex-grow-1">
+        <div class="fw-bold">${AUTH.esc(String(title).slice(0,100))}
+          ${isBlocked ? '<span class="badge bg-warning text-dark ms-2" style="font-size:.65rem;">Bloqué</span>' : ''}
+        </div>
+        ${details.length ? `<div class="small text-muted mt-1">${details.join(' · ')}</div>` : ''}
+        <div class="small text-muted mt-1"><i class="bi bi-clock me-1"></i>${AUTH.esc((rec._createdAt||'').slice(0,10))}${rec._createdBy ? ' · par ' + AUTH.esc(rec._createdBy) : ''}</div>
+      </div>
+      ${actions ? `<div class="d-flex align-items-center flex-shrink-0">${actions}</div>` : ''}
+    </div>`;
+  }).join('');
+
+  area.innerHTML = html;
+}
+
+/* ── CRUD actions for entity records ── */
+function entityCreateRecord(typeId) {
+  const types = _getEntityTypes();
+  const type = types.find(x => x.id === typeId);
+  if (!type) return;
+
+  const LAYOUT = new Set(['separator','heading','pagebreak','hidden','captcha','signature']);
+  const fields = type.fields.filter(f => !LAYOUT.has(f.type));
+
+  let formHtml = fields.map(f => {
+    const req = f.required ? 'required' : '';
+    const id = 'ent_' + f.id;
+    switch(f.type) {
+      case 'text': case 'email': case 'url': case 'tel': case 'password':
+        return `<div class="mb-3"><label class="form-label fw-semibold">${AUTH.esc(f.label)}</label><input type="${f.type}" class="form-control" id="${id}" ${req} /></div>`;
+      case 'number': case 'range':
+        return `<div class="mb-3"><label class="form-label fw-semibold">${AUTH.esc(f.label)}</label><input type="number" class="form-control" id="${id}" ${f.min!=null?'min="'+f.min+'"':''} ${f.max!=null?'max="'+f.max+'"':''} ${req} /></div>`;
+      case 'date': case 'time': case 'datetime-local': case 'month': case 'week': case 'color':
+        return `<div class="mb-3"><label class="form-label fw-semibold">${AUTH.esc(f.label)}</label><input type="${f.type}" class="form-control" id="${id}" ${req} /></div>`;
+      case 'textarea':
+        return `<div class="mb-3"><label class="form-label fw-semibold">${AUTH.esc(f.label)}</label><textarea class="form-control" id="${id}" rows="3" ${req}></textarea></div>`;
+      case 'select': case 'radio':
+        const opts = (f.options||[]).map(o => `<option value="${AUTH.esc(o)}">${AUTH.esc(o)}</option>`).join('');
+        return `<div class="mb-3"><label class="form-label fw-semibold">${AUTH.esc(f.label)}</label><select class="form-select" id="${id}" ${req}><option value="">— Choisir —</option>${opts}</select></div>`;
+      case 'checkbox':
+        return `<div class="mb-3 form-check"><input type="checkbox" class="form-check-input" id="${id}" /><label class="form-check-label fw-semibold">${AUTH.esc(f.label)}</label></div>`;
+      case 'checkbox-group':
+        const cbs = (f.options||[]).map((o,i) => `<div class="form-check"><input type="checkbox" class="form-check-input ent-cb-${f.id}" value="${AUTH.esc(o)}" id="${id}_${i}" /><label class="form-check-label" for="${id}_${i}">${AUTH.esc(o)}</label></div>`).join('');
+        return `<div class="mb-3"><label class="form-label fw-semibold">${AUTH.esc(f.label)}</label>${cbs}</div>`;
+      case 'file': case 'image':
+        return `<div class="mb-3"><label class="form-label fw-semibold">${AUTH.esc(f.label)}</label><input type="file" class="form-control" id="${id}" ${req} /></div>`;
+      case 'rating':
+        return `<div class="mb-3"><label class="form-label fw-semibold">${AUTH.esc(f.label)}</label><select class="form-select" id="${id}" ${req}><option value="">—</option><option value="1">★</option><option value="2">★★</option><option value="3">★★★</option><option value="4">★★★★</option><option value="5">★★★★★</option></select></div>`;
+      default:
+        return `<div class="mb-3"><label class="form-label fw-semibold">${AUTH.esc(f.label)}</label><input type="text" class="form-control" id="${id}" ${req} /></div>`;
+    }
+  }).join('');
+
+  const area = document.getElementById('tab-content');
+  area.innerHTML = `
+    <div class="d-flex align-items-center gap-3 mb-3">
+      <button class="btn btn-sm btn-outline-secondary" onclick="showTab('entity_${AUTH.esc(typeId)}',null)"><i class="bi bi-arrow-left me-1"></i>Retour</button>
+      <h2 class="h5 fw-bold mb-0"><i class="bi ${AUTH.esc(type.icon||'bi-file-earmark')} me-2"></i>Nouveau : ${AUTH.esc(type.name)}</h2>
+    </div>
+    <div class="card border-0 shadow-sm" style="border-radius:12px;max-width:720px;">
+      <div class="card-body p-4">
+        <form id="entity-form" onsubmit="entitySaveNewRecord('${AUTH.esc(typeId)}');return false;">
+          ${formHtml}
+          <div class="d-flex gap-2 mt-4">
+            <button type="submit" class="btn btn-attt"><i class="bi bi-check-circle me-1"></i>Enregistrer</button>
+            <button type="button" class="btn btn-outline-secondary" onclick="showTab('entity_${AUTH.esc(typeId)}',null)">Annuler</button>
+          </div>
+        </form>
+      </div>
+    </div>`;
+}
+
+function entitySaveNewRecord(typeId) {
+  const types = _getEntityTypes();
+  const type = types.find(x => x.id === typeId);
+  if (!type) return;
+
+  const LAYOUT = new Set(['separator','heading','pagebreak','hidden','captcha','signature']);
+  const fields = type.fields.filter(f => !LAYOUT.has(f.type));
+
+  const record = {
+    _id: 'rec_' + Date.now() + '_' + Math.random().toString(36).slice(2,8),
+    _typeId: typeId,
+    _status: 'actif',
+    _createdAt: new Date().toISOString(),
+    _createdBy: user.prenom || user.login || user.id,
+    _userId: user.id
+  };
+
+  for (const f of fields) {
+    const el = document.getElementById('ent_' + f.id);
+    if (!el) continue;
+    if (f.type === 'checkbox') {
+      record[f.id] = el.checked;
+    } else if (f.type === 'checkbox-group') {
+      record[f.id] = Array.from(document.querySelectorAll('.ent-cb-' + f.id + ':checked')).map(i => i.value);
+    } else if (f.type === 'number' || f.type === 'range' || f.type === 'rating') {
+      record[f.id] = el.value ? Number(el.value) : null;
+    } else {
+      record[f.id] = el.value;
+    }
+    // Validation required
+    if (f.required && (record[f.id] === '' || record[f.id] == null)) {
+      alert('Le champ « ' + f.label + ' » est obligatoire.');
+      el.focus();
+      return;
+    }
+  }
+
+  const allRecords = _getEntityRecords();
+  allRecords.push(record);
+  _saveEntityRecords(allRecords);
+  showTab('entity_' + typeId, null);
+}
+
+function entityEditRecord(typeId, recId) {
+  const types = _getEntityTypes();
+  const type = types.find(x => x.id === typeId);
+  if (!type) return;
+  const allRecords = _getEntityRecords();
+  const rec = allRecords.find(r => r._id === recId);
+  if (!rec) return;
+
+  const LAYOUT = new Set(['separator','heading','pagebreak','hidden','captcha','signature']);
+  const fields = type.fields.filter(f => !LAYOUT.has(f.type));
+
+  let formHtml = fields.map(f => {
+    const req = f.required ? 'required' : '';
+    const id = 'ent_' + f.id;
+    const val = rec[f.id];
+    switch(f.type) {
+      case 'text': case 'email': case 'url': case 'tel': case 'password':
+        return `<div class="mb-3"><label class="form-label fw-semibold">${AUTH.esc(f.label)}</label><input type="${f.type}" class="form-control" id="${id}" value="${AUTH.esc(String(val||''))}" ${req} /></div>`;
+      case 'number': case 'range':
+        return `<div class="mb-3"><label class="form-label fw-semibold">${AUTH.esc(f.label)}</label><input type="number" class="form-control" id="${id}" value="${val!=null?val:''}" ${f.min!=null?'min="'+f.min+'"':''} ${f.max!=null?'max="'+f.max+'"':''} ${req} /></div>`;
+      case 'date': case 'time': case 'datetime-local': case 'month': case 'week': case 'color':
+        return `<div class="mb-3"><label class="form-label fw-semibold">${AUTH.esc(f.label)}</label><input type="${f.type}" class="form-control" id="${id}" value="${AUTH.esc(String(val||''))}" ${req} /></div>`;
+      case 'textarea':
+        return `<div class="mb-3"><label class="form-label fw-semibold">${AUTH.esc(f.label)}</label><textarea class="form-control" id="${id}" rows="3" ${req}>${AUTH.esc(String(val||''))}</textarea></div>`;
+      case 'select': case 'radio':
+        const opts = (f.options||[]).map(o => `<option value="${AUTH.esc(o)}" ${o===val?'selected':''}>${AUTH.esc(o)}</option>`).join('');
+        return `<div class="mb-3"><label class="form-label fw-semibold">${AUTH.esc(f.label)}</label><select class="form-select" id="${id}" ${req}><option value="">— Choisir —</option>${opts}</select></div>`;
+      case 'checkbox':
+        return `<div class="mb-3 form-check"><input type="checkbox" class="form-check-input" id="${id}" ${val?'checked':''} /><label class="form-check-label fw-semibold">${AUTH.esc(f.label)}</label></div>`;
+      case 'checkbox-group':
+        const selected = Array.isArray(val) ? val : [];
+        const cbs = (f.options||[]).map((o,i) => `<div class="form-check"><input type="checkbox" class="form-check-input ent-cb-${f.id}" value="${AUTH.esc(o)}" id="${id}_${i}" ${selected.includes(o)?'checked':''} /><label class="form-check-label" for="${id}_${i}">${AUTH.esc(o)}</label></div>`).join('');
+        return `<div class="mb-3"><label class="form-label fw-semibold">${AUTH.esc(f.label)}</label>${cbs}</div>`;
+      case 'rating':
+        const rOpts = [1,2,3,4,5].map(n => `<option value="${n}" ${+val===n?'selected':''}>${'★'.repeat(n)}</option>`).join('');
+        return `<div class="mb-3"><label class="form-label fw-semibold">${AUTH.esc(f.label)}</label><select class="form-select" id="${id}" ${req}><option value="">—</option>${rOpts}</select></div>`;
+      default:
+        return `<div class="mb-3"><label class="form-label fw-semibold">${AUTH.esc(f.label)}</label><input type="text" class="form-control" id="${id}" value="${AUTH.esc(String(val||''))}" ${req} /></div>`;
+    }
+  }).join('');
+
+  const area = document.getElementById('tab-content');
+  area.innerHTML = `
+    <div class="d-flex align-items-center gap-3 mb-3">
+      <button class="btn btn-sm btn-outline-secondary" onclick="showTab('entity_${AUTH.esc(typeId)}',null)"><i class="bi bi-arrow-left me-1"></i>Retour</button>
+      <h2 class="h5 fw-bold mb-0"><i class="bi bi-pencil me-2"></i>Modifier : ${AUTH.esc(type.name)}</h2>
+    </div>
+    <div class="card border-0 shadow-sm" style="border-radius:12px;max-width:720px;">
+      <div class="card-body p-4">
+        <form id="entity-form" onsubmit="entitySaveEditRecord('${AUTH.esc(typeId)}','${AUTH.esc(recId)}');return false;">
+          ${formHtml}
+          <div class="d-flex gap-2 mt-4">
+            <button type="submit" class="btn btn-attt"><i class="bi bi-check-circle me-1"></i>Enregistrer</button>
+            <button type="button" class="btn btn-outline-secondary" onclick="showTab('entity_${AUTH.esc(typeId)}',null)">Annuler</button>
+          </div>
+        </form>
+      </div>
+    </div>`;
+}
+
+function entitySaveEditRecord(typeId, recId) {
+  const types = _getEntityTypes();
+  const type = types.find(x => x.id === typeId);
+  if (!type) return;
+
+  const LAYOUT = new Set(['separator','heading','pagebreak','hidden','captcha','signature']);
+  const fields = type.fields.filter(f => !LAYOUT.has(f.type));
+
+  const allRecords = _getEntityRecords();
+  const rec = allRecords.find(r => r._id === recId);
+  if (!rec) return;
+
+  rec._updatedAt = new Date().toISOString();
+  rec._updatedBy = user.prenom || user.login || user.id;
+
+  for (const f of fields) {
+    const el = document.getElementById('ent_' + f.id);
+    if (!el) continue;
+    if (f.type === 'checkbox') {
+      rec[f.id] = el.checked;
+    } else if (f.type === 'checkbox-group') {
+      rec[f.id] = Array.from(document.querySelectorAll('.ent-cb-' + f.id + ':checked')).map(i => i.value);
+    } else if (f.type === 'number' || f.type === 'range' || f.type === 'rating') {
+      rec[f.id] = el.value ? Number(el.value) : null;
+    } else {
+      rec[f.id] = el.value;
+    }
+    if (f.required && (rec[f.id] === '' || rec[f.id] == null)) {
+      alert('Le champ « ' + f.label + ' » est obligatoire.');
+      el.focus();
+      return;
+    }
+  }
+
+  _saveEntityRecords(allRecords);
+  showTab('entity_' + typeId, null);
+}
+
+function entityBlockRecord(typeId, recId) {
+  if (!confirm('Bloquer cet enregistrement ?')) return;
+  const allRecords = _getEntityRecords();
+  const rec = allRecords.find(r => r._id === recId);
+  if (rec) { rec._status = 'bloque'; rec._blockedAt = new Date().toISOString(); rec._blockedBy = user.login || user.id; }
+  _saveEntityRecords(allRecords);
+  showTab('entity_' + typeId, null);
+}
+
+function entityUnblockRecord(typeId, recId) {
+  if (!confirm('Débloquer cet enregistrement ?')) return;
+  const allRecords = _getEntityRecords();
+  const rec = allRecords.find(r => r._id === recId);
+  if (rec) { rec._status = 'actif'; delete rec._blockedAt; delete rec._blockedBy; }
+  _saveEntityRecords(allRecords);
+  showTab('entity_' + typeId, null);
+}
+
+function entityDeleteRecord(typeId, recId) {
+  if (!confirm('Supprimer définitivement cet enregistrement ?')) return;
+  const allRecords = _getEntityRecords();
+  const rec = allRecords.find(r => r._id === recId);
+  if (rec) { rec._status = 'supprime'; rec._deletedAt = new Date().toISOString(); rec._deletedBy = user.login || user.id; }
+  _saveEntityRecords(allRecords);
+  showTab('entity_' + typeId, null);
+}
+
+/* ── Aperçu complet d'un enregistrement ── */
+function entityPreviewRecord(typeId, recId) {
+  const types = _getEntityTypes();
+  const type = types.find(x => x.id === typeId);
+  if (!type) return;
+  const allRecords = _getEntityRecords();
+  const rec = allRecords.find(r => r._id === recId);
+  if (!rec) return;
+
+  const LAYOUT = new Set(['separator','heading','pagebreak','hidden','captcha','signature']);
+  const fields = type.fields.filter(f => !LAYOUT.has(f.type));
+  const isBlocked = rec._status === 'bloque';
+
+  let rows = fields.map(f => {
+    const val = rec[f.id];
+    let display = '';
+    if (val == null || val === '') display = '<span class="text-muted fst-italic">—</span>';
+    else if (f.type === 'checkbox') display = val ? '<i class="bi bi-check-circle-fill text-success"></i> Oui' : '<i class="bi bi-x-circle text-danger"></i> Non';
+    else if (f.type === 'rating') display = '<span style="color:#f59e0b;font-size:1.1rem;">' + '★'.repeat(+val || 0) + '☆'.repeat(5 - (+val || 0)) + '</span>';
+    else if (f.type === 'color') display = `<span style="display:inline-block;width:22px;height:22px;border-radius:6px;background:${AUTH.esc(String(val))};vertical-align:middle;border:1px solid #ccc;"></span> <code>${AUTH.esc(String(val))}</code>`;
+    else if (f.type === 'checkbox-group' && Array.isArray(val)) display = val.map(v => `<span class="badge bg-primary me-1">${AUTH.esc(v)}</span>`).join('');
+    else if (f.type === 'location' && typeof val === 'object') display = `<i class="bi bi-geo-alt text-danger"></i> ${val.lat||'?'}, ${val.lng||'?'}`;
+    else if (f.type === 'textarea') display = `<div class="bg-light rounded p-2" style="white-space:pre-wrap;font-size:.88rem;">${AUTH.esc(String(val))}</div>`;
+    else if (f.type === 'url') display = `<a href="${AUTH.esc(String(val))}" target="_blank" rel="noopener">${AUTH.esc(String(val))}</a>`;
+    else if (f.type === 'email') display = `<a href="mailto:${AUTH.esc(String(val))}">${AUTH.esc(String(val))}</a>`;
+    else display = AUTH.esc(String(val));
+
+    return `<tr><td class="fw-semibold text-nowrap" style="width:180px;vertical-align:top;">${AUTH.esc(f.label)}</td><td>${display}</td></tr>`;
+  }).join('');
+
+  const area = document.getElementById('tab-content');
+  area.innerHTML = `
+    <div class="d-flex align-items-center gap-3 mb-3">
+      <button class="btn btn-sm btn-outline-secondary" onclick="showTab('entity_${AUTH.esc(typeId)}',null)"><i class="bi bi-arrow-left me-1"></i>Retour</button>
+      <h2 class="h5 fw-bold mb-0"><i class="bi bi-eye me-2"></i>Aperçu : ${AUTH.esc(type.name)}</h2>
+      ${isBlocked ? '<span class="badge bg-warning text-dark">Bloqué</span>' : '<span class="badge bg-success">Actif</span>'}
+    </div>
+    <div class="card border-0 shadow-sm" style="border-radius:12px;max-width:800px;">
+      <div class="card-body p-4">
+        <table class="table table-borderless mb-0" style="font-size:.9rem;">
+          <tbody>
+            ${rows}
+            <tr class="border-top"><td class="fw-semibold text-muted">Créé le</td><td>${AUTH.esc((rec._createdAt||'').slice(0,16).replace('T',' '))}</td></tr>
+            <tr><td class="fw-semibold text-muted">Créé par</td><td>${AUTH.esc(rec._createdBy||'—')}</td></tr>
+            ${rec._updatedAt ? `<tr><td class="fw-semibold text-muted">Modifié le</td><td>${AUTH.esc(rec._updatedAt.slice(0,16).replace('T',' '))} par ${AUTH.esc(rec._updatedBy||'—')}</td></tr>` : ''}
+            ${rec._blockedAt ? `<tr><td class="fw-semibold text-muted">Bloqué le</td><td>${AUTH.esc(rec._blockedAt.slice(0,16).replace('T',' '))} par ${AUTH.esc(rec._blockedBy||'—')}</td></tr>` : ''}
+          </tbody>
+        </table>
+      </div>
+    </div>`;
+}
+
+/* ── Vider un acte (supprimer tous les enregistrements) ── */
+function entityEmptyType(typeId) {
+  const types = _getEntityTypes();
+  const type = types.find(x => x.id === typeId);
+  if (!type) return;
+  const allRecords = _getEntityRecords();
+  const count = allRecords.filter(r => r._typeId === typeId && r._status !== 'supprime').length;
+  if (!count) { alert('Aucun enregistrement à vider.'); return; }
+  if (!confirm(`Vider l'acte « ${type.name} » ?\n\nCela marquera ${count} enregistrement(s) comme supprimé(s).\nCette action est irréversible.`)) return;
+  const now = new Date().toISOString();
+  allRecords.forEach(r => {
+    if (r._typeId === typeId && r._status !== 'supprime') {
+      r._status = 'supprime'; r._deletedAt = now; r._deletedBy = user.login || user.id;
+    }
+  });
+  _saveEntityRecords(allRecords);
+  showTab('entity_' + typeId, null);
+}
+
+/* ── Supprimer un acte (type + tables liées) ── */
+function entityDeleteType(typeId) {
+  const types = _getEntityTypes();
+  const type = types.find(x => x.id === typeId);
+  if (!type) return;
+  const allRecords = _getEntityRecords();
+  const relatedCount = allRecords.filter(r => r._typeId === typeId && r._status !== 'supprime').length;
+
+  // Dialogue avec choix
+  const area = document.getElementById('tab-content');
+  area.innerHTML = `
+    <div class="d-flex align-items-center gap-3 mb-3">
+      <button class="btn btn-sm btn-outline-secondary" onclick="showTab('entity_${AUTH.esc(typeId)}',null)"><i class="bi bi-arrow-left me-1"></i>Retour</button>
+      <h2 class="h5 fw-bold mb-0 text-danger"><i class="bi bi-exclamation-triangle me-2"></i>Supprimer l'acte « ${AUTH.esc(type.name)} »</h2>
+    </div>
+    <div class="card border-danger" style="border-radius:14px;max-width:600px;">
+      <div class="card-body p-4">
+        <div class="alert alert-danger mb-3">
+          <i class="bi bi-exclamation-triangle-fill me-2"></i>
+          <strong>Attention !</strong> Cette action est irréversible.
+        </div>
+        <p class="mb-2">L'acte <strong>« ${AUTH.esc(type.name)} »</strong> contient <strong>${relatedCount}</strong> enregistrement(s) actif(s)/bloqué(s).</p>
+        <p class="text-muted small mb-3">Choisissez ce que vous souhaitez faire :</p>
+
+        <div class="d-grid gap-2">
+          <button class="btn btn-outline-warning" onclick="entityDeleteTypeConfirm('${AUTH.esc(typeId)}','empty')">
+            <i class="bi bi-trash3 me-2"></i>Vider les tables puis supprimer l'acte
+            <div class="small text-muted">Les enregistrements seront marqués supprimés, puis le type sera supprimé</div>
+          </button>
+          <button class="btn btn-outline-danger" onclick="entityDeleteTypeConfirm('${AUTH.esc(typeId)}','delete')">
+            <i class="bi bi-x-circle me-2"></i>Supprimer l'acte ET toutes les tables
+            <div class="small text-muted">Le type et tous les enregistrements seront définitivement supprimés</div>
+          </button>
+          <button class="btn btn-outline-secondary" onclick="showTab('entity_${AUTH.esc(typeId)}',null)">
+            <i class="bi bi-arrow-left me-1"></i>Annuler
+          </button>
+        </div>
+      </div>
+    </div>`;
+}
+
+function entityDeleteTypeConfirm(typeId, mode) {
+  const types = _getEntityTypes();
+  const type = types.find(x => x.id === typeId);
+  if (!type) return;
+  if (!confirm(`Confirmer la suppression de l'acte « ${type.name} » ?\n\nMode : ${mode === 'delete' ? 'Suppression totale (type + données)' : 'Vidage puis suppression du type'}`)) return;
+
+  const allRecords = _getEntityRecords();
+  const now = new Date().toISOString();
+
+  if (mode === 'empty') {
+    // Marquer tous les enregistrements comme supprimés (soft delete)
+    allRecords.forEach(r => {
+      if (r._typeId === typeId && r._status !== 'supprime') {
+        r._status = 'supprime'; r._deletedAt = now; r._deletedBy = user.login || user.id;
+      }
+    });
+    _saveEntityRecords(allRecords);
+  } else {
+    // Suppression définitive des enregistrements
+    const remaining = allRecords.filter(r => r._typeId !== typeId);
+    _saveEntityRecords(remaining);
+  }
+
+  // Supprimer le type
+  const newTypes = types.filter(x => x.id !== typeId);
+  localStorage.setItem('attt_entity_types', JSON.stringify(newTypes));
+  if (typeof DB !== 'undefined') DB.save('attt_entity_types', newTypes);
+
+  // Retour à l'accueil
+  showTab('accueil', null);
+  // Reconstruire la sidebar pour retirer l'entrée
+  buildSidebar();
+}
+
 /* ── Helpers ── */
 function actCard(ev, type) {
   const d = ev.dateDebut ? new Date(ev.dateDebut) : null;
@@ -591,6 +1098,745 @@ function emptyState(icon, msg) {
 }
 
 /* ═══════════════════════════════════════════════════════
+   MISES À JOUR — Tester puis publier
+═══════════════════════════════════════════════════════ */
+function renderUpdatesPanel(area) {
+  const canTest    = !AUTH.hasPermission || AUTH.hasPermission('Tester mise à jour', user);
+  const canPublish = !AUTH.hasPermission || AUTH.hasPermission('Publier mise à jour', user);
+
+  const K_UPDATES = 'attt_updates';
+  let updates;
+  try { updates = JSON.parse(localStorage.getItem(K_UPDATES) || '{}'); } catch { updates = {}; }
+  if (!updates.history) updates.history = [];
+
+  const current = updates.currentVersion || '—';
+  const staged  = updates.stagedVersion || null;
+  const stagedNotes = updates.stagedNotes || '';
+  const stagedDate  = updates.stagedDate || '';
+  const isPublished = !staged;
+
+  let html = `
+    <h2 class="h5 fw-bold mb-1"><i class="bi bi-cloud-arrow-up me-2"></i>Mises à jour</h2>
+    <p class="text-muted small mb-4">Testez les modifications avant de les publier pour tous les utilisateurs.</p>
+
+    <!-- Version actuelle -->
+    <div class="card border-0 shadow-sm mb-3" style="border-radius:14px;">
+      <div class="card-body d-flex align-items-center gap-3 p-3">
+        <div style="width:48px;height:48px;border-radius:12px;background:#eef5ff;display:flex;align-items:center;justify-content:center;">
+          <i class="bi bi-broadcast-pin fs-4" style="color:var(--cp);"></i>
+        </div>
+        <div>
+          <div class="fw-bold">Version publiée</div>
+          <div class="fs-4 fw-bold" style="color:var(--cp);">${AUTH.esc(current)}</div>
+        </div>
+        <span class="badge bg-success ms-auto">En production</span>
+      </div>
+    </div>
+
+    <!-- Version en test -->
+    ${staged ? `
+    <div class="card border-warning shadow-sm mb-3" style="border-radius:14px;border-width:2px;">
+      <div class="card-body p-3">
+        <div class="d-flex align-items-center gap-3">
+          <div style="width:48px;height:48px;border-radius:12px;background:#fff3cd;display:flex;align-items:center;justify-content:center;">
+            <i class="bi bi-flask fs-4 text-warning"></i>
+          </div>
+          <div class="flex-grow-1">
+            <div class="fw-bold">Version en test</div>
+            <div class="fs-4 fw-bold text-warning">${AUTH.esc(staged)}</div>
+            <div class="small text-muted mt-1">${stagedDate ? '<i class="bi bi-clock me-1"></i>Mise en test : ' + AUTH.esc(stagedDate.slice(0,16).replace('T',' ')) : ''}</div>
+            ${stagedNotes ? `<div class="small mt-1"><i class="bi bi-card-text me-1"></i>${AUTH.esc(stagedNotes)}</div>` : ''}
+          </div>
+          <span class="badge bg-warning text-dark">En test</span>
+        </div>
+        <hr class="my-2">
+        <div class="d-flex gap-2 flex-wrap">
+          ${canPublish ? `<button class="btn btn-success btn-sm" onclick="updatePublish()"><i class="bi bi-check-circle me-1"></i>Publier pour tous</button>` : ''}
+          ${canTest ? `<button class="btn btn-outline-danger btn-sm" onclick="updateCancelStaged()"><i class="bi bi-x-circle me-1"></i>Annuler cette mise en test</button>` : ''}
+        </div>
+      </div>
+    </div>
+    ` : ''}
+
+    <!-- Formulaire : préparer une mise à jour -->
+    ${canTest ? `
+    <div class="card border-0 shadow-sm mb-3" style="border-radius:14px;">
+      <div class="card-body p-3">
+        <h3 class="h6 fw-bold mb-3"><i class="bi bi-plus-circle me-2"></i>Préparer une mise à jour</h3>
+        <div class="row g-3">
+          <div class="col-md-4">
+            <label class="form-label small fw-semibold">Numéro de version</label>
+            <input class="form-control" id="update-version" placeholder="ex: 1.0.7" value="">
+          </div>
+          <div class="col-md-8">
+            <label class="form-label small fw-semibold">Notes de mise à jour</label>
+            <textarea class="form-control" id="update-notes" rows="2" placeholder="Décrivez les changements…"></textarea>
+          </div>
+        </div>
+        <div class="mt-3">
+          <button class="btn btn-warning btn-sm" onclick="updateStage()">
+            <i class="bi bi-flask me-1"></i>Mettre en test
+          </button>
+          <span class="text-muted small ms-2">La mise à jour sera visible uniquement par les testeurs autorisés</span>
+        </div>
+      </div>
+    </div>
+    ` : ''}
+
+    <!-- Historique -->
+    <div class="card border-0 shadow-sm" style="border-radius:14px;">
+      <div class="card-body p-3">
+        <h3 class="h6 fw-bold mb-3"><i class="bi bi-clock-history me-2"></i>Historique des mises à jour</h3>
+        ${updates.history.length ? `
+          <div class="list-group list-group-flush">
+            ${updates.history.slice().reverse().map(h => `
+              <div class="list-group-item px-0 py-2 border-bottom">
+                <div class="d-flex justify-content-between align-items-center">
+                  <div>
+                    <span class="fw-bold">${AUTH.esc(h.version)}</span>
+                    <span class="badge ${h.action === 'publié' ? 'bg-success' : h.action === 'test' ? 'bg-warning text-dark' : 'bg-secondary'} ms-2">${AUTH.esc(h.action)}</span>
+                  </div>
+                  <span class="small text-muted">${AUTH.esc((h.date||'').slice(0,16).replace('T',' '))}</span>
+                </div>
+                ${h.notes ? `<div class="small text-muted mt-1">${AUTH.esc(h.notes)}</div>` : ''}
+                <div class="small text-muted">par ${AUTH.esc(h.by || '—')}</div>
+              </div>
+            `).join('')}
+          </div>
+        ` : '<div class="text-muted small">Aucun historique pour le moment.</div>'}
+      </div>
+    </div>`;
+
+  area.innerHTML = html;
+}
+
+/* ── Actions mises à jour ── */
+function _getUpdatesData() {
+  try { return JSON.parse(localStorage.getItem('attt_updates') || '{}'); } catch { return {}; }
+}
+function _saveUpdatesData(data) {
+  localStorage.setItem('attt_updates', JSON.stringify(data));
+  if (typeof DB !== 'undefined') DB.save('attt_updates', data);
+}
+
+function updateStage() {
+  const version = (document.getElementById('update-version')?.value || '').trim();
+  const notes = (document.getElementById('update-notes')?.value || '').trim();
+  if (!version) { alert('Veuillez saisir un numéro de version.'); return; }
+  if (!confirm(`Mettre la version ${version} en test ?`)) return;
+
+  const data = _getUpdatesData();
+  if (!data.history) data.history = [];
+  data.stagedVersion = version;
+  data.stagedNotes = notes;
+  data.stagedDate = new Date().toISOString();
+  data.stagedBy = user.login || user.id;
+  data.history.push({ version, notes, action: 'test', date: data.stagedDate, by: data.stagedBy });
+  _saveUpdatesData(data);
+  showTab('mises-a-jour', null);
+}
+
+function updatePublish() {
+  const data = _getUpdatesData();
+  if (!data.stagedVersion) { alert('Aucune mise à jour en test.'); return; }
+  if (!confirm(`Publier la version ${data.stagedVersion} pour tous les utilisateurs ?\n\nLa bannière de mise à jour sera affichée sur tous les appareils.`)) return;
+
+  const now = new Date().toISOString();
+  if (!data.history) data.history = [];
+  data.history.push({ version: data.stagedVersion, notes: data.stagedNotes || '', action: 'publié', date: now, by: user.login || user.id });
+  data.currentVersion = data.stagedVersion;
+  data.publishedDate = now;
+  data.publishedBy = user.login || user.id;
+
+  // Mettre à jour version.json dans localStorage + Firestore
+  try {
+    let vj = {};
+    try { vj = JSON.parse(localStorage.getItem('attt_version_json') || '{}'); } catch { vj = {}; }
+    vj.version = data.stagedVersion;
+    vj.datePublication = now.slice(0,10);
+    vj.changelog = data.stagedNotes || 'Nouvelle version disponible';
+    vj.forceUpdate = false;
+    if (!vj.platforms) vj.platforms = {};
+    ['windows','android','pwa'].forEach(p => {
+      if (!vj.platforms[p]) vj.platforms[p] = {};
+      vj.platforms[p].version = data.stagedVersion;
+    });
+    localStorage.setItem('attt_version_json', JSON.stringify(vj));
+    if (typeof DB !== 'undefined') DB.save('attt_version_json', vj);
+  } catch { /* */ }
+
+  // Activer la bannière de mise à jour pour les utilisateurs
+  var pubAt = new Date().toISOString();
+  try {
+    const ms = JSON.parse(localStorage.getItem('attt_master_settings') || '{}');
+    ms.showUpdateBanner = true;
+    ms.version = data.stagedVersion;
+    ms.publishedAt = pubAt;
+    localStorage.setItem('attt_master_settings', JSON.stringify(ms));
+    if (typeof DB !== 'undefined') DB.save('attt_master_settings', ms);
+  } catch { /* */ }
+
+  data.stagedVersion = null;
+  data.stagedNotes = '';
+  data.stagedDate = '';
+  data.stagedBy = '';
+  _saveUpdatesData(data);
+
+  // Marquer la version comme vue sur l'appareil du maître (pas de bannière pour lui)
+  localStorage.setItem('attt_seen_site_version', data.currentVersion);
+  localStorage.setItem('attt_seen_publish_time', pubAt);
+
+  showTab('mises-a-jour', null);
+}
+
+function updateCancelStaged() {
+  const data = _getUpdatesData();
+  if (!data.stagedVersion) return;
+  if (!confirm(`Annuler la mise en test de la version ${data.stagedVersion} ?`)) return;
+
+  if (!data.history) data.history = [];
+  data.history.push({ version: data.stagedVersion, notes: data.stagedNotes || '', action: 'annulé', date: new Date().toISOString(), by: user.login || user.id });
+  data.stagedVersion = null;
+  data.stagedNotes = '';
+  data.stagedDate = '';
+  data.stagedBy = '';
+  _saveUpdatesData(data);
+  showTab('mises-a-jour', null);
+}
+
+/* ═══════════════════════════════════════════════════════
+   PANNEAU MAÎTRE
+═══════════════════════════════════════════════════════ */
+function renderMasterPanel(area) {
+  // Charger les settings maître depuis localStorage
+  const K_MASTER = 'attt_master_settings';
+  let settings;
+  try { settings = JSON.parse(localStorage.getItem(K_MASTER) || '{}'); } catch { settings = {}; }
+
+  // Version actuelle
+  const currentVersion = settings.version || '1.0.6';
+  const showUpdateBanner = settings.showUpdateBanner !== false;
+
+  // Liens utiles
+  const defaultLinks = [
+    { label:'Console Firebase', url:'https://console.firebase.google.com/project/amicale-attt', icon:'bi-cloud' },
+    { label:'Firestore Database', url:'https://console.firebase.google.com/project/amicale-attt/firestore', icon:'bi-database' },
+    { label:'Google Drive', url:'https://drive.google.com/drive/u/0/', icon:'bi-folder' },
+    { label:'Site en production', url: window.location.origin, icon:'bi-globe2' },
+    { label:'Google Cloud Console', url:'https://console.cloud.google.com', icon:'bi-gear' },
+  ];
+  const links = settings.links || defaultLinks;
+
+  // Credentials
+  const defaultCreds = [
+    { service:'Firebase', login:'attt.amicale.tunisie@gmail.com', pass:'(cliquer ✏ pour définir)' },
+    { service:'Hébergement', login:'347', pass:'90134111' },
+  ];
+  const creds = settings.credentials || defaultCreds;
+
+  let html = `
+  <div class="mb-4">
+    <h2 class="h5 fw-bold mb-1"><i class="bi bi-cpu me-2"></i>Panneau Maître</h2>
+    <p class="text-muted small mb-0">Configuration avancée réservée au maître du site.</p>
+  </div>
+
+  <div class="row g-4">
+
+    <!-- ═══ VERSION ═══ -->
+    <div class="col-lg-6">
+      <div class="card border-0 shadow-sm" style="border-radius:12px;">
+        <div class="card-header bg-white border-0 fw-bold" style="border-radius:12px 12px 0 0;">
+          <i class="bi bi-cloud-upload me-2 text-primary"></i>Version & Mise à jour
+        </div>
+        <div class="card-body">
+          <div class="d-flex align-items-center gap-3 mb-3">
+            <div style="width:56px;height:56px;border-radius:12px;background:var(--cp);display:flex;align-items:center;justify-content:center;">
+              <span class="text-white fw-bold fs-5">v</span>
+            </div>
+            <div>
+              <div class="fw-bold fs-4" style="color:var(--cp);line-height:1;" id="master-version-display">${AUTH.esc(currentVersion)}</div>
+              <div class="text-muted small">Version actuelle du site</div>
+            </div>
+          </div>
+          <div class="mb-3">
+            <label class="form-label fw-semibold small">Numéro de version</label>
+            <input type="text" class="form-control" id="master-version" value="${AUTH.esc(currentVersion)}" placeholder="ex: 1.0.7" />
+          </div>
+          <div class="form-check form-switch mb-3">
+            <input class="form-check-input" type="checkbox" id="master-show-update" ${showUpdateBanner ? 'checked' : ''} />
+            <label class="form-check-label small" for="master-show-update">Afficher la bannière de mise à jour aux utilisateurs</label>
+          </div>
+          <button class="btn btn-attt btn-sm" onclick="masterSaveVersion()">
+            <i class="bi bi-check-circle me-1"></i>Enregistrer la version
+          </button>
+        </div>
+      </div>
+    </div>
+
+    <!-- ═══ IDENTIFIANTS ═══ -->
+    <div class="col-lg-6">
+      <div class="card border-0 shadow-sm" style="border-radius:12px;">
+        <div class="card-header bg-white border-0 fw-bold d-flex justify-content-between" style="border-radius:12px 12px 0 0;">
+          <span><i class="bi bi-key me-2 text-warning"></i>Identifiants & Accès</span>
+          <button class="btn btn-sm btn-outline-primary" onclick="masterAddCredential()" style="font-size:.75rem;">
+            <i class="bi bi-plus me-1"></i>Ajouter
+          </button>
+        </div>
+        <div class="card-body p-0">
+          <div class="table-responsive">
+            <table class="table table-sm mb-0" style="font-size:.85rem;">
+              <thead><tr class="table-light"><th>Service</th><th>Login</th><th>Mot de passe</th><th></th></tr></thead>
+              <tbody id="master-creds-body">`;
+
+  creds.forEach((c, i) => {
+    html += `<tr>
+      <td class="fw-semibold">${AUTH.esc(c.service)}</td>
+      <td><code class="bg-light px-1">${AUTH.esc(c.login)}</code></td>
+      <td>
+        <span class="master-pass-hidden d-none" id="pass-hidden-${i}">${'•'.repeat(Math.max(6, (c.pass||'').length))}</span>
+        <span class="master-pass-visible" id="pass-visible-${i}"><code class="bg-light px-1">${AUTH.esc(c.pass)}</code></span>
+        <button class="btn btn-sm btn-link p-0 ms-1" onclick="masterTogglePass(${i})" title="Afficher/masquer">
+          <i class="bi bi-eye-slash" id="pass-eye-${i}"></i>
+        </button>
+      </td>
+      <td>
+        <button class="btn btn-sm btn-outline-danger p-0 px-1" onclick="masterDeleteCredential(${i})" title="Supprimer">
+          <i class="bi bi-trash"></i>
+        </button>
+      </td>
+    </tr>`;
+  });
+
+  html += `</tbody></table></div></div></div></div>
+
+    <!-- ═══ LIENS UTILES ═══ -->
+    <div class="col-lg-6">
+      <div class="card border-0 shadow-sm" style="border-radius:12px;">
+        <div class="card-header bg-white border-0 fw-bold d-flex justify-content-between" style="border-radius:12px 12px 0 0;">
+          <span><i class="bi bi-link-45deg me-2 text-success"></i>Liens utiles</span>
+          <button class="btn btn-sm btn-outline-primary" onclick="masterAddLink()" style="font-size:.75rem;">
+            <i class="bi bi-plus me-1"></i>Ajouter
+          </button>
+        </div>
+        <div class="card-body" id="master-links-body">`;
+
+  links.forEach((lk, i) => {
+    html += `<div class="d-flex align-items-center gap-2 py-2 ${i < links.length-1 ? 'border-bottom' : ''}">
+      <i class="bi ${AUTH.esc(lk.icon||'bi-link')} text-primary"></i>
+      <a href="${AUTH.esc(lk.url)}" target="_blank" rel="noopener" class="fw-semibold text-decoration-none flex-grow-1" style="font-size:.88rem;">${AUTH.esc(lk.label)}</a>
+      <button class="btn btn-sm btn-outline-danger p-0 px-1" onclick="masterDeleteLink(${i})" title="Supprimer"><i class="bi bi-trash"></i></button>
+    </div>`;
+  });
+
+  html += `</div></div></div>
+
+    <!-- ═══ CHANGER LOGIN / MOT DE PASSE MAÎTRE ═══ -->
+    <div class="col-lg-6">
+      <div class="card border-0 shadow-sm" style="border-radius:12px;">
+        <div class="card-header bg-white border-0 fw-bold" style="border-radius:12px 12px 0 0;">
+          <i class="bi bi-shield-lock me-2 text-danger"></i>Changer mes identifiants
+        </div>
+        <div class="card-body">
+          <div class="mb-3">
+            <label class="form-label fw-semibold small">Nouveau login</label>
+            <input type="text" class="form-control" id="master-new-login" value="${AUTH.esc(user.login||'')}" />
+          </div>
+          <div class="mb-3">
+            <label class="form-label fw-semibold small">Nouveau mot de passe</label>
+            <div class="input-group">
+              <input type="password" class="form-control" id="master-new-pass" placeholder="Laisser vide pour ne pas changer" />
+              <button class="btn btn-outline-secondary" type="button" onclick="const i=document.getElementById('master-new-pass');i.type=i.type==='password'?'text':'password';">
+                <i class="bi bi-eye"></i>
+              </button>
+            </div>
+          </div>
+          <button class="btn btn-danger btn-sm" onclick="masterChangeCredentials()">
+            <i class="bi bi-save me-1"></i>Modifier mes identifiants
+          </button>
+        </div>
+      </div>
+    </div>
+
+    <!-- ═══ JOURNAL RAPIDE ═══ -->
+    <div class="col-12">
+      <div class="card border-0 shadow-sm" style="border-radius:12px;">
+        <div class="card-header bg-white border-0 fw-bold d-flex justify-content-between" style="border-radius:12px 12px 0 0;">
+          <span><i class="bi bi-journal-text me-2 text-info"></i>Journal des opérations (dernières 20)</span>
+          <a href="journal.html" class="btn btn-sm btn-outline-primary" style="font-size:.75rem;">Voir tout</a>
+        </div>
+        <div class="card-body p-0">
+          <div class="table-responsive" style="max-height:300px;overflow-y:auto;">
+            <table class="table table-sm table-striped mb-0" style="font-size:.82rem;">
+              <thead class="table-light"><tr><th>Date</th><th>Action</th><th>Utilisateur</th><th>Détails</th></tr></thead>
+              <tbody id="master-journal-body"></tbody>
+            </table>
+          </div>
+        </div>
+      </div>
+    </div>
+
+  </div>`;
+
+  area.innerHTML = html;
+
+  // Charger journal
+  _masterLoadJournal();
+}
+
+/* ── Master helper functions ── */
+function _masterGetSettings() {
+  try { return JSON.parse(localStorage.getItem('attt_master_settings') || '{}'); } catch { return {}; }
+}
+function _masterSaveSettings(s) {
+  localStorage.setItem('attt_master_settings', JSON.stringify(s));
+  if (typeof DB !== 'undefined' && DB.save) DB.save('attt_master_settings', s);
+}
+
+function masterSaveVersion() {
+  const ver = document.getElementById('master-version').value.trim();
+  const show = document.getElementById('master-show-update').checked;
+  if (!ver) { alert('Veuillez saisir un numéro de version.'); return; }
+  const s = _masterGetSettings();
+  s.version = ver;
+  s.showUpdateBanner = show;
+  s.publishedAt = new Date().toISOString();
+  _masterSaveSettings(s);
+
+  // Mettre à jour version.json dans localStorage + Firestore
+  try {
+    let vj = {};
+    try { vj = JSON.parse(localStorage.getItem('attt_version_json') || '{}'); } catch { vj = {}; }
+    vj.version = ver;
+    vj.datePublication = new Date().toISOString().slice(0,10);
+    vj.forceUpdate = false;
+    if (!vj.platforms) vj.platforms = {};
+    ['windows','android','pwa'].forEach(p => {
+      if (!vj.platforms[p]) vj.platforms[p] = {};
+      vj.platforms[p].version = ver;
+    });
+    if (show) {
+      vj.changelog = 'Mise à jour disponible — veuillez mettre à jour';
+    }
+    localStorage.setItem('attt_version_json', JSON.stringify(vj));
+    if (typeof DB !== 'undefined' && DB.push) DB.push('attt_version_json', vj);
+  } catch(e){ console.warn('[MASTER] Erreur MAJ version.json:', e); }
+
+  // Forcer la mise à jour de la bannière pour tous les visiteurs
+  // Sur l'appareil du maître, marquer la version comme vue
+  localStorage.setItem('attt_seen_site_version', ver);
+  localStorage.setItem('attt_seen_publish_time', s.publishedAt);
+  if (show && typeof VERSION_CHECK !== 'undefined') {
+    VERSION_CHECK.clearCache();
+    // Ne pas déclencher la bannière sur l'appareil du maître
+  }
+
+  document.getElementById('master-version-display').textContent = ver;
+  alert('✓ Version mise à jour : ' + ver + (show ? '\n\nLa bannière de mise à jour sera affichée à tous les utilisateurs lors de leur prochaine visite.' : ''));
+}
+
+function masterTogglePass(i) {
+  const h = document.getElementById('pass-hidden-' + i);
+  const v = document.getElementById('pass-visible-' + i);
+  const eye = document.getElementById('pass-eye-' + i);
+  if (h && v) {
+    const show = !v.classList.contains('d-none');
+    if (show) {
+      v.classList.add('d-none'); h.classList.remove('d-none');
+      if (eye) eye.className = 'bi bi-eye';
+    } else {
+      v.classList.remove('d-none'); h.classList.add('d-none');
+      if (eye) eye.className = 'bi bi-eye-slash';
+    }
+  }
+}
+
+function masterAddCredential() {
+  const service = prompt('Nom du service :');
+  if (!service) return;
+  const login = prompt('Login :');
+  if (login === null) return;
+  const pass = prompt('Mot de passe :');
+  if (pass === null) return;
+  const s = _masterGetSettings();
+  if (!s.credentials) s.credentials = [
+    { service:'Firebase', login:'attt.amicale.tunisie@gmail.com', pass:'•••••••' },
+    { service:'Hébergement', login:'347', pass:'90134111' },
+  ];
+  s.credentials.push({ service, login, pass });
+  _masterSaveSettings(s);
+  showTab('master-panel', null);
+}
+
+function masterDeleteCredential(i) {
+  if (!confirm('Supprimer cet identifiant ?')) return;
+  const s = _masterGetSettings();
+  if (!s.credentials) return;
+  s.credentials.splice(i, 1);
+  _masterSaveSettings(s);
+  showTab('master-panel', null);
+}
+
+function masterAddLink() {
+  const label = prompt('Nom du lien :');
+  if (!label) return;
+  const url = prompt('URL :');
+  if (!url) return;
+  const s = _masterGetSettings();
+  if (!s.links) s.links = [
+    { label:'Console Firebase', url:'https://console.firebase.google.com/project/amicale-attt', icon:'bi-cloud' },
+    { label:'Site en production', url: window.location.origin, icon:'bi-globe2' },
+  ];
+  s.links.push({ label, url, icon:'bi-link' });
+  _masterSaveSettings(s);
+  showTab('master-panel', null);
+}
+
+function masterDeleteLink(i) {
+  if (!confirm('Supprimer ce lien ?')) return;
+  const s = _masterGetSettings();
+  if (!s.links) return;
+  s.links.splice(i, 1);
+  _masterSaveSettings(s);
+  showTab('master-panel', null);
+}
+
+function masterChangeCredentials() {
+  const newLogin = document.getElementById('master-new-login').value.trim();
+  const newPass  = document.getElementById('master-new-pass').value;
+  if (!newLogin) { alert('Le login ne peut pas être vide.'); return; }
+  if (!confirm('Modifier vos identifiants de connexion ?')) return;
+
+  const changes = { login: newLogin };
+  if (newPass) changes.password = newPass;
+
+  try {
+    const result = AUTH.updateUser(user.id, changes);
+    if (result && result.ok === false) { alert(result.msg || 'Erreur'); return; }
+    user.login = newLogin;
+    if (newPass) user.password = newPass;
+    alert('✓ Identifiants modifiés.' + (newPass ? ' Nouveau mot de passe enregistré.' : ''));
+  } catch(e) {
+    alert('Erreur : ' + e.message);
+  }
+}
+
+function _masterLoadJournal() {
+  const tbody = document.getElementById('master-journal-body');
+  if (!tbody) return;
+  let logs = [];
+  try { logs = JSON.parse(localStorage.getItem('attt_journal') || '[]'); } catch {}
+  if (!logs.length) { tbody.innerHTML = '<tr><td colspan="4" class="text-center text-muted py-3">Aucune entrée</td></tr>'; return; }
+  const recent = logs.slice(-20).reverse();
+  tbody.innerHTML = recent.map(l => `<tr>
+    <td class="text-nowrap">${AUTH.esc((l.date||l.timestamp||'').slice(0,16).replace('T',' '))}</td>
+    <td>${AUTH.esc(l.action||l.type||'—')}</td>
+    <td>${AUTH.esc(l.user||l.userId||'—')}</td>
+    <td class="text-muted">${AUTH.esc((l.details||l.description||'').slice(0,80))}</td>
+  </tr>`).join('');
+}
+
+/* ═══════════════════════════════════════════════════════
+   ACCUEIL / DASHBOARD
+═══════════════════════════════════════════════════════ */
+function renderAccueilTab(area) {
+  const now = new Date();
+  const nowStr = now.toISOString().slice(0,10);
+  const MOIS = ['janvier','février','mars','avril','mai','juin','juillet','août','septembre','octobre','novembre','décembre'];
+  const dateStr = now.getDate() + ' ' + MOIS[now.getMonth()] + ' ' + now.getFullYear();
+
+  // Collecter les données
+  let events = [], offers = [], voyages = [], conventions = [], locations = [], votes = [], specials = [];
+  try { if (typeof EVENTS !== 'undefined' && EVENTS.getEvents) { events = EVENTS.getEvents(); specials = events.filter(e => e.special); } } catch(e){}
+  try { if (typeof OFFERS !== 'undefined' && OFFERS.getOffers) offers = OFFERS.getOffers(); } catch(e){}
+  try { if (typeof VOYAGES !== 'undefined' && VOYAGES.getVoyages) voyages = VOYAGES.getVoyages().filter(v => v.actif !== false); } catch(e){}
+  try { if (typeof CONVENTIONS !== 'undefined' && CONVENTIONS.getConventions) conventions = CONVENTIONS.getConventions(); } catch(e){}
+  try { if (typeof RENTALS !== 'undefined' && RENTALS.getRentals) locations = RENTALS.getRentals().filter(r => r.actif); } catch(e){}
+  try { if (typeof VOTES !== 'undefined' && VOTES.getVotes) votes = VOTES.getVotes(); } catch(e){}
+
+  const upcomingEvents = events.filter(e => e.dateDebut >= nowStr);
+  const openVotes = votes.filter(v => new Date(v.dateDebut) <= now && new Date(v.dateFin) >= now);
+  const entityTypes = _getEntityTypes();
+  const entityRecords = _getEntityRecords().filter(r => r._status === 'actif');
+
+  // ── KPI cards
+  const kpis = [
+    { icon:'bi-calendar-event', label:'Événements', count: upcomingEvents.length, color:'#003DA6', tab:'events' },
+    { icon:'bi-stars',          label:'Spéciaux',   count: specials.filter(e => e.dateDebut >= nowStr).length, color:'#d63384', tab:'special' },
+    { icon:'bi-compass',        label:'Voyages',    count: voyages.length, color:'#2e7d32', tab:'voyages' },
+    { icon:'bi-tag',            label:'Offres',     count: offers.length, color:'#f59e0b', tab:'offres' },
+    { icon:'bi-award',          label:'Conventions',count: conventions.length, color:'#7b1fa2', tab:'conventions' },
+    { icon:'bi-house-heart',    label:'Locations',  count: locations.length, color:'#d84315', tab:'locations' },
+    { icon:'bi-ballot',         label:'Votes ouverts', count: openVotes.length, color:'#0d6efd', tab:'votes' },
+  ];
+
+  let html = `
+  <div class="mb-4">
+    <div class="d-flex align-items-center gap-3 mb-1">
+      <h2 class="h5 fw-bold mb-0"><i class="bi bi-house-door me-2"></i>Tableau de bord</h2>
+      <span class="text-muted small"><i class="bi bi-calendar3 me-1"></i>${dateStr}</span>
+    </div>
+    <p class="text-muted small mb-0">Bienvenue dans votre espace membre. Voici un résumé de l'activité de l'amicale.</p>
+  </div>
+
+  <!-- KPI CARDS -->
+  <div class="row g-3 mb-4">`;
+
+  kpis.forEach(k => {
+    html += `
+    <div class="col-6 col-md-4 col-lg-3">
+      <div class="card border-0 shadow-sm h-100" style="cursor:pointer;border-left:4px solid ${k.color}!important;border-radius:12px;" onclick="showTab('${k.tab}',null)">
+        <div class="card-body py-3 px-3 d-flex align-items-center gap-3">
+          <div style="width:42px;height:42px;border-radius:10px;background:${k.color}15;display:flex;align-items:center;justify-content:center;">
+            <i class="bi ${k.icon}" style="font-size:1.2rem;color:${k.color};"></i>
+          </div>
+          <div>
+            <div class="fw-bold fs-5" style="color:${k.color};line-height:1;">${k.count}</div>
+            <div class="text-muted" style="font-size:.78rem;">${k.label}</div>
+          </div>
+        </div>
+      </div>
+    </div>`;
+  });
+
+  // Actes personnalisés dans les KPI
+  entityTypes.forEach(t => {
+    const cnt = entityRecords.filter(r => r._typeId === t.id).length;
+    html += `
+    <div class="col-6 col-md-4 col-lg-3">
+      <div class="card border-0 shadow-sm h-100" style="cursor:pointer;border-left:4px solid var(--cp)!important;border-radius:12px;" onclick="showTab('entity_${t.id}',null)">
+        <div class="card-body py-3 px-3 d-flex align-items-center gap-3">
+          <div style="width:42px;height:42px;border-radius:10px;background:rgba(0,61,166,.08);display:flex;align-items:center;justify-content:center;">
+            <i class="bi ${AUTH.esc(t.icon||'bi-file-earmark')}" style="font-size:1.2rem;color:var(--cp);"></i>
+          </div>
+          <div>
+            <div class="fw-bold fs-5" style="color:var(--cp);line-height:1;">${cnt}</div>
+            <div class="text-muted" style="font-size:.78rem;">${AUTH.esc(t.name)}</div>
+          </div>
+        </div>
+      </div>
+    </div>`;
+  });
+
+  html += '</div>';
+
+  // ── PROCHAINS ÉVÉNEMENTS (max 3)
+  const nextEvents = upcomingEvents.sort((a,b) => a.dateDebut.localeCompare(b.dateDebut)).slice(0, 3);
+  if (nextEvents.length) {
+    html += `<div class="row g-4"><div class="col-lg-6">
+      <div class="card border-0 shadow-sm" style="border-radius:12px;">
+        <div class="card-header bg-white border-0 d-flex justify-content-between align-items-center" style="border-radius:12px 12px 0 0;">
+          <span class="fw-bold"><i class="bi bi-calendar-event me-2" style="color:var(--cp);"></i>Prochains événements</span>
+          <button class="btn btn-sm btn-outline-primary" onclick="showTab('events',null)" style="font-size:.78rem;">Voir tout</button>
+        </div>
+        <div class="card-body pt-0">`;
+    nextEvents.forEach(ev => {
+      const d = ev.dateDebut ? new Date(ev.dateDebut) : null;
+      html += `<div class="d-flex gap-3 align-items-center py-2 ${nextEvents.indexOf(ev) < nextEvents.length-1 ? 'border-bottom' : ''}">
+        ${d ? `<div class="text-center" style="min-width:45px;"><div class="fw-bold fs-5" style="color:var(--cp);line-height:1;">${d.getDate()}</div><div class="text-muted" style="font-size:.7rem;text-transform:uppercase;">${MOIS_SHORT[d.getMonth()]}</div></div>` : ''}
+        <div class="flex-grow-1 min-w-0">
+          <div class="fw-semibold text-truncate">${AUTH.esc(ev.titre)}</div>
+          <div class="text-muted small">${AUTH.esc(ev.lieu||'')}${ev.placesDisponibles !== undefined ? ' · '+ev.placesDisponibles+' place(s)' : ''}</div>
+        </div>
+        ${ev.special ? '<span class="badge bg-danger">Spécial</span>' : ''}
+      </div>`;
+    });
+    html += '</div></div></div>';
+  }
+
+  // ── VOTES EN COURS (max 3)
+  if (openVotes.length) {
+    html += `<div class="col-lg-6">
+      <div class="card border-0 shadow-sm" style="border-radius:12px;">
+        <div class="card-header bg-white border-0 d-flex justify-content-between align-items-center" style="border-radius:12px 12px 0 0;">
+          <span class="fw-bold"><i class="bi bi-ballot me-2 text-primary"></i>Votes en cours</span>
+          <button class="btn btn-sm btn-outline-primary" onclick="showTab('votes',null)" style="font-size:.78rem;">Voir tout</button>
+        </div>
+        <div class="card-body pt-0">`;
+    openVotes.slice(0, 3).forEach((v, i) => {
+      const ends = new Date(v.dateFin);
+      const daysLeft = Math.ceil((ends - now) / 86400000);
+      html += `<div class="d-flex gap-3 align-items-center py-2 ${i < Math.min(openVotes.length, 3)-1 ? 'border-bottom' : ''}">
+        <div style="width:36px;height:36px;border-radius:8px;background:#0d6efd15;display:flex;align-items:center;justify-content:center;">
+          <i class="bi bi-ballot" style="color:#0d6efd;"></i>
+        </div>
+        <div class="flex-grow-1 min-w-0">
+          <div class="fw-semibold text-truncate">${AUTH.esc(v.titre)}</div>
+          <div class="text-muted small">${v.choix ? v.choix.length + ' choix' : ''} · ${daysLeft > 0 ? daysLeft + 'j restant(s)' : 'Dernier jour !'}</div>
+        </div>
+        <button class="btn btn-sm btn-primary" style="font-size:.75rem;" onclick="showTab('votes',null)">Voter</button>
+      </div>`;
+    });
+    html += '</div></div></div>';
+  }
+
+  // ── DERNIÈRES OFFRES (max 3)
+  if (offers.length) {
+    const recent = offers.slice(0, 3);
+    html += `<div class="col-lg-6">
+      <div class="card border-0 shadow-sm" style="border-radius:12px;">
+        <div class="card-header bg-white border-0 d-flex justify-content-between align-items-center" style="border-radius:12px 12px 0 0;">
+          <span class="fw-bold"><i class="bi bi-tag me-2" style="color:#f59e0b;"></i>Offres récentes</span>
+          <button class="btn btn-sm btn-outline-warning" onclick="showTab('offres',null)" style="font-size:.78rem;color:#b45309;">Voir tout</button>
+        </div>
+        <div class="card-body pt-0">`;
+    recent.forEach((o, i) => {
+      html += `<div class="d-flex gap-3 align-items-center py-2 ${i < recent.length-1 ? 'border-bottom' : ''}">
+        <div style="width:36px;height:36px;border-radius:8px;background:#f59e0b15;display:flex;align-items:center;justify-content:center;">
+          <i class="bi bi-tag" style="color:#f59e0b;"></i>
+        </div>
+        <div class="flex-grow-1 min-w-0">
+          <div class="fw-semibold text-truncate">${AUTH.esc(o.titre)}</div>
+          <div class="text-muted small">${AUTH.esc(o.description||'').slice(0,60)}${o.dateExpiration ? ' · Expire : ' + fmtDate(o.dateExpiration) : ''}</div>
+        </div>
+      </div>`;
+    });
+    html += '</div></div></div>';
+  }
+
+  // ── VOYAGES DISPONIBLES (max 3)
+  if (voyages.length) {
+    const recent = voyages.slice(0, 3);
+    html += `<div class="col-lg-6">
+      <div class="card border-0 shadow-sm" style="border-radius:12px;">
+        <div class="card-header bg-white border-0 d-flex justify-content-between align-items-center" style="border-radius:12px 12px 0 0;">
+          <span class="fw-bold"><i class="bi bi-compass me-2" style="color:#2e7d32;"></i>Voyages disponibles</span>
+          <button class="btn btn-sm btn-outline-success" onclick="showTab('voyages',null)" style="font-size:.78rem;">Voir tout</button>
+        </div>
+        <div class="card-body pt-0">`;
+    recent.forEach((v, i) => {
+      html += `<div class="d-flex gap-3 align-items-center py-2 ${i < recent.length-1 ? 'border-bottom' : ''}">
+        <div style="width:36px;height:36px;border-radius:8px;background:#2e7d3215;display:flex;align-items:center;justify-content:center;">
+          <i class="bi bi-compass" style="color:#2e7d32;"></i>
+        </div>
+        <div class="flex-grow-1 min-w-0">
+          <div class="fw-semibold text-truncate">${AUTH.esc(v.titre)}</div>
+          <div class="text-muted small">${fmtDate(v.dateDebut)} → ${fmtDate(v.dateFin)}${v.prix ? ' · ' + v.prix + ' TND' : ''}</div>
+        </div>
+      </div>`;
+    });
+    html += '</div></div></div>';
+  }
+
+  // Close row
+  if (nextEvents.length || openVotes.length || offers.length || voyages.length) html += '</div>';
+
+  // ── RACCOURCIS RAPIDES
+  html += `
+  <div class="mt-4">
+    <h6 class="fw-bold text-muted mb-3"><i class="bi bi-lightning me-1"></i>Accès rapide</h6>
+    <div class="d-flex flex-wrap gap-2">
+      <a href="profil.html" class="btn btn-outline-secondary btn-sm"><i class="bi bi-person-circle me-1"></i>Mon profil</a>
+      <a href="messagerie.html" class="btn btn-outline-secondary btn-sm"><i class="bi bi-chat-text me-1"></i>Messages</a>
+      <button class="btn btn-outline-secondary btn-sm" onclick="showTab('locations',null)"><i class="bi bi-house-heart me-1"></i>Locations</button>
+      <a href="galerie.html" target="_blank" class="btn btn-outline-secondary btn-sm"><i class="bi bi-images me-1"></i>Galerie</a>
+      <a href="actualites.html" target="_blank" class="btn btn-outline-secondary btn-sm"><i class="bi bi-newspaper me-1"></i>Actualités</a>
+    </div>
+  </div>`;
+
+  area.innerHTML = html;
+}
+
+/* ═══════════════════════════════════════════════════════
    INIT
 ═══════════════════════════════════════════════════════ */
 DB_READY.then(() => {
@@ -601,15 +1847,14 @@ DB_READY.then(() => {
   const ROLE_LABELS = { famille:'Membre', membre:'Membre', delegue:'Délégué', direction:'Direction', admin:'Administrateur' };
   if (roleBadge) roleBadge.textContent = ROLE_LABELS[user.role] || user.role;
 
-  // Build sidebar & tabs
+  // Build sidebar
   buildSidebar();
-  buildTabsBar();
 
   // Update badges
   function setBadge(id, count) {
     if (!count) return;
-    const els = [document.getElementById('sb-cnt-'+id), document.getElementById('tbadge-'+id)];
-    els.forEach(el => { if(el) { el.textContent = count; el.classList.remove('d-none'); } });
+    const el = document.getElementById('sb-cnt-'+id);
+    if (el) { el.textContent = count; el.classList.remove('d-none'); }
   }
 
   try {
@@ -631,6 +1876,14 @@ DB_READY.then(() => {
     }
   } catch(e){}
 
+  // Badges actes personnalisés
+  try {
+    _getEntityTypes().forEach(t => {
+      const count = _getEntityRecords().filter(r => r._typeId === t.id && r._status === 'actif').length;
+      setBadge('entity_' + t.id, count);
+    });
+  } catch(e){}
+
   // Messages badge
   try {
     if (typeof MESSAGING !== 'undefined' && MESSAGING.getUnread) {
@@ -643,7 +1896,7 @@ DB_READY.then(() => {
   } catch(e){}
 
   // Show first tab
-  renderTab('events', document.getElementById('tab-content'));
+  renderTab('accueil', document.getElementById('tab-content'));
 
   // Apply permissions
   AUTH.applyPermissions && AUTH.applyPermissions(document.body, user);
