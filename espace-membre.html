@@ -1317,25 +1317,19 @@ function renderMasterPanel(area) {
   const currentVersion = settings.version || '1.0.6';
   const showUpdateBanner = settings.showUpdateBanner !== false;
 
-  // Liens utiles
-  const defaultLinks = [
-    { label:'Console Firebase', url:'https://console.firebase.google.com/project/amicale-attt', icon:'bi-cloud' },
-    { label:'Firestore Database', url:'https://console.firebase.google.com/project/amicale-attt/firestore', icon:'bi-database' },
-    { label:'Google Drive', url:'https://drive.google.com/drive/u/1/my-drive', icon:'bi-folder' },
-    { label:'Site en production', url: window.location.origin, icon:'bi-globe2' },
-    { label:'Google Cloud Console', url:'https://console.cloud.google.com', icon:'bi-gear' },
+  // Accès unifiés (services + liens + identifiants)
+  const defaultAccess = [
+    { service:'Console Firebase', url:'https://console.firebase.google.com/project/amicale-attt', icon:'bi-cloud', login:'attt.amicale.tunisie@gmail.com', pass:'Attt@2026' },
+    { service:'Firestore Database', url:'https://console.firebase.google.com/project/amicale-attt/firestore', icon:'bi-database', login:'attt.amicale.tunisie@gmail.com', pass:'Attt@2026' },
+    { service:'Hébergement GitHub', url:'https://github.com/dtaattt2026-boop/amicale-attt-2026', icon:'bi-github', login:'347', pass:'90134111' },
+    { service:'Google Drive', url:'https://drive.google.com/drive/u/1/my-drive', icon:'bi-folder', login:'attt.amicale.tunisie@gmail.com', pass:'Attt@2026' },
+    { service:'Google Cloud Console', url:'https://console.cloud.google.com', icon:'bi-gear', login:'attt.amicale.tunisie@gmail.com', pass:'Attt@2026' },
+    { service:'Site en production', url:'https://dtaattt2026-boop.github.io/amicale-attt-2026/', icon:'bi-globe2', login:'', pass:'' },
+    { service:'Firebase API Key', url:'', icon:'bi-key', login:'AIzaSyAZs_Mok0RZLjqq360CNWVumLMg2Ia8pjU', pass:'' },
+    { service:'Firebase Project', url:'', icon:'bi-box', login:'amicale-attt', pass:'' },
+    { service:'Google Cloud Client ID', url:'', icon:'bi-fingerprint', login:'778227653817-sl5v7fatk6jq3fdovrvn823vkbjda444', pass:'' },
   ];
-  const links = settings.links || defaultLinks;
-
-  // Credentials
-  const defaultCreds = [
-    { service:'Firebase / Google', login:'attt.amicale.tunisie@gmail.com', pass:'Attt@2026' },
-    { service:'Hébergement (GitHub)', login:'347', pass:'90134111' },
-    { service:'Firebase API Key', login:'AIzaSyAZs_Mok0RZLjqq360CNWVumLMg2Ia8pjU', pass:'—' },
-    { service:'Firebase Project', login:'amicale-attt', pass:'—' },
-    { service:'Google Cloud Client ID', login:'778227653817-sl5v7fatk6jq3fdovrvn823vkbjda444', pass:'—' },
-  ];
-  const creds = settings.credentials || defaultCreds;
+  const access = settings.access || defaultAccess;
 
   let html = `
   <div class="mb-4">
@@ -1376,64 +1370,61 @@ function renderMasterPanel(area) {
       </div>
     </div>
 
-    <!-- ═══ IDENTIFIANTS ═══ -->
-    <div class="col-lg-6">
+    <!-- ═══ ACCÈS & IDENTIFIANTS ═══ -->
+    <div class="col-12">
       <div class="card border-0 shadow-sm" style="border-radius:12px;">
         <div class="card-header bg-white border-0 fw-bold d-flex justify-content-between" style="border-radius:12px 12px 0 0;">
-          <span><i class="bi bi-key me-2 text-warning"></i>Identifiants & Accès</span>
-          <button class="btn btn-sm btn-outline-primary" onclick="masterAddCredential()" style="font-size:.75rem;">
+          <span><i class="bi bi-key me-2 text-warning"></i>Accès & Identifiants</span>
+          <button class="btn btn-sm btn-outline-primary" onclick="masterAddAccess()" style="font-size:.75rem;">
             <i class="bi bi-plus me-1"></i>Ajouter
           </button>
         </div>
         <div class="card-body p-0">
           <div class="table-responsive">
-            <table class="table table-sm mb-0" style="font-size:.85rem;">
-              <thead><tr class="table-light"><th style="width:20%">Service</th><th style="width:35%">Login</th><th style="width:35%">Mot de passe</th><th style="width:10%"></th></tr></thead>
-              <tbody id="master-creds-body">`;
+            <table class="table table-sm table-hover mb-0" style="font-size:.84rem;">
+              <thead><tr class="table-light">
+                <th style="min-width:160px">Service</th>
+                <th style="min-width:200px">Login</th>
+                <th style="min-width:130px">Mot de passe</th>
+                <th style="width:40px"></th>
+              </tr></thead>
+              <tbody>`;
 
-  creds.forEach((c, i) => {
+  access.forEach((a, i) => {
+    const hasUrl = a.url && a.url.trim();
+    const hasLogin = a.login && a.login.trim();
+    const hasPass = a.pass && a.pass.trim();
+    const safeLogin = AUTH.esc(a.login||'').replace(/'/g, "\\'");
+    const safePass = AUTH.esc(a.pass||'').replace(/'/g, "\\'");
     html += `<tr>
-      <td class="fw-semibold">${AUTH.esc(c.service)}</td>
-      <td><code class="bg-light px-1 user-select-all">${AUTH.esc(c.login)}</code></td>
       <td>
-        <code class="bg-light px-1 user-select-all">${AUTH.esc(c.pass)}</code>
-        <button class="btn btn-sm btn-link p-0 ms-1" onclick="navigator.clipboard.writeText('${AUTH.esc(c.pass).replace(/'/g, "\\'") }');this.innerHTML='<i class=\'bi bi-check text-success\'></i>';setTimeout(()=>this.innerHTML='<i class=\'bi bi-clipboard\'></i>',1500)" title="Copier">
-          <i class="bi bi-clipboard"></i>
-        </button>
+        <div class="d-flex align-items-start gap-2">
+          <i class="bi ${AUTH.esc(a.icon||'bi-link')} text-primary mt-1"></i>
+          <div>
+            ${hasUrl
+              ? '<a href="'+AUTH.esc(a.url)+'" target="_blank" rel="noopener" class="fw-semibold text-decoration-none">'+AUTH.esc(a.service)+'</a>'
+              : '<span class="fw-semibold">'+AUTH.esc(a.service)+'</span>'}
+            ${hasUrl ? '<div class="text-muted" style="font-size:.68rem;word-break:break-all;line-height:1.2;">'+AUTH.esc(a.url)+'</div>' : ''}
+          </div>
+        </div>
       </td>
-      <td>
-        <button class="btn btn-sm btn-outline-danger p-0 px-1" onclick="masterDeleteCredential(${i})" title="Supprimer">
-          <i class="bi bi-trash"></i>
-        </button>
+      <td class="align-middle">
+        ${hasLogin
+          ? '<code class="bg-light px-1 user-select-all" style="font-size:.78rem;word-break:break-all;">'+AUTH.esc(a.login)+'</code> <button class="btn btn-sm btn-link p-0 ms-1" onclick="navigator.clipboard.writeText(\''+safeLogin+'\');this.innerHTML=\'<i class=\\\'bi bi-check text-success\\\'></i>\';setTimeout(()=>this.innerHTML=\'<i class=\\\'bi bi-clipboard\\\'></i>\',1500)" title="Copier"><i class="bi bi-clipboard"></i></button>'
+          : '<span class="text-muted">—</span>'}
+      </td>
+      <td class="align-middle">
+        ${hasPass
+          ? '<code class="bg-light px-1 user-select-all" style="font-size:.78rem;">'+AUTH.esc(a.pass)+'</code> <button class="btn btn-sm btn-link p-0 ms-1" onclick="navigator.clipboard.writeText(\''+safePass+'\');this.innerHTML=\'<i class=\\\'bi bi-check text-success\\\'></i>\';setTimeout(()=>this.innerHTML=\'<i class=\\\'bi bi-clipboard\\\'></i>\',1500)" title="Copier"><i class="bi bi-clipboard"></i></button>'
+          : '<span class="text-muted">—</span>'}
+      </td>
+      <td class="align-middle text-end">
+        <button class="btn btn-sm btn-outline-danger p-0 px-1" onclick="masterDeleteAccess(${i})" title="Supprimer"><i class="bi bi-trash"></i></button>
       </td>
     </tr>`;
   });
 
   html += `</tbody></table></div></div></div></div>
-
-    <!-- ═══ LIENS UTILES ═══ -->
-    <div class="col-lg-6">
-      <div class="card border-0 shadow-sm" style="border-radius:12px;">
-        <div class="card-header bg-white border-0 fw-bold d-flex justify-content-between" style="border-radius:12px 12px 0 0;">
-          <span><i class="bi bi-link-45deg me-2 text-success"></i>Liens utiles</span>
-          <button class="btn btn-sm btn-outline-primary" onclick="masterAddLink()" style="font-size:.75rem;">
-            <i class="bi bi-plus me-1"></i>Ajouter
-          </button>
-        </div>
-        <div class="card-body" id="master-links-body">`;
-
-  links.forEach((lk, i) => {
-    html += `<div class="d-flex align-items-center gap-2 py-2 ${i < links.length-1 ? 'border-bottom' : ''}">
-      <i class="bi ${AUTH.esc(lk.icon||'bi-link')} text-primary"></i>
-      <div class="flex-grow-1">
-        <a href="${AUTH.esc(lk.url)}" target="_blank" rel="noopener" class="fw-semibold text-decoration-none d-block" style="font-size:.88rem;">${AUTH.esc(lk.label)}</a>
-        <div class="text-muted" style="font-size:.72rem;word-break:break-all;">${AUTH.esc(lk.url)}</div>
-      </div>
-      <button class="btn btn-sm btn-outline-danger p-0 px-1" onclick="masterDeleteLink(${i})" title="Supprimer"><i class="bi bi-trash"></i></button>
-    </div>`;
-  });
-
-  html += `</div></div></div>
 
     <!-- ═══ CHANGER LOGIN / MOT DE PASSE MAÎTRE ═══ -->
     <div class="col-lg-6">
@@ -1555,55 +1546,37 @@ function masterTogglePass(i) {
   }
 }
 
-function masterAddCredential() {
+function masterAddAccess() {
   const service = prompt('Nom du service :');
   if (!service) return;
+  const url = prompt('URL (laisser vide si aucun) :') || '';
   const login = prompt('Login :');
   if (login === null) return;
   const pass = prompt('Mot de passe :');
   if (pass === null) return;
+  const icon = url ? 'bi-link' : 'bi-key';
   const s = _masterGetSettings();
-  if (!s.credentials) s.credentials = [
-    { service:'Firebase / Google', login:'attt.amicale.tunisie@gmail.com', pass:'Attt@2026' },
-    { service:'Hébergement (GitHub)', login:'347', pass:'90134111' },
-    { service:'Firebase API Key', login:'AIzaSyAZs_Mok0RZLjqq360CNWVumLMg2Ia8pjU', pass:'—' },
-    { service:'Firebase Project', login:'amicale-attt', pass:'—' },
-    { service:'Google Cloud Client ID', login:'778227653817-sl5v7fatk6jq3fdovrvn823vkbjda444', pass:'—' },
+  if (!s.access) s.access = [
+    { service:'Console Firebase', url:'https://console.firebase.google.com/project/amicale-attt', icon:'bi-cloud', login:'attt.amicale.tunisie@gmail.com', pass:'Attt@2026' },
+    { service:'Firestore Database', url:'https://console.firebase.google.com/project/amicale-attt/firestore', icon:'bi-database', login:'attt.amicale.tunisie@gmail.com', pass:'Attt@2026' },
+    { service:'Hébergement GitHub', url:'https://github.com/dtaattt2026-boop/amicale-attt-2026', icon:'bi-github', login:'347', pass:'90134111' },
+    { service:'Google Drive', url:'https://drive.google.com/drive/u/1/my-drive', icon:'bi-folder', login:'attt.amicale.tunisie@gmail.com', pass:'Attt@2026' },
+    { service:'Google Cloud Console', url:'https://console.cloud.google.com', icon:'bi-gear', login:'attt.amicale.tunisie@gmail.com', pass:'Attt@2026' },
+    { service:'Site en production', url:'https://dtaattt2026-boop.github.io/amicale-attt-2026/', icon:'bi-globe2', login:'', pass:'' },
+    { service:'Firebase API Key', url:'', icon:'bi-key', login:'AIzaSyAZs_Mok0RZLjqq360CNWVumLMg2Ia8pjU', pass:'' },
+    { service:'Firebase Project', url:'', icon:'bi-box', login:'amicale-attt', pass:'' },
+    { service:'Google Cloud Client ID', url:'', icon:'bi-fingerprint', login:'778227653817-sl5v7fatk6jq3fdovrvn823vkbjda444', pass:'' },
   ];
-  s.credentials.push({ service, login, pass });
+  s.access.push({ service, url, icon, login, pass });
   _masterSaveSettings(s);
   showTab('master-panel', null);
 }
 
-function masterDeleteCredential(i) {
-  if (!confirm('Supprimer cet identifiant ?')) return;
+function masterDeleteAccess(i) {
+  if (!confirm('Supprimer cet accès ?')) return;
   const s = _masterGetSettings();
-  if (!s.credentials) return;
-  s.credentials.splice(i, 1);
-  _masterSaveSettings(s);
-  showTab('master-panel', null);
-}
-
-function masterAddLink() {
-  const label = prompt('Nom du lien :');
-  if (!label) return;
-  const url = prompt('URL :');
-  if (!url) return;
-  const s = _masterGetSettings();
-  if (!s.links) s.links = [
-    { label:'Console Firebase', url:'https://console.firebase.google.com/project/amicale-attt', icon:'bi-cloud' },
-    { label:'Site en production', url: window.location.origin, icon:'bi-globe2' },
-  ];
-  s.links.push({ label, url, icon:'bi-link' });
-  _masterSaveSettings(s);
-  showTab('master-panel', null);
-}
-
-function masterDeleteLink(i) {
-  if (!confirm('Supprimer ce lien ?')) return;
-  const s = _masterGetSettings();
-  if (!s.links) return;
-  s.links.splice(i, 1);
+  if (!s.access) return;
+  s.access.splice(i, 1);
   _masterSaveSettings(s);
   showTab('master-panel', null);
 }
