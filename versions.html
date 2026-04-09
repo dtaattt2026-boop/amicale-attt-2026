@@ -682,23 +682,30 @@
       al.innerHTML = '<span class="spinner-border spinner-border-sm me-2"></span>Déploiement v' + v + ' vers GitHub…';
       al.classList.remove('d-none');
 
-      /* 1. Mettre à jour assets/version.json sur le disque */
-      fetch(DEPLOY_URL + '/api/version', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ version: v, changelog: vj.changelog || '' })
-      }).catch(function() {}).finally(function() {
-        /* 2. Git push vers GitHub */
-        _deployToGitHub('v' + v, function(ok, msg) {
-          if (ok) {
-            al.className = 'alert alert-success';
-            al.innerHTML = '<i class="bi bi-check-circle me-1"></i>Version <strong>' + v + '</strong> déployée. Les utilisateurs verront la nouvelle version automatiquement.';
-          } else {
-            al.className = 'alert alert-danger';
-            al.innerHTML = '<i class="bi bi-x-circle me-1"></i>' + msg;
-          }
-          document.getElementById('publish-bar').classList.add('d-none');
+      /* Vérifier si le serveur local est joignable */
+      fetch(DEPLOY_URL + '/api/status').then(function() {
+        /* Serveur joignable → déployer */
+        fetch(DEPLOY_URL + '/api/version', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ version: v, changelog: vj.changelog || '' })
+        }).catch(function() {}).finally(function() {
+          _deployToGitHub('v' + v, function(ok, msg) {
+            if (ok) {
+              al.className = 'alert alert-success';
+              al.innerHTML = '<i class="bi bi-check-circle me-1"></i>Version <strong>' + v + '</strong> déployée. Les utilisateurs verront la nouvelle version automatiquement.';
+            } else {
+              al.className = 'alert alert-danger';
+              al.innerHTML = '<i class="bi bi-x-circle me-1"></i>' + msg;
+            }
+            document.getElementById('publish-bar').classList.add('d-none');
+          });
         });
+      }).catch(function() {
+        /* Serveur inaccessible (smartphone, etc.) → sauvegarder dans Firestore seulement */
+        al.className = 'alert alert-success';
+        al.innerHTML = '<i class="bi bi-check-circle me-1"></i>Version <strong>' + v + '</strong> enregistrée dans la base de données.<br><small class="text-muted">Le déploiement sur GitHub nécessite le PC (demarrer.bat). La version sera visible par tous après le prochain déploiement.</small>';
+        al.classList.remove('d-none');
       });
     } else {
       /* ═══ MODE MANUEL : sauvegarder localement, PAS de déploiement ═══ */
@@ -720,23 +727,26 @@
     al.innerHTML = '<span class="spinner-border spinner-border-sm me-2"></span>Déploiement v' + v + ' vers GitHub…';
     al.classList.remove('d-none');
 
-    /* Mettre à jour assets/version.json sur le disque */
-    fetch(DEPLOY_URL + '/api/version', {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ version: v })
-    }).catch(function() {}).finally(function() {
-      /* Git push vers GitHub */
-      _deployToGitHub('v' + v, function(ok, msg) {
-        if (ok) {
-          al.className = 'alert alert-success';
-          al.innerHTML = '<i class="bi bi-check-circle me-1"></i>Version <strong>' + v + '</strong> déployée. Tous les utilisateurs verront la nouvelle version.';
-          document.getElementById('publish-bar').classList.add('d-none');
-        } else {
-          al.className = 'alert alert-danger';
-          al.innerHTML = '<i class="bi bi-x-circle me-1"></i>' + msg;
-        }
+    fetch(DEPLOY_URL + '/api/status').then(function() {
+      fetch(DEPLOY_URL + '/api/version', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ version: v })
+      }).catch(function() {}).finally(function() {
+        _deployToGitHub('v' + v, function(ok, msg) {
+          if (ok) {
+            al.className = 'alert alert-success';
+            al.innerHTML = '<i class="bi bi-check-circle me-1"></i>Version <strong>' + v + '</strong> déployée. Tous les utilisateurs verront la nouvelle version.';
+            document.getElementById('publish-bar').classList.add('d-none');
+          } else {
+            al.className = 'alert alert-danger';
+            al.innerHTML = '<i class="bi bi-x-circle me-1"></i>' + msg;
+          }
+        });
       });
+    }).catch(function() {
+      al.className = 'alert alert-danger';
+      al.innerHTML = '<i class="bi bi-exclamation-triangle me-1"></i>Le déploiement nécessite le PC avec <code>demarrer.bat</code> lancé. Impossible depuis cet appareil.';
     });
   }
 
