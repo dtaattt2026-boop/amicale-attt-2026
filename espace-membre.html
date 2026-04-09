@@ -1321,7 +1321,7 @@ function renderMasterPanel(area) {
   const defaultLinks = [
     { label:'Console Firebase', url:'https://console.firebase.google.com/project/amicale-attt', icon:'bi-cloud' },
     { label:'Firestore Database', url:'https://console.firebase.google.com/project/amicale-attt/firestore', icon:'bi-database' },
-    { label:'Google Drive', url:'https://drive.google.com/drive/u/0/', icon:'bi-folder' },
+    { label:'Google Drive', url:'https://drive.google.com/drive/u/1/my-drive', icon:'bi-folder' },
     { label:'Site en production', url: window.location.origin, icon:'bi-globe2' },
     { label:'Google Cloud Console', url:'https://console.cloud.google.com', icon:'bi-gear' },
   ];
@@ -1385,18 +1385,17 @@ function renderMasterPanel(area) {
         <div class="card-body p-0">
           <div class="table-responsive">
             <table class="table table-sm mb-0" style="font-size:.85rem;">
-              <thead><tr class="table-light"><th>Service</th><th>Login</th><th>Mot de passe</th><th></th></tr></thead>
+              <thead><tr class="table-light"><th style="width:20%">Service</th><th style="width:35%">Login</th><th style="width:35%">Mot de passe</th><th style="width:10%"></th></tr></thead>
               <tbody id="master-creds-body">`;
 
   creds.forEach((c, i) => {
     html += `<tr>
       <td class="fw-semibold">${AUTH.esc(c.service)}</td>
-      <td><code class="bg-light px-1">${AUTH.esc(c.login)}</code></td>
+      <td><code class="bg-light px-1 user-select-all">${AUTH.esc(c.login)}</code></td>
       <td>
-        <span class="master-pass-hidden d-none" id="pass-hidden-${i}">${'•'.repeat(Math.max(6, (c.pass||'').length))}</span>
-        <span class="master-pass-visible" id="pass-visible-${i}"><code class="bg-light px-1">${AUTH.esc(c.pass)}</code></span>
-        <button class="btn btn-sm btn-link p-0 ms-1" onclick="masterTogglePass(${i})" title="Afficher/masquer">
-          <i class="bi bi-eye-slash" id="pass-eye-${i}"></i>
+        <code class="bg-light px-1 user-select-all">${AUTH.esc(c.pass)}</code>
+        <button class="btn btn-sm btn-link p-0 ms-1" onclick="navigator.clipboard.writeText('${AUTH.esc(c.pass).replace(/'/g, "\\'") }');this.innerHTML='<i class=\'bi bi-check text-success\'></i>';setTimeout(()=>this.innerHTML='<i class=\'bi bi-clipboard\'></i>',1500)" title="Copier">
+          <i class="bi bi-clipboard"></i>
         </button>
       </td>
       <td>
@@ -1423,7 +1422,10 @@ function renderMasterPanel(area) {
   links.forEach((lk, i) => {
     html += `<div class="d-flex align-items-center gap-2 py-2 ${i < links.length-1 ? 'border-bottom' : ''}">
       <i class="bi ${AUTH.esc(lk.icon||'bi-link')} text-primary"></i>
-      <a href="${AUTH.esc(lk.url)}" target="_blank" rel="noopener" class="fw-semibold text-decoration-none flex-grow-1" style="font-size:.88rem;">${AUTH.esc(lk.label)}</a>
+      <div class="flex-grow-1">
+        <a href="${AUTH.esc(lk.url)}" target="_blank" rel="noopener" class="fw-semibold text-decoration-none d-block" style="font-size:.88rem;">${AUTH.esc(lk.label)}</a>
+        <div class="text-muted" style="font-size:.72rem;word-break:break-all;">${AUTH.esc(lk.url)}</div>
+      </div>
       <button class="btn btn-sm btn-outline-danger p-0 px-1" onclick="masterDeleteLink(${i})" title="Supprimer"><i class="bi bi-trash"></i></button>
     </div>`;
   });
