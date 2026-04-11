@@ -71,6 +71,11 @@
               <i class="bi bi-award me-2"></i>Conventions
             </button>
           </li>
+          <li class="nav-item mt-3 border-top border-secondary pt-3" id="nav-master-link" style="display:none;">
+            <a href="master.html" class="nav-link" style="background:rgba(255,215,0,.15);color:#ffd700;">
+              <i class="bi bi-star-fill me-2"></i>Panel Maître
+            </a>
+          </li>
           <li class="nav-item mt-3 border-top border-secondary pt-3">
             <small class="text-white-50 px-3" style="font-size:.7rem;text-transform:uppercase;letter-spacing:.05em;">Navigation admin</small>
           </li>
@@ -513,6 +518,9 @@ if (!AUTH.hasPermission('Accéder page Admin', user, null, 'action')) {
   throw new Error('Permission refusée');
 }
 document.getElementById('topbar-user').textContent = user.prenom + ' ' + user.nom;
+if (AUTH.userHasExactRole(user, 'master')) {
+  document.getElementById('nav-master-link').style.display = '';
+}
 
 async function uploadMediaField(fileInputId, urlInputId, statusId, folder) {
   const file = document.getElementById(fileInputId)?.files?.[0];

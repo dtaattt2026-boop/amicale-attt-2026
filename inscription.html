@@ -163,6 +163,31 @@
     document.getElementById('familyCode').value = urlParams.get('familyCode');
   }
 
+  /* ─── Mode invitation depuis URL (?invite=INV-XXXX) ─── */
+  const inviteCode = urlParams.get('invite') || '';
+  let _inviteData = null;
+  if (inviteCode) {
+    DB_READY.then(() => {
+      _inviteData = AUTH.getInvitation(inviteCode);
+      if (_inviteData) {
+        const roleLabel = AUTH.getRoleLabel(_inviteData.targetRole);
+        const alertBox = document.getElementById('alert-box');
+        alertBox.className = 'alert alert-info';
+        alertBox.innerHTML = '<i class="bi bi-person-plus-fill me-2"></i><strong>Invitation de ' +
+          (_inviteData.inviterName || 'un membre') + '</strong><br/>Vous serez inscrit en tant que <span class="badge bg-primary">' +
+          roleLabel + '</span> et votre compte sera activé automatiquement.';
+        alertBox.classList.remove('d-none');
+        // Masquer le code famille si invitation
+        document.getElementById('has-family-code').closest('.mb-4').style.display = 'none';
+      } else {
+        const alertBox = document.getElementById('alert-box');
+        alertBox.className = 'alert alert-danger';
+        alertBox.textContent = 'Ce lien d\'invitation est invalide ou a déjà été utilisé.';
+        alertBox.classList.remove('d-none');
+      }
+    });
+  }
+
   /* Remplir la liste des villes */
   DB_READY.then(() => {
     const sel = document.getElementById('lieuTravail');
@@ -244,7 +269,20 @@
 
     setTimeout(() => {
       let result;
-      if (hasFamCode && familyCode) {
+      if (inviteCode && _inviteData) {
+        // ── Inscription via invitation (validation automatique)
+        result = AUTH.registerViaInvitation(inviteCode, { nom, prenom, email, login, password, telephone, dateNaissance, lieuTravail, adresse });
+        if (result.ok) {
+          const roleLabel = AUTH.getRoleLabel(_inviteData.targetRole);
+          show('success', '✓ Inscription réussie ! Votre compte est actif en tant que ' + roleLabel + '. Vous pouvez vous connecter.');
+          btn.innerHTML = '<i class="bi bi-check-circle me-2"></i>Compte activé';
+          setTimeout(() => { window.location.href = 'login.html'; }, 3000);
+        } else {
+          show('danger', result.msg);
+          btn.disabled = false;
+          btn.innerHTML = '<i class="bi bi-person-check me-2"></i>S\'inscrire';
+        }
+      } else if (hasFamCode && familyCode) {
         result = PROFILE.registerViaFamilyCode(familyCode, { nom, prenom, email, login, password, telephone, dateNaissance, lieuTravail, adresse });
         if (result.ok) {
           show('success', '✓ Demande famille enregistrée. Le chef de famille doit maintenant activer votre compte depuis son espace.');

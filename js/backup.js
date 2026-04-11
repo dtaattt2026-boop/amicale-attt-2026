@@ -21,7 +21,8 @@ const BACKUP = (() => {
                  'attt_rentals', 'attt_bookings', 'attt_participation_history', 'attt_galerie',
                  'attt_special_event_registrations', 'attt_droits_matrix', 'attt_role_defs', 'attt_permission_catalog', 'attt_site_settings', 'attt_home_ads',
                  'attt_vote_subjects', 'attt_vote_ballots',
-                 'attt_contact_messages'];
+                 'attt_contact_messages',
+                 'attt_invitations'];
   const VERSION = '1.0';
 
   /* ── Statistiques de la sauvegarde actuelle ── */

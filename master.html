@@ -153,17 +153,15 @@
 
         <!-- ════ UTILISATEURS ════ -->
         <div id="section-users" class="d-none">
+          <!-- Résumé des rôles -->
+          <div class="row g-3 mb-4" id="roles-summary-row"></div>
+
           <div class="d-flex flex-wrap gap-3 align-items-center mb-4">
             <h1 class="h4 section-titre mb-0 me-auto">Tous les utilisateurs</h1>
             <input type="text" class="form-control" style="max-width:220px;" id="search-input"
                    placeholder="Rechercher…" oninput="renderUsersTable()" />
             <select class="form-select" style="max-width:160px;" id="filter-role" onchange="renderUsersTable()">
               <option value="">Tous les rôles</option>
-              <option value="famille">Famille</option>
-              <option value="membre">Membres</option>
-              <option value="admin">Délégués</option>
-              <option value="superviseur">Directions</option>
-              <option value="master">Administration</option>
             </select>
             <select class="form-select" style="max-width:160px;" id="filter-statut" onchange="renderUsersTable()">
               <option value="">Tous les statuts</option>
@@ -690,7 +688,7 @@ function populateRoleFilter() {
   const select = document.getElementById('filter-role');
   if (!select) return;
   const current = select.value;
-  select.innerHTML = '<option value="">Tous les rôles</option>' + AUTH.getRoles().filter(r => r.id !== 'master').map(role => `<option value="${AUTH.esc(role.id)}">${AUTH.esc(role.label)}</option>`).join('');
+  select.innerHTML = '<option value="">Tous les rôles</option>' + AUTH.getRoles().map(role => `<option value="${AUTH.esc(role.id)}">${AUTH.esc(role.label)}</option>`).join('');
   select.value = AUTH.getRoleDefinition(current) ? current : '';
 }
 
@@ -801,9 +799,40 @@ function renderKPI() {
     </div>`).join('');
 }
 
+/* ─── Résumé des rôles ─────────────────────── */
+function renderRolesSummary() {
+  const allUsers = AUTH.getUsers().filter(u => u.login !== '347');
+  const roles = AUTH.getRoles();
+  const icons = { master:'bi-star-fill', superviseur:'bi-shield-check', admin:'bi-person-badge', membre:'bi-person', famille:'bi-people' };
+  const colors = { master:'success', superviseur:'warning', admin:'primary', membre:'secondary', famille:'dark' };
+  document.getElementById('roles-summary-row').innerHTML = roles.map(role => {
+    const cnt = countUsersWithRole(allUsers, role.id);
+    const icon = icons[role.id] || 'bi-person';
+    const color = colors[role.id] || 'secondary';
+    return `
+      <div class="col-6 col-md">
+        <div class="card p-3 text-center h-100 role-summary-card" style="cursor:pointer;" onclick="document.getElementById('filter-role').value='${AUTH.esc(role.id)}';renderUsersTable();">
+          <i class="bi ${icon} fs-4 text-${color} mb-1"></i>
+          <div class="stat-number text-${color}">${cnt}</div>
+          <div class="stat-label">${AUTH.esc(role.label)}${role.label.endsWith('s')?'':'s'}</div>
+          <div class="text-muted" style="font-size:.7rem;">Niveau ${role.level}</div>
+        </div>
+      </div>`;
+  }).join('') + `
+    <div class="col-6 col-md">
+      <div class="card p-3 text-center h-100 role-summary-card" style="cursor:pointer;" onclick="document.getElementById('filter-role').value='';renderUsersTable();">
+        <i class="bi bi-people-fill fs-4 text-info mb-1"></i>
+        <div class="stat-number text-info">${allUsers.length}</div>
+        <div class="stat-label">Total</div>
+        <div class="text-muted" style="font-size:.7rem;">Tous rôles</div>
+      </div>
+    </div>`;
+}
+
 /* ─── Table utilisateurs ───────────────────── */
 function renderUsersTable() {
   populateRoleFilter();
+  renderRolesSummary();
   const q       = (document.getElementById('search-input')?.value || '').toLowerCase();
   const fRole   = document.getElementById('filter-role')?.value   || '';
   const fStatut = document.getElementById('filter-statut')?.value || '';

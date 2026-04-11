@@ -29,7 +29,8 @@ const DB = (() => {
                  'attt_vote_subjects', 'attt_vote_ballots',
                  'attt_contact_messages',
                  'attt_entity_types', 'attt_entity_records',
-                 'attt_master_settings', 'attt_version_json', 'attt_updates'];
+                 'attt_master_settings', 'attt_version_json', 'attt_updates',
+                 'attt_invitations'];
 
   /* Nom de la collection Firestore */
   const COLL = 'site_data';

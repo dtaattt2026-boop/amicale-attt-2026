@@ -1092,6 +1092,116 @@ const AUTH = (() => {
     return { ok: true, userId: user.id, user };
   }
 
+  /* ─── Système d'invitations ──────────────────── */
+  const K_INVITATIONS = 'attt_invitations';
+
+  function _loadInvitations() {
+    try { return JSON.parse(localStorage.getItem(K_INVITATIONS) || '[]'); } catch { return []; }
+  }
+
+  function _saveInvitations(list) {
+    localStorage.setItem(K_INVITATIONS, JSON.stringify(list));
+    if (typeof DB !== 'undefined') DB.push(K_INVITATIONS, list);
+  }
+
+  /**
+   * Rôles autorisés pour l'invitation selon le rôle de l'inviteur :
+   * - membre   → famille uniquement
+   * - admin    → membre, famille
+   * - superviseur → membre, famille, admin, superviseur
+   * - master   → tous
+   */
+  function getInvitableRoles(inviter) {
+    if (!inviter) return [];
+    const level = getHighestPrivilegeLevel(inviter);
+    if (level <= 0) return getRoles().filter(r => r.id !== 'master').map(r => r.id);           // master → tout sauf master
+    if (level <= 1) return ['superviseur', 'admin', 'membre', 'famille'];                       // direction
+    if (level <= 2) return ['membre', 'famille'];                                               // délégué
+    return ['famille'];                                                                          // membre
+  }
+
+  function createInvitation(inviter, targetRoleId) {
+    if (!inviter) return { ok: false, msg: 'Non connecté.' };
+    const allowed = getInvitableRoles(inviter);
+    if (!allowed.includes(targetRoleId)) return { ok: false, msg: 'Vous n\'êtes pas autorisé à inviter ce rôle.' };
+    const code = 'INV-' + Date.now().toString(36).toUpperCase() + '-' + Math.random().toString(36).slice(2, 6).toUpperCase();
+    const invitation = {
+      id: 'inv_' + Date.now(),
+      code,
+      inviterId: inviter.id,
+      inviterName: inviter.prenom + ' ' + inviter.nom,
+      targetRole: targetRoleId,
+      createdAt: new Date().toISOString(),
+      used: false,
+      usedBy: null
+    };
+    const list = _loadInvitations();
+    list.push(invitation);
+    _saveInvitations(list);
+    if (typeof LOG !== 'undefined') LOG.add('INVITATION_CREATED', {
+      acteurId: inviter.id, acteurLogin: inviter.login,
+      detail: 'Invitation ' + code + ' pour rôle ' + getRoleLabel(targetRoleId)
+    });
+    return { ok: true, invitation };
+  }
+
+  function getInvitation(code) {
+    return _loadInvitations().find(inv => inv.code === code && !inv.used) || null;
+  }
+
+  function getMyInvitations(userId) {
+    return _loadInvitations().filter(inv => inv.inviterId === userId);
+  }
+
+  function revokeInvitation(invitationId, userId) {
+    const list = _loadInvitations();
+    const idx = list.findIndex(inv => inv.id === invitationId && inv.inviterId === userId && !inv.used);
+    if (idx === -1) return false;
+    list.splice(idx, 1);
+    _saveInvitations(list);
+    return true;
+  }
+
+  function registerViaInvitation(invitationCode, data) {
+    const inv = getInvitation(invitationCode);
+    if (!inv) return { ok: false, msg: 'Code d\'invitation invalide ou déjà utilisé.' };
+    const linkedTo = (inv.targetRole === 'famille') ? inv.inviterId : null;
+    const result = register({
+      ...data,
+      role_override: inv.targetRole,
+      statut_override: 'actif',
+      validateurId: inv.inviterId,
+      linkedTo
+    });
+    if (result.ok) {
+      // Marquer l'invitation comme utilisée
+      const list = _loadInvitations();
+      const target = list.find(item => item.id === inv.id);
+      if (target) { target.used = true; target.usedBy = result.userId; target.usedAt = new Date().toISOString(); }
+      _saveInvitations(list);
+      // Si famille, rattacher au profil de l'inviteur
+      if (inv.targetRole === 'famille') {
+        const users = _getUsers();
+        const inviterUser = users.find(u => u.id === inv.inviterId);
+        if (inviterUser) {
+          if (!Array.isArray(inviterUser.linkedInvites)) inviterUser.linkedInvites = [];
+          inviterUser.linkedInvites.push(result.userId);
+          _saveUsers(users);
+        }
+      }
+      if (typeof LOG !== 'undefined') LOG.add('INVITATION_USED', {
+        cibleId: result.userId, cibleLogin: data.login,
+        detail: 'Via invitation ' + inv.code + ' de ' + inv.inviterName + ' → rôle ' + getRoleLabel(inv.targetRole)
+      });
+    }
+    return result;
+  }
+
+  function buildInvitationLink(code) {
+    const base = window.location.origin + window.location.pathname.replace(/[^/]*$/, '');
+    return base + 'inscription.html?invite=' + encodeURIComponent(code);
+  }
+
   function validateMember(memberId, validateurId) {
     const users = _getUsers();
     const cible = users.find(item => item.id === memberId);
@@ -1349,6 +1459,8 @@ const AUTH = (() => {
     addRole, updateRole, deleteRole,
     exportRightsConfig, importRightsConfig,
     _saveRightsMatrix,
+    getInvitableRoles, createInvitation, getInvitation, getMyInvitations,
+    revokeInvitation, registerViaInvitation, buildInvitationLink,
     get ROLE_LABELS() { return _roleLabelsObject(); },
     get ROLES() { return _roleLevelsObject(); },
     get RIGHTS_MATRIX_DEFAULT() { return _buildDefaultRightsMatrix(); },
