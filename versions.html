@@ -75,7 +75,8 @@
     .btn-oa { border:2px solid var(--cp); color:var(--cp); border-radius:9px; font-weight:700; padding:.5rem 1.2rem; background:transparent; transition:all .2s; }
     .btn-oa:hover { background:var(--cp); color:#fff; }
 
-    @media(max-width:767px){ .sidebar-v { display:none; } .main-v { padding:1rem; } }
+    @media(max-width:767px){ .sidebar-v { display:none; } .main-v { padding:1rem; } .ver-box { flex-direction:column; text-align:center; } .ver-number { font-size:2rem; } .mob-tabs { display:flex; overflow-x:auto; white-space:nowrap; gap:.35rem; padding:.5rem .75rem; background:#fff; border-bottom:1px solid #dee2e6; } .mob-tabs::-webkit-scrollbar { height:0; } }
+    @media(min-width:768px){ .mob-tabs { display:none !important; } }
   </style>
 </head>
 <body>
@@ -91,6 +92,15 @@
   </div>
 
   <div class="page-wrap">
+
+    <!-- MOBILE TABS (visible sm only) -->
+    <div class="mob-tabs">
+      <button class="btn btn-sm btn-primary mob-tab" data-s="version" onclick="showSection('version')"><i class="bi bi-tag-fill me-1"></i>Version</button>
+      <button class="btn btn-sm btn-outline-primary mob-tab" data-s="deploy" onclick="showSection('deploy')"><i class="bi bi-cloud-upload me-1"></i>Déployer</button>
+      <button class="btn btn-sm btn-outline-primary mob-tab" data-s="download" onclick="showSection('download')"><i class="bi bi-download me-1"></i>Télécharger</button>
+      <button class="btn btn-sm btn-outline-primary mob-tab" data-s="architecture" onclick="showSection('architecture')"><i class="bi bi-diagram-3 me-1"></i>Architecture</button>
+      <button class="btn btn-sm btn-outline-primary mob-tab" data-s="base" onclick="showSection('base')"><i class="bi bi-table me-1"></i>Base</button>
+    </div>
 
     <!-- SIDEBAR -->
     <aside class="sidebar-v d-none d-md-block">
@@ -114,7 +124,8 @@
       ══════════════════════════════════════════════ -->
       <div id="sec-version" class="section-pane active">
         <h1 class="h4 fw-black mb-1">Version &amp; Informations</h1>
-        <p class="text-muted mb-4">Gérez la version de votre application et consultez les statistiques globales.</p>
+        <p class="text-muted mb-2">Gérez la version de votre application et consultez les statistiques globales.</p>
+        <div id="device-badge" class="badge bg-light text-dark border mb-3" style="font-size:.78rem;"></div>
 
         <div class="v-card">
           <h2><i class="bi bi-tag me-2 text-primary"></i>Numéro de version</h2>
@@ -605,23 +616,47 @@
   function showSection(id, btn) {
     document.querySelectorAll('.section-pane').forEach(p => p.classList.remove('active'));
     document.querySelectorAll('.sb-lk').forEach(b => b.classList.remove('active'));
+    document.querySelectorAll('.mob-tab').forEach(b => { b.className = 'btn btn-sm btn-outline-primary mob-tab'; });
     document.getElementById('sec-' + id).classList.add('active');
-    if (btn) btn.classList.add('active');
+    if (btn && btn.classList.contains('sb-lk')) btn.classList.add('active');
+    var mt = document.querySelector('.mob-tab[data-s="'+id+'"]');
+    if (mt) mt.className = 'btn btn-sm btn-primary mob-tab';
     if (id === 'base') renderDBSchema();
     if (id === 'deploy') checkServerStatus();
     if (id === 'version') loadVersion();
   }
 
   /* ══ VERSION ══ */
+  var _isPC = !/Android|iPhone|iPad|iPod|Mobile/i.test(navigator.userAgent);
+
   function loadVersion() {
     DB_READY.then(() => {
       const s = typeof SITE_SETTINGS !== 'undefined' && SITE_SETTINGS.getSettings ? SITE_SETTINGS.getSettings() : {};
       const v = s.appVersion || '1.0.0';
       document.getElementById('ver-display').textContent = v;
       document.getElementById('ver-input').value = v;
-      document.getElementById('ver-date').textContent = 'Dernière mise à jour : ' + new Date().toLocaleDateString('fr-TN');
       document.getElementById('ver-auto').checked = !!s.autoVersion;
       document.getElementById('ver-input').disabled = !!s.autoVersion;
+
+      // Afficher la vraie date de publication
+      var dateStr = '';
+      try {
+        var vj = JSON.parse(localStorage.getItem('attt_version_json') || '{}');
+        if (vj.datePublication) dateStr = new Date(vj.datePublication + 'T00:00:00').toLocaleDateString('fr-TN', {day:'numeric', month:'long', year:'numeric'});
+      } catch(e) {}
+      if (!dateStr) {
+        try {
+          var ud = JSON.parse(localStorage.getItem('attt_updates') || '{}');
+          if (ud.publishedDate) dateStr = new Date(ud.publishedDate).toLocaleDateString('fr-TN', {day:'numeric', month:'long', year:'numeric'});
+        } catch(e) {}
+      }
+      document.getElementById('ver-date').innerHTML = dateStr ? 'Publi\u00e9e le ' + dateStr : '';
+
+      // Indicateur appareil
+      var deviceBadge = document.getElementById('device-badge');
+      if (deviceBadge) deviceBadge.innerHTML = _isPC
+        ? '<i class="bi bi-pc-display me-1"></i>PC — D\u00e9ploiement direct disponible'
+        : '<i class="bi bi-phone me-1"></i>Smartphone — Sauvegarde cloud uniquement';
 
       // Stats
       try { if (typeof AUTH !== 'undefined' && AUTH.getUsers) document.getElementById('stat-users').textContent = AUTH.getUsers().length; } catch(e){}
@@ -674,6 +709,16 @@
       ms.publishedAt = new Date().toISOString();
       localStorage.setItem('attt_master_settings', JSON.stringify(ms));
       if (typeof DB !== 'undefined' && DB.push) DB.push('attt_master_settings', ms);
+
+      /* Mettre à jour attt_updates.currentVersion */
+      var ud = {};
+      try { ud = JSON.parse(localStorage.getItem('attt_updates') || '{}'); } catch(e) { ud = {}; }
+      ud.currentVersion = v;
+      ud.publishedDate = new Date().toISOString();
+      if (!ud.history) ud.history = [];
+      ud.history.push({ version: v, notes: 'Enregistré manuellement', action: 'publié', date: ud.publishedDate, by: 'master' });
+      localStorage.setItem('attt_updates', JSON.stringify(ud));
+      if (typeof DB !== 'undefined' && DB.push) DB.push('attt_updates', ud);
     } catch(e) { al.className='alert alert-danger'; al.textContent='Erreur : ' + e.message; al.classList.remove('d-none'); return; }
 
     if (auto) {
@@ -704,7 +749,8 @@
       }).catch(function() {
         /* Serveur inaccessible (smartphone, etc.) → sauvegarder dans Firestore seulement */
         al.className = 'alert alert-success';
-        al.innerHTML = '<i class="bi bi-check-circle me-1"></i>Version <strong>' + v + '</strong> enregistrée dans la base de données.<br><small class="text-muted">Le déploiement sur GitHub nécessite le PC (demarrer.bat). La version sera visible par tous après le prochain déploiement.</small>';
+        al.innerHTML = '<i class="bi bi-cloud-check me-1"></i>Version <strong>' + v + '</strong> enregistr\u00e9e et synchronis\u00e9e dans le cloud.'
+          + '<br><small class="text-muted"><i class="bi bi-info-circle me-1"></i>Pour publier en ligne : ouvrez cette page depuis le PC avec <code>demarrer.bat</code> lanc\u00e9, la version sera automatiquement d\u00e9ploy\u00e9e.</small>';
         al.classList.remove('d-none');
       });
     } else {

@@ -67,6 +67,12 @@ document.addEventListener('DOMContentLoaded', function () {
     VERSION_CHECK.checkAndNotify();
   }
 
+  /* --- Afficher le numéro de version du site --- */
+  _displaySiteVersion();
+
+  /* --- Bannière de mise à jour --- */
+  _checkUpdateBanner();
+
   /* --- Activer le lien de navigation courant --- */
   const currentPage = location.pathname.split('/').pop() || 'index.html';
   document.querySelectorAll('.navbar .nav-link').forEach(link => {
@@ -112,3 +118,111 @@ document.addEventListener('DOMContentLoaded', function () {
   }
 
 });
+
+/* ── Affichage du numéro de version sur toutes les pages ── */
+function _getSiteVersion() {
+  try {
+    const updates = JSON.parse(localStorage.getItem('attt_updates') || '{}');
+    if (updates.currentVersion) return updates.currentVersion;
+  } catch {}
+  try {
+    const vj = JSON.parse(localStorage.getItem('attt_version_json') || '{}');
+    if (vj.version) return vj.version;
+  } catch {}
+  return null;
+}
+
+function _getSiteVersionDate() {
+  try {
+    const updates = JSON.parse(localStorage.getItem('attt_updates') || '{}');
+    if (updates.publishedDate) return updates.publishedDate.slice(0,10);
+  } catch {}
+  try {
+    const vj = JSON.parse(localStorage.getItem('attt_version_json') || '{}');
+    if (vj.datePublication) return vj.datePublication;
+  } catch {}
+  return '';
+}
+
+function _displaySiteVersion() {
+  const version = _getSiteVersion();
+  if (!version) {
+    fetch('assets/version.json?t=' + Date.now()).then(r => r.ok ? r.json() : null).then(data => {
+      if (data && data.version) {
+        _injectVersionBadge(data.version, data.datePublication || '');
+        localStorage.setItem('attt_version_json', JSON.stringify(data));
+      }
+    }).catch(() => {});
+    return;
+  }
+  _injectVersionBadge(version, _getSiteVersionDate());
+}
+
+function _injectVersionBadge(version, datePublication) {
+  // Affichage unique dans le pied de page — version + date (pas de doublon navbar)
+  if (document.getElementById('footer-version')) return;
+  const footer = document.querySelector('footer');
+  if (!footer) return;
+  const el = document.createElement('div');
+  el.id = 'footer-version';
+  el.className = 'd-flex align-items-center justify-content-center gap-2 mt-2';
+  let dateStr = '';
+  if (datePublication) {
+    try { dateStr = new Date(datePublication + 'T00:00:00').toLocaleDateString('fr-TN', { day:'numeric', month:'long', year:'numeric' }); } catch(e) { dateStr = datePublication; }
+  }
+  el.innerHTML = '<span class="badge bg-primary bg-opacity-75" style="font-size:.78rem;"><i class="bi bi-tag-fill me-1"></i>v' + version + '</span>'
+    + (dateStr ? '<span class="small" style="color:rgba(255,255,255,.4);">Mis à jour le ' + dateStr + '</span>' : '');
+  const bottom = footer.querySelector('.footer-bottom');
+  if (bottom) bottom.appendChild(el);
+}
+
+/* ── Bannière de mise à jour pour tous les utilisateurs ── */
+function _checkUpdateBanner() {
+  try {
+    const updates = JSON.parse(localStorage.getItem('attt_updates') || '{}');
+    const version = updates.currentVersion;
+    if (!version) return;
+
+    const publishedAt = updates.publishedDate || '';
+    const seenVersion = localStorage.getItem('attt_seen_site_version') || '';
+    const seenTime = localStorage.getItem('attt_seen_publish_time') || '';
+
+    // Ne pas afficher si l'utilisateur a déjà vu cette version+heure
+    if (seenVersion === version && seenTime === publishedAt) return;
+
+    // Ne pas afficher sur les pages admin/login/inscription
+    const page = location.pathname.split('/').pop() || '';
+    if (['login.html', 'inscription.html', 'master.html', 'versions.html'].includes(page)) return;
+
+    const banner = document.createElement('div');
+    banner.id = 'update-banner';
+    banner.style.cssText = 'position:fixed;bottom:0;left:0;right:0;z-index:9999;background:linear-gradient(135deg,#003DA6,#0056cc);color:white;padding:12px 20px;display:flex;align-items:center;gap:12px;justify-content:space-between;box-shadow:0 -2px 12px rgba(0,0,0,.2);flex-wrap:wrap;';
+    const notes = updates.history?.slice().reverse().find(h => h.version === version && h.action === 'publié')?.notes || '';
+    banner.innerHTML = `
+      <div class="d-flex align-items-center gap-2 flex-wrap">
+        <i class="bi bi-arrow-repeat fs-5"></i>
+        <div>
+          <strong>Mise à jour disponible — v${version}</strong>
+          ${notes ? '<br><span style="opacity:.8;font-size:.82rem;">' + notes + '</span>' : ''}
+        </div>
+      </div>
+      <div class="d-flex gap-2 flex-shrink-0">
+        <button class="btn btn-warning btn-sm fw-semibold" id="update-refresh-btn">
+          <i class="bi bi-arrow-clockwise me-1"></i>Actualiser
+        </button>
+        <button class="btn btn-outline-light btn-sm" id="update-dismiss-btn">Plus tard</button>
+      </div>`;
+    document.body.appendChild(banner);
+
+    document.getElementById('update-refresh-btn').addEventListener('click', () => {
+      localStorage.setItem('attt_seen_site_version', version);
+      localStorage.setItem('attt_seen_publish_time', publishedAt);
+      location.reload(true);
+    });
+    document.getElementById('update-dismiss-btn').addEventListener('click', () => {
+      localStorage.setItem('attt_seen_site_version', version);
+      localStorage.setItem('attt_seen_publish_time', publishedAt);
+      banner.remove();
+    });
+  } catch {}
+}
