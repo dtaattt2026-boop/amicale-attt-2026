@@ -80,6 +80,15 @@ function updateVersionFile(nextVersion, changelog) {
   json.platforms.pwa.version = nextVersion;
 
   fs.writeFileSync(VERSION_FILE, JSON.stringify(json, null, 2) + '\n', 'utf8');
+
+  // Mettre à jour aussi la version par défaut dans sw.js
+  const swPath = path.join(SITE_DIR, 'sw.js');
+  try {
+    let sw = fs.readFileSync(swPath, 'utf8');
+    sw = sw.replace(/let CACHE_NAME = 'amicale-attt-v[^']*'/, "let CACHE_NAME = 'amicale-attt-v" + nextVersion + "'");
+    fs.writeFileSync(swPath, sw, 'utf8');
+  } catch {}
+
   return json;
 }
 

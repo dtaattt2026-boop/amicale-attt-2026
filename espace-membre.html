@@ -1282,6 +1282,11 @@ function updatePublish() {
   data.stagedBy = '';
   _saveUpdatesData(data);
 
+  // Synchroniser site_settings
+  if (typeof SITE_SETTINGS !== 'undefined' && SITE_SETTINGS.updateSettings) {
+    SITE_SETTINGS.updateSettings({ appVersion: data.currentVersion });
+  }
+
   // Marquer la version comme vue sur l'appareil du maître (pas de bannière pour lui)
   localStorage.setItem('attt_seen_site_version', data.currentVersion);
   localStorage.setItem('attt_seen_publish_time', pubAt);

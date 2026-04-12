@@ -151,6 +151,15 @@ function _displaySiteVersion() {
       if (data && data.version) {
         _injectVersionBadge(data.version, data.datePublication || '');
         localStorage.setItem('attt_version_json', JSON.stringify(data));
+        // Synchroniser attt_updates si vide
+        try {
+          const upd = JSON.parse(localStorage.getItem('attt_updates') || '{}');
+          if (!upd.currentVersion) {
+            upd.currentVersion = data.version;
+            upd.publishedDate = data.datePublication || new Date().toISOString();
+            localStorage.setItem('attt_updates', JSON.stringify(upd));
+          }
+        } catch {}
       }
     }).catch(() => {});
     return;

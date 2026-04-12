@@ -75,7 +75,8 @@
     .btn-oa { border:2px solid var(--cp); color:var(--cp); border-radius:9px; font-weight:700; padding:.5rem 1.2rem; background:transparent; transition:all .2s; }
     .btn-oa:hover { background:var(--cp); color:#fff; }
 
-    @media(max-width:767px){ .page-wrap { flex-direction:column; } .sidebar-v { display:none; } .main-v { padding:1rem; } .ver-box { flex-direction:column; text-align:center; } .ver-number { font-size:2rem; } .mob-tabs { display:flex; overflow-x:auto; white-space:nowrap; gap:.35rem; padding:.5rem .75rem; background:#fff; border-bottom:1px solid #dee2e6; } .mob-tabs::-webkit-scrollbar { height:0; } }
+    .mob-tabs { display:none; }
+    @media(max-width:767px){ .sidebar-v { display:none !important; } .main-v { padding:1rem; } .ver-box { flex-direction:column; text-align:center; } .ver-number { font-size:2rem; } .mob-tabs { display:flex !important; overflow-x:auto; white-space:nowrap; gap:.35rem; padding:.5rem .75rem; background:#fff; border-bottom:1px solid #dee2e6; } .mob-tabs::-webkit-scrollbar { height:0; } }
     @media(min-width:768px){ .mob-tabs { display:none !important; } }
   </style>
 </head>
@@ -91,16 +92,16 @@
     </div>
   </div>
 
-  <div class="page-wrap">
+  <!-- MOBILE TABS (visible sm only) — hors du page-wrap pour éviter le flex row -->
+  <div class="mob-tabs">
+    <button class="btn btn-sm btn-primary mob-tab" data-s="version" onclick="showSection('version')"><i class="bi bi-tag-fill me-1"></i>Version</button>
+    <button class="btn btn-sm btn-outline-primary mob-tab" data-s="deploy" onclick="showSection('deploy')"><i class="bi bi-cloud-upload me-1"></i>Déployer</button>
+    <button class="btn btn-sm btn-outline-primary mob-tab" data-s="download" onclick="showSection('download')"><i class="bi bi-download me-1"></i>Télécharger</button>
+    <button class="btn btn-sm btn-outline-primary mob-tab" data-s="architecture" onclick="showSection('architecture')"><i class="bi bi-diagram-3 me-1"></i>Architecture</button>
+    <button class="btn btn-sm btn-outline-primary mob-tab" data-s="base" onclick="showSection('base')"><i class="bi bi-table me-1"></i>Base</button>
+  </div>
 
-    <!-- MOBILE TABS (visible sm only) -->
-    <div class="mob-tabs">
-      <button class="btn btn-sm btn-primary mob-tab" data-s="version" onclick="showSection('version')"><i class="bi bi-tag-fill me-1"></i>Version</button>
-      <button class="btn btn-sm btn-outline-primary mob-tab" data-s="deploy" onclick="showSection('deploy')"><i class="bi bi-cloud-upload me-1"></i>Déployer</button>
-      <button class="btn btn-sm btn-outline-primary mob-tab" data-s="download" onclick="showSection('download')"><i class="bi bi-download me-1"></i>Télécharger</button>
-      <button class="btn btn-sm btn-outline-primary mob-tab" data-s="architecture" onclick="showSection('architecture')"><i class="bi bi-diagram-3 me-1"></i>Architecture</button>
-      <button class="btn btn-sm btn-outline-primary mob-tab" data-s="base" onclick="showSection('base')"><i class="bi bi-table me-1"></i>Base</button>
-    </div>
+  <div class="page-wrap">
 
     <!-- SIDEBAR -->
     <aside class="sidebar-v d-none d-md-block">

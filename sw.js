@@ -2,7 +2,7 @@
    Service Worker — Amicale ATTT
    Stratégie : Network-first avec fallback cache + versioning
    ========================================================= */
-let CACHE_NAME = 'amicale-attt-v1.1.19';  // mis à jour dynamiquement
+let CACHE_NAME = 'amicale-attt-v2.2.12';  // mis à jour dynamiquement depuis version.json
 const CORE_ASSETS = [
   './',
   './index.html',
