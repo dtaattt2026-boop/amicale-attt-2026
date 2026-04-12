@@ -1120,6 +1120,7 @@ function renderUpdatesPanel(area) {
         }
         updates.currentVersion = serverV;
         updates.publishedDate = data.datePublication || new Date().toISOString();
+        // NE PAS pousser vers Firestore (sinon on écrase l'historique complet)
         localStorage.setItem(K_UPDATES, JSON.stringify(updates));
         localStorage.setItem('attt_version_json', JSON.stringify(data));
         renderUpdatesPanel(area); // re-render avec la bonne version
@@ -1943,17 +1944,33 @@ function renderMyInvitations() {
   const allUsers = AUTH.getUsers();
   const rows = invitations.slice().reverse().slice(0, 10).map(inv => {
     const date = new Date(inv.createdAt).toLocaleDateString('fr-FR');
-    // Vérifier aussi si un utilisateur a été créé via cette invitation (synchro Firestore)
-    let isUsed = inv.used;
+
+    // Détection fiable : chercher un utilisateur inscrit via cette invitation
+    let isUsed = false;
     let usedByName = '';
-    if (!isUsed) {
-      // Chercher un utilisateur dont le validateurId = inviterId et créé après l'invitation
-      const match = allUsers.find(u => u.validateurId === inv.inviterId && u.dateInscription >= inv.createdAt);
-      if (match) { isUsed = true; usedByName = match.prenom + ' ' + match.nom; }
-    } else if (inv.usedBy) {
+
+    // 1. Si l'invitation a le flag usedBy → chercher cet utilisateur
+    if (inv.usedBy) {
       const match = allUsers.find(u => u.id === inv.usedBy);
-      if (match) usedByName = match.prenom + ' ' + match.nom;
+      if (match) { isUsed = true; usedByName = match.prenom + ' ' + match.nom; }
+      else { isUsed = true; } // utilisateur supprimé mais invitation était utilisée
     }
+    // 2. Si le flag used est true
+    if (!isUsed && inv.used) {
+      isUsed = true;
+    }
+    // 3. Chercher un utilisateur créé par cette invitation (même si flags pas synchro)
+    //    → utilisateur avec validateurId = inviterId ET rôle ciblé ET inscrit après la date d'invitation
+    if (!isUsed) {
+      const match = allUsers.find(u =>
+        u.validateurId === inv.inviterId &&
+        u.statut === 'actif' &&
+        u.dateInscription && inv.createdAt &&
+        u.dateInscription >= inv.createdAt.slice(0, 10)
+      );
+      if (match) { isUsed = true; usedByName = match.prenom + ' ' + match.nom; }
+    }
+
     const status = isUsed
       ? '<span class="badge bg-success">Utilisée</span>'
       : '<span class="badge bg-warning text-dark">En attente</span>';

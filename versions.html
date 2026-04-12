@@ -699,7 +699,8 @@
           }
           data.currentVersion = sdata.version;
           data.publishedDate = sdata.datePublication || new Date().toISOString();
-          _saveUpdatesData(data);
+          // NE PAS pousser vers Firestore ici (sinon on écrase l'historique du PC)
+          localStorage.setItem('attt_updates', JSON.stringify(data));
           localStorage.setItem('attt_version_json', JSON.stringify(sdata));
           loadVersion(); // re-render
         }

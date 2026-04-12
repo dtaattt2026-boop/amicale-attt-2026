@@ -170,6 +170,7 @@ function _displaySiteVersion() {
         }
         upd.currentVersion = serverV;
         upd.publishedDate = data.datePublication || new Date().toISOString();
+        // Seulement localStorage, PAS Firestore (on ne veut pas écraser l'historique)
         localStorage.setItem('attt_updates', JSON.stringify(upd));
       } catch {}
     }

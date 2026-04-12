@@ -75,6 +75,7 @@ const UPDATE_MANAGER = (() => {
           }
           upd.currentVersion = serverV;
           upd.publishedDate = serverData.datePublication || new Date().toISOString();
+          // Seulement localStorage, PAS Firestore
           localStorage.setItem('attt_updates', JSON.stringify(upd));
         } catch {}
 

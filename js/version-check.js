@@ -28,6 +28,7 @@ const VERSION_CHECK = {
               }
               upd.currentVersion = data.version;
               upd.publishedDate = data.datePublication || new Date().toISOString();
+              // Seulement localStorage, PAS Firestore
               localStorage.setItem('attt_updates', JSON.stringify(upd));
             }
           } catch(e) {}
