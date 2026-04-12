@@ -1171,6 +1171,7 @@ const AUTH = (() => {
       role_override: inv.targetRole,
       statut_override: 'actif',
       validateurId: inv.inviterId,
+      invitationId: inv.id,
       linkedTo
     });
     if (result.ok) {

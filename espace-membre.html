@@ -1949,18 +1949,23 @@ function renderMyInvitations() {
     let isUsed = false;
     let usedByName = '';
 
-    // 1. Si l'invitation a le flag usedBy → chercher cet utilisateur
-    if (inv.usedBy) {
+    // 1. Chercher un utilisateur qui a invitationId === inv.id (lien direct)
+    const directMatch = allUsers.find(u => u.invitationId === inv.id);
+    if (directMatch) {
+      isUsed = true;
+      usedByName = directMatch.prenom + ' ' + directMatch.nom;
+    }
+    // 2. Si le flag usedBy est renseigné
+    if (!isUsed && inv.usedBy) {
       const match = allUsers.find(u => u.id === inv.usedBy);
       if (match) { isUsed = true; usedByName = match.prenom + ' ' + match.nom; }
-      else { isUsed = true; } // utilisateur supprimé mais invitation était utilisée
+      else { isUsed = true; }
     }
-    // 2. Si le flag used est true
+    // 3. Flag used direct
     if (!isUsed && inv.used) {
       isUsed = true;
     }
-    // 3. Chercher un utilisateur créé par cette invitation (même si flags pas synchro)
-    //    → utilisateur avec validateurId = inviterId ET rôle ciblé ET inscrit après la date d'invitation
+    // 4. Dernier recours : chercher par validateurId + date
     if (!isUsed) {
       const match = allUsers.find(u =>
         u.validateurId === inv.inviterId &&
