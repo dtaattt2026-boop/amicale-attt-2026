@@ -691,6 +691,12 @@
       // Réconciliation avec version.json du serveur
       fetch('assets/version.json?t=' + Date.now(), { cache: 'no-store' }).then(function(r) { return r.ok ? r.json() : null; }).then(function(sdata) {
         if (sdata && sdata.version && _cmpVer(sdata.version, data.currentVersion || '') > 0) {
+          // Ajouter l'entrée manquante dans l'historique
+          if (!data.history) data.history = [];
+          var alreadyInHistory = data.history.some(function(h) { return h.version === sdata.version && h.action === 'publié'; });
+          if (!alreadyInHistory) {
+            data.history.push({ version: sdata.version, notes: sdata.changelog || 'Déploiement automatique', action: 'publié', date: sdata.datePublication || new Date().toISOString(), by: 'deploy' });
+          }
           data.currentVersion = sdata.version;
           data.publishedDate = sdata.datePublication || new Date().toISOString();
           _saveUpdatesData(data);
@@ -716,9 +722,17 @@
       }
       document.getElementById('ver-date').innerHTML = dateStr ? 'Publiée le ' + dateStr : '';
 
-      // Pré-remplir le champ version avec la version courante
+      // Pré-remplir le champ version avec la PROCHAINE version (auto-incrément)
       var verInput = document.getElementById('ver-input');
-      if (!verInput.value || verInput.value === '—') verInput.value = current !== '—' ? current : '';
+      if (!verInput.value || verInput.value === '—' || _cmpVer(verInput.value, current) <= 0) {
+        if (current !== '—') {
+          var p = current.split('.').map(Number);
+          p[2] = (p[2] || 0) + 1;
+          verInput.value = p.join('.');
+        } else {
+          verInput.value = '';
+        }
+      }
 
       // Indicateur appareil
       var deviceBadge = document.getElementById('device-badge');

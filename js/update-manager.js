@@ -68,6 +68,11 @@ const UPDATE_MANAGER = (() => {
         // 2. Mettre à jour attt_updates
         try {
           const upd = JSON.parse(localStorage.getItem('attt_updates') || '{}');
+          if (!upd.history) upd.history = [];
+          const alreadyIn = upd.history.some(h => h.version === serverV && h.action === 'publié');
+          if (!alreadyIn) {
+            upd.history.push({ version: serverV, notes: serverData.changelog || 'Mise à jour automatique', action: 'publié', date: serverData.datePublication || new Date().toISOString(), by: 'deploy' });
+          }
           upd.currentVersion = serverV;
           upd.publishedDate = serverData.datePublication || new Date().toISOString();
           localStorage.setItem('attt_updates', JSON.stringify(upd));

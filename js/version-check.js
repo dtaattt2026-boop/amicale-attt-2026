@@ -21,6 +21,11 @@ const VERSION_CHECK = {
           try {
             var upd = JSON.parse(localStorage.getItem('attt_updates') || '{}');
             if (VERSION_CHECK._cmp(data.version, upd.currentVersion || '') > 0) {
+              if (!upd.history) upd.history = [];
+              var alreadyIn = upd.history.some(function(h) { return h.version === data.version && h.action === 'publié'; });
+              if (!alreadyIn) {
+                upd.history.push({ version: data.version, notes: data.changelog || 'Mise à jour', action: 'publié', date: data.datePublication || new Date().toISOString(), by: 'deploy' });
+              }
               upd.currentVersion = data.version;
               upd.publishedDate = data.datePublication || new Date().toISOString();
               localStorage.setItem('attt_updates', JSON.stringify(upd));

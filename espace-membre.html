@@ -1111,8 +1111,13 @@ function renderUpdatesPanel(area) {
     if (data && data.version) {
       const serverV = data.version;
       const localV = updates.currentVersion || '';
-      // Si le serveur a une version plus récente, mettre à jour localStorage
       if (_cmpVer(serverV, localV) > 0) {
+        // Ajouter l'entrée manquante dans l'historique
+        if (!updates.history) updates.history = [];
+        const alreadyIn = updates.history.some(h => h.version === serverV && h.action === 'publié');
+        if (!alreadyIn) {
+          updates.history.push({ version: serverV, notes: data.changelog || 'Déploiement automatique', action: 'publié', date: data.datePublication || new Date().toISOString(), by: 'deploy' });
+        }
         updates.currentVersion = serverV;
         updates.publishedDate = data.datePublication || new Date().toISOString();
         localStorage.setItem(K_UPDATES, JSON.stringify(updates));
@@ -1123,6 +1128,13 @@ function renderUpdatesPanel(area) {
   }).catch(() => {});
 
   const current = updates.currentVersion || '—';
+  // Calculer la prochaine version
+  let nextVersion = '';
+  if (current !== '—') {
+    const p = current.split('.').map(Number);
+    p[2] = (p[2] || 0) + 1;
+    nextVersion = p.join('.');
+  }
   const staged  = updates.stagedVersion || null;
   const stagedNotes = updates.stagedNotes || '';
   const stagedDate  = updates.stagedDate || '';
@@ -1179,7 +1191,7 @@ function renderUpdatesPanel(area) {
         <div class="row g-3">
           <div class="col-md-4">
             <label class="form-label small fw-semibold">Numéro de version</label>
-            <input class="form-control" id="update-version" placeholder="ex: 1.0.7" value="">
+            <input class="form-control" id="update-version" placeholder="ex: 1.0.7" value="${AUTH.esc(nextVersion)}">
           </div>
           <div class="col-md-8">
             <label class="form-label small fw-semibold">Notes de mise à jour</label>

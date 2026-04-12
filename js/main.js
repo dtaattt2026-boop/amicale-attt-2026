@@ -162,6 +162,12 @@ function _displaySiteVersion() {
     if (_compareVersions(serverV, localV) > 0) {
       try {
         const upd = JSON.parse(localStorage.getItem('attt_updates') || '{}');
+        if (!upd.history) upd.history = [];
+        // Ajouter l'entrée manquante dans l'historique
+        const alreadyIn = upd.history.some(h => h.version === serverV && h.action === 'publié');
+        if (!alreadyIn) {
+          upd.history.push({ version: serverV, notes: data.changelog || 'Mise à jour', action: 'publié', date: data.datePublication || new Date().toISOString(), by: 'deploy' });
+        }
         upd.currentVersion = serverV;
         upd.publishedDate = data.datePublication || new Date().toISOString();
         localStorage.setItem('attt_updates', JSON.stringify(upd));
