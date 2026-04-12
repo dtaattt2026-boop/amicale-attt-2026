@@ -581,9 +581,16 @@
             <label class="form-label fw-semibold">Statut</label>
             <select class="form-select" id="edit-statut">
               <option value="actif">Actif</option>
+              <option value="en_attente">En attente</option>
               <option value="suspendu">Suspendu</option>
               <option value="supprime">Supprimé</option>
             </select>
+          </div>
+
+          <!-- Infos famille & invitation -->
+          <div id="edit-family-info" class="mb-3 d-none">
+            <label class="form-label fw-semibold">Informations complémentaires</label>
+            <div id="edit-family-details" class="border rounded-3 p-2 bg-light small"></div>
           </div>
 
           <div id="delete-section" class="mt-4 pt-3 border-top">
@@ -591,7 +598,7 @@
             <button class="btn btn-outline-dark btn-sm me-2" id="archive-btn" data-perm="Supprimer utilisateur" data-perm-mode="action">
               <i class="bi bi-archive me-1"></i>Supprimer logiquement
             </button>
-            <button class="btn btn-outline-danger btn-sm" id="delete-btn" data-perm="Supprimer définitivement utilisateur" data-perm-mode="action">
+            <button class="btn btn-outline-danger btn-sm" id="delete-btn" data-perm="Supprimer définitivement" data-perm-mode="action">
               <i class="bi bi-trash me-1"></i>Supprimer définitivement
             </button>
           </div>
@@ -837,7 +844,8 @@ function renderUsersTable() {
   const fRole   = document.getElementById('filter-role')?.value   || '';
   const fStatut = document.getElementById('filter-statut')?.value || '';
 
-  const users = AUTH.getUsers().filter(u => {
+  const allUsers = AUTH.getUsers();
+  const users = allUsers.filter(u => {
     if (u.login === '347') return false;             /* compte secours — toujours masqué */
     if (fRole   && !AUTH.userHasExactRole(u, fRole)) return false;
     if (fStatut && u.statut !== fStatut) return false;
@@ -845,21 +853,47 @@ function renderUsersTable() {
     return true;
   }).sort((a,b) => a.nom.localeCompare(b.nom));
 
+  // Charger les invitations pour afficher qui a invité qui
+  const invitations = typeof AUTH.getMyInvitations !== 'undefined' ? (function() {
+    try { return JSON.parse(localStorage.getItem('attt_invitations') || '[]'); } catch { return []; }
+  })() : [];
+
   document.getElementById('users-tbody').innerHTML = users.map(u => {
     const statBadge = u.statut === 'actif'      ? '<span class="badge bg-success">Actif</span>'
                     : u.statut === 'en_attente'  ? '<span class="badge bg-warning text-dark">En attente</span>'
                     : u.statut === 'supprime'    ? '<span class="badge bg-dark">Supprimé</span>'
                     :                              '<span class="badge bg-danger">Suspendu</span>';
+    // Trouver le parent (linkedTo) pour les familles
+    let linkedInfo = '';
+    if (u.linkedTo) {
+      const parent = allUsers.find(p => p.id === u.linkedTo);
+      if (parent) linkedInfo = '<br><span class="text-muted" style="font-size:.72rem;"><i class="bi bi-link-45deg me-1"></i>' + AUTH.esc(parent.prenom + ' ' + parent.nom) + '</span>';
+    }
+    // Trouver l'inviteur
+    let inviterInfo = '';
+    const inv = invitations.find(i => i.usedBy === u.id);
+    if (inv) {
+      inviterInfo = '<br><span class="text-muted" style="font-size:.72rem;"><i class="bi bi-envelope-check me-1"></i>Invité par ' + AUTH.esc(inv.inviterName || '—') + '</span>';
+    } else if (u.validateurId) {
+      const validateur = allUsers.find(v => v.id === u.validateurId);
+      if (validateur) inviterInfo = '<br><span class="text-muted" style="font-size:.72rem;"><i class="bi bi-person-check me-1"></i>Validé par ' + AUTH.esc(validateur.prenom + ' ' + validateur.nom) + '</span>';
+    }
+    // Compter les membres famille rattachés
+    const familyMembers = allUsers.filter(fm => fm.linkedTo === u.id);
+    let familyInfo = '';
+    if (familyMembers.length) {
+      familyInfo = '<br><span class="text-info" style="font-size:.72rem;"><i class="bi bi-people-fill me-1"></i>' + familyMembers.length + ' membre' + (familyMembers.length>1?'s':'') + ' famille</span>';
+    }
     return `
       <tr>
-        <td class="fw-semibold">${AUTH.esc(u.nom)} ${AUTH.esc(u.prenom)}</td>
+        <td class="fw-semibold">${AUTH.esc(u.nom)} ${AUTH.esc(u.prenom)}${linkedInfo}${inviterInfo}${familyInfo}</td>
         <td><code>${AUTH.esc(u.login)}</code></td>
         <td class="text-muted small" data-perm="Voir colonne E-mail" data-perm-mode="visible">${AUTH.esc(u.email||'—')}</td>
         <td>${roleBadgesHtml(u)}</td>
         <td>${statBadge}</td>
         <td class="small text-muted">${AUTH.esc(u.dateInscription)}</td>
         <td class="text-end">
-          <button class="btn btn-sm btn-outline-primary" onclick="openUserModalById('${AUTH.esc(u.id)}')">
+          <button class="btn btn-sm btn-outline-primary" onclick="openUserModalById('${AUTH.esc(u.id)}')" title="Modifier">
             <i class="bi bi-pencil"></i>
           </button>
         </td>
@@ -977,14 +1011,57 @@ function openUserModal(u) {
   _editUserId = u.id;
   document.getElementById('edit-id').value               = u.id;
   document.getElementById('edit-fullname').textContent   = u.prenom + ' ' + u.nom;
-  document.getElementById('edit-login-show').textContent = 'Login : @' + u.login;
+  document.getElementById('edit-login-show').textContent = 'Login : @' + u.login + (u.email ? ' · ' + u.email : '') + (u.telephone ? ' · ' + u.telephone : '');
   renderUserRoleEditor(u);
-  document.getElementById('edit-statut').value           = u.statut === 'en_attente' ? 'suspendu' : u.statut;
+  document.getElementById('edit-statut').value           = u.statut || 'actif';
   document.getElementById('delete-section').style.display = (u.id === user.id) ? 'none' : '';
   document.getElementById('archive-btn').textContent = u.statut === 'supprime' ? 'Restaurer le compte' : 'Supprimer logiquement';
   document.getElementById('archive-btn').className = u.statut === 'supprime'
     ? 'btn btn-outline-success btn-sm me-2'
     : 'btn btn-outline-dark btn-sm me-2';
+
+  // Infos famille & invitation
+  const allUsers = AUTH.getUsers();
+  const infoLines = [];
+  // Parent (linkedTo)
+  if (u.linkedTo) {
+    const parent = allUsers.find(p => p.id === u.linkedTo);
+    if (parent) infoLines.push('<i class="bi bi-link-45deg text-primary me-1"></i><strong>Rattaché à :</strong> ' + AUTH.esc(parent.prenom + ' ' + parent.nom) + ' (@' + AUTH.esc(parent.login) + ')');
+  }
+  // Inviteur
+  try {
+    const invitations = JSON.parse(localStorage.getItem('attt_invitations') || '[]');
+    const inv = invitations.find(i => i.usedBy === u.id);
+    if (inv) infoLines.push('<i class="bi bi-envelope-check text-success me-1"></i><strong>Invité par :</strong> ' + AUTH.esc(inv.inviterName || '—') + ' le ' + new Date(inv.createdAt).toLocaleDateString('fr-FR'));
+  } catch {}
+  if (!infoLines.length && u.validateurId) {
+    const validateur = allUsers.find(v => v.id === u.validateurId);
+    if (validateur) infoLines.push('<i class="bi bi-person-check text-info me-1"></i><strong>Validé par :</strong> ' + AUTH.esc(validateur.prenom + ' ' + validateur.nom));
+  }
+  // Famille rattachée
+  const familyMembers = allUsers.filter(fm => fm.linkedTo === u.id);
+  if (familyMembers.length) {
+    infoLines.push('<i class="bi bi-people-fill text-info me-1"></i><strong>Membres famille (' + familyMembers.length + ') :</strong> ' + familyMembers.map(fm => AUTH.esc(fm.prenom + ' ' + fm.nom)).join(', '));
+  }
+  // Invitations envoyées
+  try {
+    const invitations = JSON.parse(localStorage.getItem('attt_invitations') || '[]');
+    const sent = invitations.filter(i => i.inviterId === u.id);
+    if (sent.length) {
+      const usedCount = sent.filter(i => i.used).length;
+      infoLines.push('<i class="bi bi-send text-primary me-1"></i><strong>Invitations envoyées :</strong> ' + sent.length + ' (' + usedCount + ' utilisées)');
+    }
+  } catch {}
+
+  const infoWrap = document.getElementById('edit-family-info');
+  const infoEl = document.getElementById('edit-family-details');
+  if (infoLines.length) {
+    infoEl.innerHTML = infoLines.join('<br>');
+    infoWrap.classList.remove('d-none');
+  } else {
+    infoWrap.classList.add('d-none');
+  }
+
   AUTH.applyPermissions(document.getElementById('userModal'), user);
   userModal.show();
 }

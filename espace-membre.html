@@ -1170,11 +1170,14 @@ function renderUpdatesPanel(area) {
             <textarea class="form-control" id="update-notes" rows="2" placeholder="Décrivez les changements…"></textarea>
           </div>
         </div>
-        <div class="mt-3">
+        <div class="mt-3 d-flex flex-wrap gap-2 align-items-center">
           <button class="btn btn-warning btn-sm" onclick="updateStage()">
             <i class="bi bi-flask me-1"></i>Mettre en test
           </button>
-          <span class="text-muted small ms-2">La mise à jour sera visible uniquement par les testeurs autorisés</span>
+          ${canPublish ? `<button class="btn btn-primary btn-sm" onclick="updateDirectPublish()">
+            <i class="bi bi-rocket-takeoff me-1"></i>Publier directement
+          </button>` : ''}
+          <span class="text-muted small">La mise en test est visible uniquement par les testeurs autorisés</span>
         </div>
       </div>
     </div>
@@ -1298,6 +1301,64 @@ function updateCancelStaged() {
   data.stagedDate = '';
   data.stagedBy = '';
   _saveUpdatesData(data);
+  showTab('mises-a-jour', null);
+}
+
+function updateDirectPublish() {
+  const version = (document.getElementById('update-version')?.value || '').trim();
+  const notes = (document.getElementById('update-notes')?.value || '').trim();
+  if (!version) { alert('Veuillez saisir un numéro de version.'); return; }
+  if (!confirm('Publier la version ' + version + ' directement pour tous les utilisateurs ?')) return;
+
+  const now = new Date().toISOString();
+  const data = _getUpdatesData();
+  if (!data.history) data.history = [];
+  data.history.push({ version, notes, action: 'publié', date: now, by: user.login || user.id });
+  data.currentVersion = version;
+  data.publishedDate = now;
+  data.publishedBy = user.login || user.id;
+  data.stagedVersion = null;
+  data.stagedNotes = '';
+  data.stagedDate = '';
+  data.stagedBy = '';
+  _saveUpdatesData(data);
+
+  // Synchroniser version_json
+  try {
+    let vj = {};
+    try { vj = JSON.parse(localStorage.getItem('attt_version_json') || '{}'); } catch { vj = {}; }
+    vj.version = version;
+    vj.datePublication = now.slice(0,10);
+    vj.changelog = notes || 'Nouvelle version disponible';
+    vj.forceUpdate = false;
+    if (!vj.platforms) vj.platforms = {};
+    ['windows','android','pwa'].forEach(p => {
+      if (!vj.platforms[p]) vj.platforms[p] = {};
+      vj.platforms[p].version = version;
+    });
+    localStorage.setItem('attt_version_json', JSON.stringify(vj));
+    if (typeof DB !== 'undefined') DB.save('attt_version_json', vj);
+  } catch { /* */ }
+
+  // Synchroniser master_settings
+  try {
+    const ms = JSON.parse(localStorage.getItem('attt_master_settings') || '{}');
+    ms.showUpdateBanner = true;
+    ms.version = version;
+    ms.publishedAt = now;
+    localStorage.setItem('attt_master_settings', JSON.stringify(ms));
+    if (typeof DB !== 'undefined') DB.save('attt_master_settings', ms);
+  } catch { /* */ }
+
+  // Synchroniser site_settings
+  if (typeof SITE_SETTINGS !== 'undefined' && SITE_SETTINGS.updateSettings) {
+    SITE_SETTINGS.updateSettings({ appVersion: version });
+  }
+
+  // Pas de bannière pour le maître
+  localStorage.setItem('attt_seen_site_version', version);
+  localStorage.setItem('attt_seen_publish_time', now);
+
   showTab('mises-a-jour', null);
 }
 
@@ -1837,17 +1898,29 @@ function renderMyInvitations() {
   if (!container) return;
   const invitations = AUTH.getMyInvitations(user.id);
   if (!invitations.length) { container.innerHTML = ''; return; }
+  const allUsers = AUTH.getUsers();
   const rows = invitations.slice().reverse().slice(0, 10).map(inv => {
     const date = new Date(inv.createdAt).toLocaleDateString('fr-FR');
-    const status = inv.used
+    // Vérifier aussi si un utilisateur a été créé via cette invitation (synchro Firestore)
+    let isUsed = inv.used;
+    let usedByName = '';
+    if (!isUsed) {
+      // Chercher un utilisateur dont le validateurId = inviterId et créé après l'invitation
+      const match = allUsers.find(u => u.validateurId === inv.inviterId && u.dateInscription >= inv.createdAt);
+      if (match) { isUsed = true; usedByName = match.prenom + ' ' + match.nom; }
+    } else if (inv.usedBy) {
+      const match = allUsers.find(u => u.id === inv.usedBy);
+      if (match) usedByName = match.prenom + ' ' + match.nom;
+    }
+    const status = isUsed
       ? '<span class="badge bg-success">Utilisée</span>'
       : '<span class="badge bg-warning text-dark">En attente</span>';
-    const revokeBtn = inv.used ? '' : `<button class="btn btn-outline-danger btn-sm py-0 px-1" onclick="revokeInvite('${AUTH.esc(inv.id)}')" title="Révoquer"><i class="bi bi-x-lg" style="font-size:.7rem;"></i></button>`;
+    const revokeBtn = isUsed ? '' : `<button class="btn btn-outline-danger btn-sm py-0 px-1" onclick="revokeInvite('${AUTH.esc(inv.id)}')" title="Révoquer"><i class="bi bi-x-lg" style="font-size:.7rem;"></i></button>`;
     return `<tr>
       <td class="small"><code>${AUTH.esc(inv.code)}</code></td>
       <td class="small">${AUTH.esc(AUTH.getRoleLabel(inv.targetRole))}</td>
       <td class="small">${date}</td>
-      <td>${status}</td>
+      <td>${status}${usedByName ? '<br><span class="text-muted" style="font-size:.72rem;">par ' + AUTH.esc(usedByName) + '</span>' : ''}</td>
       <td class="text-end">${revokeBtn}</td>
     </tr>`;
   }).join('');
