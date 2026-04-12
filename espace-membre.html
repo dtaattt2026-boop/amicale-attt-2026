@@ -1106,6 +1106,22 @@ function renderUpdatesPanel(area) {
   try { updates = JSON.parse(localStorage.getItem(K_UPDATES) || '{}'); } catch { updates = {}; }
   if (!updates.history) updates.history = [];
 
+  // Réconciliation : vérifier version.json du serveur (GitHub Pages)
+  fetch('assets/version.json?t=' + Date.now(), { cache: 'no-store' }).then(r => r.ok ? r.json() : null).then(data => {
+    if (data && data.version) {
+      const serverV = data.version;
+      const localV = updates.currentVersion || '';
+      // Si le serveur a une version plus récente, mettre à jour localStorage
+      if (_cmpVer(serverV, localV) > 0) {
+        updates.currentVersion = serverV;
+        updates.publishedDate = data.datePublication || new Date().toISOString();
+        localStorage.setItem(K_UPDATES, JSON.stringify(updates));
+        localStorage.setItem('attt_version_json', JSON.stringify(data));
+        renderUpdatesPanel(area); // re-render avec la bonne version
+      }
+    }
+  }).catch(() => {});
+
   const current = updates.currentVersion || '—';
   const staged  = updates.stagedVersion || null;
   const stagedNotes = updates.stagedNotes || '';
@@ -1217,6 +1233,15 @@ function _getUpdatesData() {
 function _saveUpdatesData(data) {
   localStorage.setItem('attt_updates', JSON.stringify(data));
   if (typeof DB !== 'undefined') DB.save('attt_updates', data);
+}
+function _cmpVer(a, b) {
+  if (!a) return -1; if (!b) return 1;
+  const pa = String(a).split('.').map(Number), pb = String(b).split('.').map(Number);
+  for (let i = 0; i < Math.max(pa.length, pb.length); i++) {
+    const na = pa[i] || 0, nb = pb[i] || 0;
+    if (na !== nb) return na - nb;
+  }
+  return 0;
 }
 
 function updateStage() {

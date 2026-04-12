@@ -146,25 +146,45 @@ function _getSiteVersionDate() {
 
 function _displaySiteVersion() {
   const version = _getSiteVersion();
-  if (!version) {
-    fetch('assets/version.json?t=' + Date.now()).then(r => r.ok ? r.json() : null).then(data => {
-      if (data && data.version) {
-        _injectVersionBadge(data.version, data.datePublication || '');
-        localStorage.setItem('attt_version_json', JSON.stringify(data));
-        // Synchroniser attt_updates si vide
-        try {
-          const upd = JSON.parse(localStorage.getItem('attt_updates') || '{}');
-          if (!upd.currentVersion) {
-            upd.currentVersion = data.version;
-            upd.publishedDate = data.datePublication || new Date().toISOString();
-            localStorage.setItem('attt_updates', JSON.stringify(upd));
-          }
-        } catch {}
-      }
-    }).catch(() => {});
-    return;
+
+  // Toujours vérifier version.json du serveur pour détecter une version plus récente
+  fetch('assets/version.json?t=' + Date.now(), { cache: 'no-store' }).then(r => r.ok ? r.json() : null).then(data => {
+    if (!data || !data.version) return;
+    localStorage.setItem('attt_version_json', JSON.stringify(data));
+
+    // Comparer et prendre la version la plus récente
+    const serverV = data.version;
+    const localV = version || '';
+    const best = _compareVersions(serverV, localV) >= 0 ? serverV : localV;
+    const bestDate = (best === serverV) ? (data.datePublication || '') : _getSiteVersionDate();
+
+    // Synchroniser attt_updates si le serveur a une version plus récente
+    if (_compareVersions(serverV, localV) > 0) {
+      try {
+        const upd = JSON.parse(localStorage.getItem('attt_updates') || '{}');
+        upd.currentVersion = serverV;
+        upd.publishedDate = data.datePublication || new Date().toISOString();
+        localStorage.setItem('attt_updates', JSON.stringify(upd));
+      } catch {}
+    }
+
+    _injectVersionBadge(best, bestDate);
+  }).catch(() => {
+    // Pas de réseau — utiliser localStorage
+    if (version) _injectVersionBadge(version, _getSiteVersionDate());
+  });
+}
+
+/* Compare deux versions semver, retourne >0 si a>b, <0 si a<b, 0 si égales */
+function _compareVersions(a, b) {
+  if (!a) return -1; if (!b) return 1;
+  const pa = String(a).split('.').map(Number);
+  const pb = String(b).split('.').map(Number);
+  for (let i = 0; i < Math.max(pa.length, pb.length); i++) {
+    const na = pa[i] || 0, nb = pb[i] || 0;
+    if (na !== nb) return na - nb;
   }
-  _injectVersionBadge(version, _getSiteVersionDate());
+  return 0;
 }
 
 function _injectVersionBadge(version, datePublication) {

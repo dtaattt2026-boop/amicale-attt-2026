@@ -612,6 +612,7 @@
   <script src="js/auth.js"></script>
   <script src="js/site-settings.js"></script>
   <script src="js/version-check.js"></script>
+  <script src="js/update-manager.js"></script>
   <script>
   'use strict';
   const user = AUTH.requireAuth();
@@ -645,6 +646,15 @@
     localStorage.setItem('attt_updates', JSON.stringify(data));
     if (typeof DB !== 'undefined' && DB.push) DB.push('attt_updates', data);
   }
+  function _cmpVer(a, b) {
+    if (!a) return -1; if (!b) return 1;
+    var pa = String(a).split('.').map(Number), pb = String(b).split('.').map(Number);
+    for (var i = 0; i < Math.max(pa.length, pb.length); i++) {
+      var na = pa[i] || 0, nb = pb[i] || 0;
+      if (na !== nb) return na - nb;
+    }
+    return 0;
+  }
   function _syncVersionJson(v, notes) {
     var vj = {};
     try { vj = JSON.parse(localStorage.getItem('attt_version_json') || '{}'); } catch { vj = {}; }
@@ -677,6 +687,18 @@
     DB_READY.then(() => {
       var data = _getUpdatesData();
       if (!data.history) data.history = [];
+
+      // Réconciliation avec version.json du serveur
+      fetch('assets/version.json?t=' + Date.now(), { cache: 'no-store' }).then(function(r) { return r.ok ? r.json() : null; }).then(function(sdata) {
+        if (sdata && sdata.version && _cmpVer(sdata.version, data.currentVersion || '') > 0) {
+          data.currentVersion = sdata.version;
+          data.publishedDate = sdata.datePublication || new Date().toISOString();
+          _saveUpdatesData(data);
+          localStorage.setItem('attt_version_json', JSON.stringify(sdata));
+          loadVersion(); // re-render
+        }
+      }).catch(function() {});
+
       var current = data.currentVersion || '—';
       var staged = data.stagedVersion || null;
 

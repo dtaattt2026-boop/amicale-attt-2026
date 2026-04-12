@@ -1,6 +1,6 @@
 ﻿/**
- * version-check.js — Suivi de version (pas de banniere)
- * Les mises a jour sont automatiques via GitHub Pages + Service Worker network-first.
+ * version-check.js — Suivi de version automatique
+ * Toujours consulte version.json du serveur (GitHub Pages) en priorité.
  */
 'use strict';
 const VERSION_CHECK = {
@@ -11,18 +11,32 @@ const VERSION_CHECK = {
   clearCache: function() {},
   _cmp: function(a, b) { var x = String(a||'0').split('.').map(Number), y = String(b||'0').split('.').map(Number); for (var i=0;i<Math.max(x.length,y.length);i++) { var d=(x[i]||0)-(y[i]||0); if(d) return d; } return 0; },
   fetchLatest: function() {
-    // D'abord essayer localStorage/Firestore, puis fallback serveur
-    try {
-      var vj = JSON.parse(localStorage.getItem('attt_version_json') || '{}');
-      if (vj && vj.version) return Promise.resolve(vj);
-    } catch(e) {}
-    return fetch('assets/version.json?t=' + Date.now())
+    // Toujours aller chercher sur le serveur d'abord (pas de cache)
+    return fetch('assets/version.json?t=' + Date.now(), { cache: 'no-store' })
       .then(function(r) { return r.ok ? r.json() : null; })
       .then(function(data) {
-        if (data) localStorage.setItem('attt_version_json', JSON.stringify(data));
+        if (data && data.version) {
+          localStorage.setItem('attt_version_json', JSON.stringify(data));
+          // Synchroniser attt_updates si serveur plus récent
+          try {
+            var upd = JSON.parse(localStorage.getItem('attt_updates') || '{}');
+            if (VERSION_CHECK._cmp(data.version, upd.currentVersion || '') > 0) {
+              upd.currentVersion = data.version;
+              upd.publishedDate = data.datePublication || new Date().toISOString();
+              localStorage.setItem('attt_updates', JSON.stringify(upd));
+            }
+          } catch(e) {}
+        }
         return data;
       })
-      .catch(function() { return null; });
+      .catch(function() {
+        // Fallback localStorage si hors-ligne
+        try {
+          var vj = JSON.parse(localStorage.getItem('attt_version_json') || '{}');
+          if (vj && vj.version) return vj;
+        } catch(e) {}
+        return null;
+      });
   },
   getCurrentVersion: function() {
     try {

@@ -70,6 +70,12 @@ self.addEventListener('fetch', event => {
   const url = new URL(event.request.url);
   if (url.origin !== self.location.origin) return;
 
+  /* version.json et sw.js → toujours réseau, jamais le cache */
+  if (url.pathname.endsWith('version.json') || url.pathname.endsWith('sw.js')) {
+    event.respondWith(fetch(event.request, { cache: 'no-store' }).catch(() => caches.match(event.request)));
+    return;
+  }
+
   event.respondWith(
     fetch(event.request)
       .then(response => {
