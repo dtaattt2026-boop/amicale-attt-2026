@@ -1402,6 +1402,16 @@ function updateDirectPublish() {
   localStorage.setItem('attt_seen_site_version', version);
   localStorage.setItem('attt_seen_publish_time', now);
 
+  // Tenter de sauvegarder un tag git (si le serveur deploy est actif)
+  try {
+    fetch('http://127.0.0.1:8081/api/versions/save', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ version: version, notes: notes || 'Mise à jour' }),
+      signal: AbortSignal.timeout(3000)
+    }).catch(function() {});
+  } catch {}
+
   showTab('mises-a-jour', null);
 }
 
@@ -1838,7 +1848,8 @@ function renderAccueilTab(area) {
     </div>
   </div>
 
-  <!-- ── INVITATIONS ── -->
+  <!-- ── INVITATIONS (masqué pour famille) ── -->
+  ${AUTH.getInvitableRoles(user).length ? `
   <div class="mt-4">
     <div class="card border-0 shadow-sm" style="border-radius:12px;">
       <div class="card-header bg-white border-0 d-flex justify-content-between align-items-center" style="border-radius:12px 12px 0 0;">
@@ -1883,11 +1894,12 @@ function renderAccueilTab(area) {
         <div class="mt-3" id="my-invitations-list"></div>
       </div>
     </div>
-  </div>`;
+  </div>
+  ` : '<div class="mt-4" id="my-invitations-list"></div>'}`;
 
   area.innerHTML = html;
 
-  // Remplir les rôles d'invitation
+  // Remplir les rôles d'invitation (si visible)
   renderInviteRoles();
   renderMyInvitations();
 }
@@ -1942,59 +1954,81 @@ function renderMyInvitations() {
   const invitations = AUTH.getMyInvitations(user.id);
   if (!invitations.length) { container.innerHTML = ''; return; }
   const allUsers = AUTH.getUsers();
-  const rows = invitations.slice().reverse().slice(0, 10).map(inv => {
-    const date = new Date(inv.createdAt).toLocaleDateString('fr-FR');
+  const rows = invitations.slice().reverse().slice(0, 20).map(inv => {
+    const dateEnvoi = new Date(inv.createdAt);
+    const envoyeLe = dateEnvoi.toLocaleDateString('fr-FR') + ' ' + dateEnvoi.toLocaleTimeString('fr-FR', {hour:'2-digit',minute:'2-digit'});
 
-    // Détection fiable : chercher un utilisateur inscrit via cette invitation
+    // Détection fiable
     let isUsed = false;
-    let usedByName = '';
+    let inscrit = null;
 
-    // 1. Chercher un utilisateur qui a invitationId === inv.id (lien direct)
+    // 1. Lien direct invitationId
     const directMatch = allUsers.find(u => u.invitationId === inv.id);
-    if (directMatch) {
-      isUsed = true;
-      usedByName = directMatch.prenom + ' ' + directMatch.nom;
-    }
-    // 2. Si le flag usedBy est renseigné
+    if (directMatch) { isUsed = true; inscrit = directMatch; }
+    // 2. Flag usedBy
     if (!isUsed && inv.usedBy) {
       const match = allUsers.find(u => u.id === inv.usedBy);
-      if (match) { isUsed = true; usedByName = match.prenom + ' ' + match.nom; }
+      if (match) { isUsed = true; inscrit = match; }
       else { isUsed = true; }
     }
-    // 3. Flag used direct
-    if (!isUsed && inv.used) {
-      isUsed = true;
-    }
-    // 4. Dernier recours : chercher par validateurId + date
+    // 3. Flag used
+    if (!isUsed && inv.used) { isUsed = true; }
+    // 4. Recherche par validateurId
     if (!isUsed) {
       const match = allUsers.find(u =>
-        u.validateurId === inv.inviterId &&
-        u.statut === 'actif' &&
-        u.dateInscription && inv.createdAt &&
-        u.dateInscription >= inv.createdAt.slice(0, 10)
+        u.validateurId === inv.inviterId && u.statut === 'actif' &&
+        u.dateInscription && inv.createdAt && u.dateInscription >= inv.createdAt.slice(0, 10)
       );
-      if (match) { isUsed = true; usedByName = match.prenom + ' ' + match.nom; }
+      if (match) { isUsed = true; inscrit = match; }
     }
 
-    const status = isUsed
-      ? '<span class="badge bg-success">Utilisée</span>'
-      : '<span class="badge bg-warning text-dark">En attente</span>';
+    // Infos inscrit
+    let inscritHtml = '<span class="text-muted">—</span>';
+    let dateInscHtml = '';
+    let roleInscrit = '';
+    if (inscrit) {
+      inscritHtml = '<strong>' + AUTH.esc(inscrit.prenom + ' ' + inscrit.nom) + '</strong>';
+      roleInscrit = AUTH.esc(AUTH.getRoleLabel(inscrit.roles?.[0] || inscrit.role || inv.targetRole));
+      if (inscrit.dateInscription) {
+        const di = new Date(inscrit.dateInscription);
+        dateInscHtml = di.toLocaleDateString('fr-FR') + ' ' + di.toLocaleTimeString('fr-FR', {hour:'2-digit',minute:'2-digit'});
+      }
+    }
+
+    const statusBadge = isUsed
+      ? '<span class="badge bg-success"><i class="bi bi-check-circle me-1"></i>Utilisée</span>'
+      : '<span class="badge bg-warning text-dark"><i class="bi bi-hourglass-split me-1"></i>En attente</span>';
     const revokeBtn = isUsed ? '' : `<button class="btn btn-outline-danger btn-sm py-0 px-1" onclick="revokeInvite('${AUTH.esc(inv.id)}')" title="Révoquer"><i class="bi bi-x-lg" style="font-size:.7rem;"></i></button>`;
+
     return `<tr>
-      <td class="small"><code>${AUTH.esc(inv.code)}</code></td>
+      <td>${statusBadge}</td>
       <td class="small">${AUTH.esc(AUTH.getRoleLabel(inv.targetRole))}</td>
-      <td class="small">${date}</td>
-      <td>${status}${usedByName ? '<br><span class="text-muted" style="font-size:.72rem;">par ' + AUTH.esc(usedByName) + '</span>' : ''}</td>
+      <td class="small">${envoyeLe}</td>
+      <td class="small">${inscritHtml}</td>
+      <td class="small">${roleInscrit || '—'}</td>
+      <td class="small">${dateInscHtml || '—'}</td>
       <td class="text-end">${revokeBtn}</td>
     </tr>`;
   }).join('');
   container.innerHTML = `
-    <details>
-      <summary class="small fw-semibold text-muted" style="cursor:pointer;"><i class="bi bi-clock-history me-1"></i>Mes invitations (${invitations.length})</summary>
-      <table class="table table-sm table-hover mt-2 mb-0" style="font-size:.82rem;">
-        <thead><tr><th>Code</th><th>Rôle</th><th>Date</th><th>Statut</th><th></th></tr></thead>
-        <tbody>${rows}</tbody>
-      </table>
+    <details open>
+      <summary class="fw-semibold text-muted" style="cursor:pointer;font-size:.88rem;"><i class="bi bi-table me-1"></i>Mes invitations (${invitations.length})</summary>
+      <div class="table-responsive mt-2">
+        <table class="table table-sm table-hover table-bordered mb-0" style="font-size:.8rem;">
+          <thead class="table-light">
+            <tr>
+              <th>Statut</th>
+              <th>Rôle ciblé</th>
+              <th>Envoyée le</th>
+              <th>Inscrit</th>
+              <th>Rôle attribué</th>
+              <th>Date inscription</th>
+              <th></th>
+            </tr>
+          </thead>
+          <tbody>${rows}</tbody>
+        </table>
+      </div>
     </details>`;
 }
 

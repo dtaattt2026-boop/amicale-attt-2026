@@ -99,6 +99,7 @@
     <button class="btn btn-sm btn-outline-primary mob-tab" data-s="download" onclick="showSection('download')"><i class="bi bi-download me-1"></i>Télécharger</button>
     <button class="btn btn-sm btn-outline-primary mob-tab" data-s="architecture" onclick="showSection('architecture')"><i class="bi bi-diagram-3 me-1"></i>Architecture</button>
     <button class="btn btn-sm btn-outline-primary mob-tab" data-s="base" onclick="showSection('base')"><i class="bi bi-table me-1"></i>Base</button>
+    <button class="btn btn-sm btn-outline-primary mob-tab" data-s="backups" onclick="showSection('backups')"><i class="bi bi-archive me-1"></i>Sauvegardes</button>
   </div>
 
   <div class="page-wrap">
@@ -111,6 +112,7 @@
       <button class="sb-lk" onclick="showSection('base',this)"><i class="bi bi-table"></i>Base de données</button>
       <button class="sb-lk" onclick="showSection('download',this)"><i class="bi bi-download"></i>Télécharger</button>
       <button class="sb-lk" onclick="showSection('deploy',this)"><i class="bi bi-cloud-upload"></i>Déploiement</button>
+      <button class="sb-lk" onclick="showSection('backups',this)"><i class="bi bi-archive"></i>Sauvegardes</button>
       <div class="sb-sec" style="margin-top:.75rem;">Liens rapides</div>
       <a class="sb-lk" href="droits.html"><i class="bi bi-shield-lock"></i>Droits &amp; rôles</a>
       <a class="sb-lk" href="parametres.html"><i class="bi bi-gear"></i>Paramètres</a>
@@ -601,6 +603,45 @@
         </div>
       </div>
 
+      <!-- ══════════════════════════════════════════════
+           SECTION : SAUVEGARDES & ROLLBACK
+      ══════════════════════════════════════════════ -->
+      <div id="sec-backups" class="section-pane">
+        <h1 class="h4 fw-black mb-1">Sauvegardes &amp; Restauration</h1>
+        <p class="text-muted mb-4">Gérez vos sauvegardes de versions et restaurez une version antérieure si nécessaire.</p>
+
+        <!-- Espace de stockage -->
+        <div class="v-card">
+          <h2><i class="bi bi-hdd me-2 text-primary"></i>Espace de stockage GitHub Pages</h2>
+          <div id="storage-info">
+            <div class="text-center py-3">
+              <span class="spinner-border spinner-border-sm me-2"></span>Chargement…
+            </div>
+          </div>
+        </div>
+
+        <!-- Sauvegarder manuellement -->
+        <div class="v-card">
+          <h2><i class="bi bi-bookmark-plus me-2 text-primary"></i>Sauvegarder la version actuelle</h2>
+          <p class="text-muted small mb-3">Créez un point de restauration pour la version en cours. Vous pourrez y revenir à tout moment.</p>
+          <button class="btn btn-attt" id="btn-save-current" onclick="saveCurrentVersion()">
+            <i class="bi bi-bookmark-check me-1"></i>Sauvegarder maintenant
+          </button>
+          <div id="save-alert" class="alert d-none mt-3 mb-0"></div>
+        </div>
+
+        <!-- Versions sauvegardées -->
+        <div class="v-card">
+          <h2><i class="bi bi-clock-history me-2 text-primary"></i>Versions sauvegardées</h2>
+          <p class="text-muted small mb-3">Restaurez ou supprimez une version. Les 3 dernières versions minimum sont conservées.</p>
+          <div id="saved-versions-list">
+            <div class="text-center py-3">
+              <span class="spinner-border spinner-border-sm me-2"></span>Chargement…
+            </div>
+          </div>
+        </div>
+      </div>
+
     </div><!-- /main-v -->
   </div><!-- /page-wrap -->
 
@@ -633,6 +674,7 @@
     if (id === 'base') renderDBSchema();
     if (id === 'deploy') checkServerStatus();
     if (id === 'version') loadVersion();
+    if (id === 'backups') loadBackupsSection();
   }
 
   /* ══ DONNÉES PARTAGÉES ══ */
@@ -886,8 +928,14 @@
       }).catch(function() {}).finally(function() {
         _deployToGitHub('v' + v + ' — ' + (notes || 'Mise à jour'), function(ok, msg) {
           if (ok) {
+            // Sauvegarder un tag git pour cette version
+            fetch(DEPLOY_URL + '/api/versions/save', {
+              method: 'POST',
+              headers: { 'Content-Type': 'application/json' },
+              body: JSON.stringify({ version: v, notes: notes || 'Mise à jour' })
+            }).catch(function() {});
             al.className = 'alert alert-success';
-            al.innerHTML = '<i class="bi bi-check-circle me-1"></i>Version <strong>' + v + '</strong> publiée et déployée ! Tous les utilisateurs verront la mise à jour.';
+            al.innerHTML = '<i class="bi bi-check-circle me-1"></i>Version <strong>' + v + '</strong> publiée, déployée et sauvegardée !';
           } else {
             al.className = 'alert alert-danger';
             al.innerHTML = '<i class="bi bi-x-circle me-1"></i>' + msg;
@@ -952,6 +1000,230 @@
       read();
     }).catch(function(err) {
       callback(false, 'Impossible de joindre le serveur (localhost:8081). Lancez <code>demarrer.bat</code> puis réessayez.');
+    });
+  }
+
+  /* ══ SAUVEGARDES & ROLLBACK ══ */
+  function _formatSize(bytes) {
+    if (bytes < 1024) return bytes + ' o';
+    if (bytes < 1024 * 1024) return (bytes / 1024).toFixed(1) + ' Ko';
+    if (bytes < 1024 * 1024 * 1024) return (bytes / (1024*1024)).toFixed(1) + ' Mo';
+    return (bytes / (1024*1024*1024)).toFixed(2) + ' Go';
+  }
+
+  function loadBackupsSection() {
+    _loadStorageInfo();
+    _loadSavedVersions();
+  }
+
+  function _loadStorageInfo() {
+    var container = document.getElementById('storage-info');
+    fetch(DEPLOY_URL + '/api/storage', { signal: AbortSignal.timeout(5000) }).then(function(r) { return r.json(); }).then(function(d) {
+      if (!d.ok) throw new Error(d.error);
+      var pct = d.percent;
+      var barColor = pct < 50 ? 'bg-success' : pct < 80 ? 'bg-warning' : 'bg-danger';
+      var quotaStr = _formatSize(d.quota);
+      container.innerHTML = `
+        <div class="d-flex justify-content-between align-items-center mb-2">
+          <div>
+            <span class="fw-bold">${_formatSize(d.used)}</span>
+            <span class="text-muted"> / ${quotaStr}</span>
+          </div>
+          <div>
+            <span class="badge ${barColor} fs-6">${pct}%</span>
+          </div>
+        </div>
+        <div class="progress mb-3" style="height:20px;border-radius:10px;">
+          <div class="progress-bar ${barColor} progress-bar-striped" style="width:${Math.min(pct, 100)}%;border-radius:10px;">
+            ${pct > 10 ? pct + '%' : ''}
+          </div>
+        </div>
+        <div class="row g-3 text-center">
+          <div class="col-4">
+            <div class="border rounded p-2">
+              <div class="fw-bold" style="color:var(--cp);">${_formatSize(d.siteSize)}</div>
+              <div class="small text-muted">Fichiers du site</div>
+            </div>
+          </div>
+          <div class="col-4">
+            <div class="border rounded p-2">
+              <div class="fw-bold text-secondary">${_formatSize(d.gitSize)}</div>
+              <div class="small text-muted">Historique Git</div>
+            </div>
+          </div>
+          <div class="col-4">
+            <div class="border rounded p-2">
+              <div class="fw-bold text-success">${_formatSize(d.free)}</div>
+              <div class="small text-muted">Espace libre</div>
+            </div>
+          </div>
+        </div>
+        <div class="small text-muted mt-2">
+          <i class="bi bi-info-circle me-1"></i>GitHub Pages offre ${quotaStr} de stockage gratuit par dépôt.
+          ${d.files} fichiers dans le projet.
+        </div>
+      `;
+    }).catch(function(err) {
+      container.innerHTML = `
+        <div class="alert alert-warning mb-0">
+          <i class="bi bi-exclamation-triangle me-1"></i>
+          Impossible de charger les infos de stockage. Lancez <code>demarrer.bat</code> sur votre PC.
+          <br><small class="text-muted">${err.message || ''}</small>
+        </div>`;
+    });
+  }
+
+  function _loadSavedVersions() {
+    var container = document.getElementById('saved-versions-list');
+    fetch(DEPLOY_URL + '/api/versions', { signal: AbortSignal.timeout(5000) }).then(function(r) { return r.json(); }).then(function(d) {
+      if (!d.ok) throw new Error(d.error);
+      var versions = d.versions || [];
+      if (!versions.length) {
+        container.innerHTML = `
+          <div class="text-center text-muted py-3">
+            <i class="bi bi-archive" style="font-size:2rem;"></i>
+            <p class="mt-2">Aucune version sauvegardée.<br>Publiez une mise à jour ou cliquez "Sauvegarder maintenant".</p>
+          </div>`;
+        return;
+      }
+      // Déterminer la version actuelle
+      var currentData = _getUpdatesData();
+      var currentVer = currentData.currentVersion || '';
+
+      container.innerHTML = `
+        <div class="table-responsive">
+          <table class="table table-sm table-hover table-bordered" style="font-size:.85rem;">
+            <thead class="table-light">
+              <tr>
+                <th>Version</th>
+                <th>Date de sauvegarde</th>
+                <th>Notes</th>
+                <th>Statut</th>
+                <th style="width:180px;">Actions</th>
+              </tr>
+            </thead>
+            <tbody>
+              ${versions.map(function(v, idx) {
+                var isCurrent = v.version === currentVer;
+                var dateStr = v.date ? new Date(v.date).toLocaleDateString('fr-FR') + ' ' + new Date(v.date).toLocaleTimeString('fr-FR', {hour:'2-digit',minute:'2-digit'}) : '—';
+                var canDelete = !isCurrent && versions.length > 3 && idx >= 3;
+                return '<tr' + (isCurrent ? ' class="table-success"' : '') + '>' +
+                  '<td><strong>v' + v.version + '</strong></td>' +
+                  '<td>' + dateStr + '</td>' +
+                  '<td class="small">' + (v.notes || '—') + '</td>' +
+                  '<td>' + (isCurrent ? '<span class="badge bg-success">Active</span>' : '<span class="badge bg-secondary">Sauvegardée</span>') + '</td>' +
+                  '<td>' +
+                    (isCurrent ? '<span class="text-muted small">Version en cours</span>' :
+                      '<button class="btn btn-outline-primary btn-sm me-1" onclick="restoreVersion(\'' + v.version + '\')">' +
+                        '<i class="bi bi-arrow-counterclockwise me-1"></i>Restaurer</button>' +
+                      (canDelete ? '<button class="btn btn-outline-danger btn-sm" onclick="deleteVersion(\'' + v.version + '\')">' +
+                        '<i class="bi bi-trash me-1"></i>Supprimer</button>' : '<span class="text-muted small" title="Les 3 dernières versions sont protégées"><i class="bi bi-shield-check"></i></span>')
+                    ) +
+                  '</td>' +
+                '</tr>';
+              }).join('')}
+            </tbody>
+          </table>
+        </div>
+        <div class="small text-muted mt-2">
+          <i class="bi bi-shield-check me-1"></i>Les 3 dernières versions sont protégées et ne peuvent pas être supprimées.
+        </div>`;
+    }).catch(function(err) {
+      container.innerHTML = `
+        <div class="alert alert-warning mb-0">
+          <i class="bi bi-exclamation-triangle me-1"></i>
+          Impossible de charger les versions sauvegardées. Lancez <code>demarrer.bat</code> sur votre PC.
+          <br><small class="text-muted">${err.message || ''}</small>
+        </div>`;
+    });
+  }
+
+  function saveCurrentVersion() {
+    var data = _getUpdatesData();
+    var v = data.currentVersion;
+    if (!v || v === '—') { alert('Aucune version en cours à sauvegarder.'); return; }
+    var btn = document.getElementById('btn-save-current');
+    var al = document.getElementById('save-alert');
+    btn.disabled = true;
+    btn.innerHTML = '<span class="spinner-border spinner-border-sm me-1"></span>Sauvegarde…';
+    fetch(DEPLOY_URL + '/api/versions/save', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ version: v, notes: data.stagedNotes || 'Sauvegarde manuelle' })
+    }).then(function(r) { return r.json(); }).then(function(d) {
+      btn.disabled = false;
+      btn.innerHTML = '<i class="bi bi-bookmark-check me-1"></i>Sauvegarder maintenant';
+      if (d.ok) {
+        al.className = 'alert alert-success mt-3 mb-0';
+        al.innerHTML = '<i class="bi bi-check-circle me-1"></i>Version <strong>v' + v + '</strong> sauvegardée avec succès !';
+        al.classList.remove('d-none');
+        _loadSavedVersions();
+        _loadStorageInfo();
+      } else {
+        al.className = 'alert alert-danger mt-3 mb-0';
+        al.innerHTML = '<i class="bi bi-x-circle me-1"></i>' + (d.error || 'Erreur');
+        al.classList.remove('d-none');
+      }
+    }).catch(function(err) {
+      btn.disabled = false;
+      btn.innerHTML = '<i class="bi bi-bookmark-check me-1"></i>Sauvegarder maintenant';
+      al.className = 'alert alert-danger mt-3 mb-0';
+      al.innerHTML = '<i class="bi bi-x-circle me-1"></i>Serveur local inaccessible. Lancez <code>demarrer.bat</code>.';
+      al.classList.remove('d-none');
+    });
+  }
+
+  function restoreVersion(version) {
+    if (!confirm('Restaurer la version v' + version + ' ?\n\nLa version actuelle sera automatiquement sauvegardée avant la restauration.\nUn redéploiement sera nécessaire pour mettre en ligne.')) return;
+    var container = document.getElementById('saved-versions-list');
+    container.innerHTML = '<div class="text-center py-4"><span class="spinner-border me-2"></span>Restauration de v' + version + ' en cours…</div>';
+    fetch(DEPLOY_URL + '/api/versions/restore', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ version: version })
+    }).then(function(r) { return r.json(); }).then(function(d) {
+      if (d.ok) {
+        // Mettre à jour localStorage
+        var data = _getUpdatesData();
+        if (!data.history) data.history = [];
+        data.history.push({ version: d.restored, notes: 'Restauration depuis v' + version, action: 'restauré', date: new Date().toISOString(), by: user.login || user.id });
+        data.currentVersion = d.restored;
+        data.publishedDate = new Date().toISOString();
+        data.stagedVersion = null;
+        _saveUpdatesData(data);
+        _syncVersionJson(d.restored, 'Restauration v' + version);
+        _syncMasterSettings(d.restored);
+        _syncSiteSettings(d.restored);
+
+        alert('✓ Version v' + d.restored + ' restaurée avec succès !\n\nAllez dans l\'onglet Déploiement pour mettre en ligne.');
+        _loadSavedVersions();
+        _loadStorageInfo();
+        loadVersion();
+      } else {
+        alert('Erreur : ' + (d.error || 'Restauration échouée'));
+        _loadSavedVersions();
+      }
+    }).catch(function(err) {
+      alert('Erreur : impossible de joindre le serveur. Lancez demarrer.bat.');
+      _loadSavedVersions();
+    });
+  }
+
+  function deleteVersion(version) {
+    if (!confirm('Supprimer la sauvegarde v' + version + ' ?\n\nCette action est irréversible.')) return;
+    fetch(DEPLOY_URL + '/api/versions/delete', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ version: version })
+    }).then(function(r) { return r.json(); }).then(function(d) {
+      if (d.ok) {
+        _loadSavedVersions();
+        _loadStorageInfo();
+      } else {
+        alert('Erreur : ' + (d.error || 'Suppression échouée'));
+      }
+    }).catch(function() {
+      alert('Serveur local inaccessible.');
     });
   }
 

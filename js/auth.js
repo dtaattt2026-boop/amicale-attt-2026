@@ -146,6 +146,9 @@ const AUTH = (() => {
     ['Tester mise à jour',                    '✓','✓','—','—'],
     ['Publier mise à jour',                   '✓','—','—','—'],
 
+    // ── 9. Invitations ──
+    ['Envoyer invitation',                    '✓','✓','✓','✓'],
+
     // ── Système ──
     ['Voir journal des opérations',           '✓','✓','—','—'],
     ['Effacer journal',                       '✓','✓','—','—'],
@@ -341,6 +344,16 @@ const AUTH = (() => {
       permissions: [
         'Tester mise à jour', 'Publier mise à jour',
         'Accéder Versions'
+      ]
+    },
+
+    // ── Invitations ──
+    {
+      id: 'invitations',
+      label: 'Invitations',
+      path: 'espace-membre.html',
+      permissions: [
+        'Envoyer invitation'
       ]
     },
 
@@ -1113,11 +1126,14 @@ const AUTH = (() => {
    */
   function getInvitableRoles(inviter) {
     if (!inviter) return [];
+    // Vérifier la permission "Envoyer invitation"
+    if (!hasPermission('Envoyer invitation', inviter)) return [];
     const level = getHighestPrivilegeLevel(inviter);
-    if (level <= 0) return getRoles().filter(r => r.id !== 'master').map(r => r.id);           // master → tout sauf master
-    if (level <= 1) return ['superviseur', 'admin', 'membre', 'famille'];                       // direction
-    if (level <= 2) return ['membre', 'famille'];                                               // délégué
-    return ['famille'];                                                                          // membre
+    if (level >= 4) return [];                                                                   // famille → ne peut pas inviter
+    if (level <= 0) return getRoles().filter(r => r.id !== 'master').map(r => r.id);             // master → tout sauf master
+    if (level <= 1) return ['superviseur', 'admin', 'membre', 'famille'];                        // direction
+    if (level <= 2) return ['membre', 'famille'];                                                // délégué
+    return ['famille'];                                                                          // membre → famille uniquement
   }
 
   function createInvitation(inviter, targetRoleId) {
@@ -1153,9 +1169,11 @@ const AUTH = (() => {
     return _loadInvitations().filter(inv => inv.inviterId === userId);
   }
 
-  function revokeInvitation(invitationId, userId) {
+  function revokeInvitation(invitationId, userId, forceMaster) {
     const list = _loadInvitations();
-    const idx = list.findIndex(inv => inv.id === invitationId && inv.inviterId === userId && !inv.used);
+    const idx = forceMaster
+      ? list.findIndex(inv => inv.id === invitationId && !inv.used)
+      : list.findIndex(inv => inv.id === invitationId && inv.inviterId === userId && !inv.used);
     if (idx === -1) return false;
     list.splice(idx, 1);
     _saveInvitations(list);

@@ -52,6 +52,9 @@
             <span><i class="bi bi-person-check me-2"></i>Demandes</span>
             <span id="pending-badge" class="badge bg-danger d-none">0</span>
           </button></li>
+          <li><button class="nav-link w-100 text-start" id="btn-invitations" onclick="showSection('invitations')">
+            <i class="bi bi-person-plus me-2"></i>Invitations
+          </button></li>
           <li><button class="nav-link w-100 text-start" id="btn-events" onclick="showSection('events')">
             <i class="bi bi-calendar-event me-2"></i>Événements
           </button></li>
@@ -193,6 +196,34 @@
             (utile lorsqu'aucun Délégué n'a encore été désigné).
           </p>
           <div id="demandes-content"></div>
+        </div>
+
+        <!-- ════ INVITATIONS (toutes) ════ -->
+        <div id="section-invitations" class="d-none">
+          <h1 class="h4 section-titre">Toutes les invitations</h1>
+          <p class="text-muted mb-3">Vue globale de toutes les invitations envoyées par les membres.</p>
+          <!-- Filtres -->
+          <div class="row g-2 mb-3">
+            <div class="col-sm-4">
+              <div class="input-group input-group-sm">
+                <span class="input-group-text"><i class="bi bi-search"></i></span>
+                <input type="text" class="form-control" id="inv-search" placeholder="Rechercher (nom, code, rôle...)" oninput="renderAllInvitations()">
+              </div>
+            </div>
+            <div class="col-sm-3">
+              <select class="form-select form-select-sm" id="inv-filter-status" onchange="renderAllInvitations()">
+                <option value="">Tous les statuts</option>
+                <option value="used">Utilisées</option>
+                <option value="pending">En attente</option>
+              </select>
+            </div>
+            <div class="col-sm-3">
+              <select class="form-select form-select-sm" id="inv-filter-role" onchange="renderAllInvitations()">
+                <option value="">Tous les rôles</option>
+              </select>
+            </div>
+          </div>
+          <div id="invitations-content"></div>
         </div>
 
         <!-- ════ ÉVÉNEMENTS (lecture seule) ════ -->
@@ -730,7 +761,7 @@ function renderUserRoleEditor(target) {
 }
 
 /* ─── Navigation ────────────────────────────── */
-const SECTIONS = ['tableau','users','demandes','events','offers','sauvegarde','versions','conventions','messages','paiements','locations','contact-msgs'];
+const SECTIONS = ['tableau','users','demandes','invitations','events','offers','sauvegarde','versions','conventions','messages','paiements','locations','contact-msgs'];
 function showSection(name) {
   SECTIONS.forEach(s => {
     document.getElementById('section-' + s).classList.toggle('d-none', s !== name);
@@ -740,6 +771,7 @@ function showSection(name) {
   if (name === 'tableau')     renderKPI();
   if (name === 'users')       renderUsersTable();
   if (name === 'demandes')    renderDemandes();
+  if (name === 'invitations') renderAllInvitations();
   if (name === 'events')      renderEventsList();
   if (name === 'offers')      renderOffersList();
   if (name === 'sauvegarde')  renderBackupStats();
@@ -1145,6 +1177,143 @@ function _updateContactBadgeMaster() {
     else badge.classList.add('d-none');
   }
 }
+
+/* ═══════════════════════════════════════════════════════
+   INVITATIONS — Vue globale master
+═══════════════════════════════════════════════════════ */
+function _detectInvitationUsage(inv, allUsers) {
+  let isUsed = false, inscrit = null;
+  const directMatch = allUsers.find(u => u.invitationId === inv.id);
+  if (directMatch) { isUsed = true; inscrit = directMatch; }
+  if (!isUsed && inv.usedBy) {
+    const m = allUsers.find(u => u.id === inv.usedBy);
+    if (m) { isUsed = true; inscrit = m; } else { isUsed = true; }
+  }
+  if (!isUsed && inv.used) { isUsed = true; }
+  if (!isUsed) {
+    const m = allUsers.find(u =>
+      u.validateurId === inv.inviterId && u.statut === 'actif' &&
+      u.dateInscription && inv.createdAt && u.dateInscription >= inv.createdAt.slice(0, 10)
+    );
+    if (m) { isUsed = true; inscrit = m; }
+  }
+  return { isUsed, inscrit };
+}
+
+function renderAllInvitations() {
+  const container = document.getElementById('invitations-content');
+  if (!container) return;
+  let invitations = [];
+  try { invitations = JSON.parse(localStorage.getItem('attt_invitations') || '[]'); } catch {}
+
+  // Remplir le filtre rôle (une seule fois)
+  const roleFilter = document.getElementById('inv-filter-role');
+  if (roleFilter && roleFilter.options.length <= 1) {
+    const roles = [...new Set(invitations.map(i => i.targetRole))];
+    roles.forEach(r => {
+      const opt = document.createElement('option');
+      opt.value = r;
+      opt.textContent = AUTH.getRoleLabel(r);
+      roleFilter.appendChild(opt);
+    });
+  }
+
+  if (!invitations.length) {
+    container.innerHTML = '<div class="empty-state"><i class="bi bi-person-plus"></i><p class="fw-semibold">Aucune invitation</p></div>';
+    return;
+  }
+
+  const allUsers = AUTH.getUsers();
+  const searchVal = (document.getElementById('inv-search')?.value || '').toLowerCase();
+  const statusVal = document.getElementById('inv-filter-status')?.value || '';
+  const roleVal = document.getElementById('inv-filter-role')?.value || '';
+
+  const filtered = invitations.slice().reverse().filter(inv => {
+    const { isUsed, inscrit } = _detectInvitationUsage(inv, allUsers);
+    // Filtre statut
+    if (statusVal === 'used' && !isUsed) return false;
+    if (statusVal === 'pending' && isUsed) return false;
+    // Filtre rôle
+    if (roleVal && inv.targetRole !== roleVal) return false;
+    // Recherche texte
+    if (searchVal) {
+      const haystack = [
+        inv.inviterName, inv.code, AUTH.getRoleLabel(inv.targetRole),
+        inscrit ? inscrit.prenom + ' ' + inscrit.nom : ''
+      ].join(' ').toLowerCase();
+      if (!haystack.includes(searchVal)) return false;
+    }
+    return true;
+  });
+
+  const rows = filtered.map(inv => {
+    const dateEnvoi = new Date(inv.createdAt);
+    const envoyeLe = dateEnvoi.toLocaleDateString('fr-FR') + ' ' + dateEnvoi.toLocaleTimeString('fr-FR', {hour:'2-digit',minute:'2-digit'});
+    const { isUsed, inscrit } = _detectInvitationUsage(inv, allUsers);
+
+    let inscritHtml = '<span class="text-muted">—</span>';
+    let dateInscHtml = '', roleInscrit = '';
+    if (inscrit) {
+      inscritHtml = '<strong>' + AUTH.esc(inscrit.prenom + ' ' + inscrit.nom) + '</strong>';
+      roleInscrit = AUTH.esc(AUTH.getRoleLabel(inscrit.roles?.[0] || inscrit.role || inv.targetRole));
+      if (inscrit.dateInscription) {
+        const di = new Date(inscrit.dateInscription);
+        dateInscHtml = di.toLocaleDateString('fr-FR') + ' ' + di.toLocaleTimeString('fr-FR', {hour:'2-digit',minute:'2-digit'});
+      }
+    }
+
+    const statusBadge = isUsed
+      ? '<span class="badge bg-success"><i class="bi bi-check-circle me-1"></i>Utilisée</span>'
+      : '<span class="badge bg-warning text-dark"><i class="bi bi-hourglass-split me-1"></i>En attente</span>';
+    const revokeBtn = isUsed ? '' : `<button class="btn btn-outline-danger btn-sm py-0 px-2" onclick="masterRevokeInvite('${AUTH.esc(inv.id)}')" title="Annuler"><i class="bi bi-x-lg" style="font-size:.7rem;"></i></button>`;
+
+    return `<tr>
+      <td>${statusBadge}</td>
+      <td class="small">${AUTH.esc(inv.inviterName || '—')}</td>
+      <td class="small">${AUTH.esc(AUTH.getRoleLabel(inv.targetRole))}</td>
+      <td class="small">${envoyeLe}</td>
+      <td class="small">${inscritHtml}</td>
+      <td class="small">${roleInscrit || '—'}</td>
+      <td class="small">${dateInscHtml || '—'}</td>
+      <td class="text-center">${revokeBtn}</td>
+    </tr>`;
+  }).join('');
+
+  const total = invitations.length;
+  const used = invitations.filter(i => _detectInvitationUsage(i, allUsers).isUsed).length;
+
+  container.innerHTML = `
+    <div class="d-flex flex-wrap gap-2 mb-3">
+      <span class="badge bg-primary fs-6 fw-normal px-3 py-2">${total} invitation${total > 1 ? 's' : ''}</span>
+      <span class="badge bg-success fs-6 fw-normal px-3 py-2">${used} utilisée${used > 1 ? 's' : ''}</span>
+      <span class="badge bg-warning text-dark fs-6 fw-normal px-3 py-2">${total - used} en attente</span>
+      ${filtered.length !== total ? `<span class="badge bg-secondary fs-6 fw-normal px-3 py-2">${filtered.length} affichée${filtered.length > 1 ? 's' : ''}</span>` : ''}
+    </div>
+    <div class="table-responsive">
+      <table class="table table-sm table-hover table-bordered" style="font-size:.82rem;">
+        <thead class="table-light">
+          <tr>
+            <th>Statut</th>
+            <th>Envoyée par</th>
+            <th>Rôle ciblé</th>
+            <th>Date envoi</th>
+            <th>Inscrit</th>
+            <th>Rôle attribué</th>
+            <th>Date inscription</th>
+            <th style="width:50px;"></th>
+          </tr>
+        </thead>
+        <tbody>${rows}</tbody>
+      </table>
+    </div>`;
+}
+
+function masterRevokeInvite(invId) {
+  if (!confirm('Annuler cette invitation ?')) return;
+  AUTH.revokeInvitation(invId, null, true);
+  renderAllInvitations();
+}
+
 function renderContactMsgsMaster() {
   _updateContactBadgeMaster();
   const msgs = _loadContactMsgsMaster();

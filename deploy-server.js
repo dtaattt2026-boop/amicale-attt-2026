@@ -219,8 +219,176 @@ const server = http.createServer((req, res) => {
     return;
   }
 
+  /* ── ESPACE DE STOCKAGE ── */
+  if (url.pathname === '/api/storage' && req.method === 'GET') {
+    try {
+      const files = getAllFiles(SITE_DIR);
+      const totalUsed = files.reduce((s, f) => s + f.size, 0);
+      // GitHub Pages free tier: 1 Go repo max
+      const quota = 1 * 1024 * 1024 * 1024; // 1 Go
+      // Taille du dossier .git
+      let gitSize = 0;
+      try { gitSize = getDirSize(path.join(SITE_DIR, '.git')); } catch {}
+      const repoTotal = totalUsed + gitSize;
+      res.writeHead(200, { 'Content-Type': 'application/json' });
+      res.end(JSON.stringify({
+        ok: true,
+        files: files.length,
+        siteSize: totalUsed,
+        gitSize,
+        repoTotal,
+        quota,
+        used: repoTotal,
+        free: Math.max(0, quota - repoTotal),
+        percent: Math.round((repoTotal / quota) * 10000) / 100
+      }));
+    } catch (err) {
+      res.writeHead(500, { 'Content-Type': 'application/json' });
+      res.end(JSON.stringify({ ok: false, error: err.message }));
+    }
+    return;
+  }
+
+  /* ── LISTE DES VERSIONS SAUVEGARDÉES (git tags) ── */
+  if (url.pathname === '/api/versions' && req.method === 'GET') {
+    try {
+      const tags = getVersionTags();
+      res.writeHead(200, { 'Content-Type': 'application/json' });
+      res.end(JSON.stringify({ ok: true, versions: tags }));
+    } catch (err) {
+      res.writeHead(500, { 'Content-Type': 'application/json' });
+      res.end(JSON.stringify({ ok: false, error: err.message }));
+    }
+    return;
+  }
+
+  /* ── SAUVEGARDER UNE VERSION (créer un git tag) ── */
+  if (url.pathname === '/api/versions/save' && req.method === 'POST') {
+    let body = '';
+    req.on('data', d => body += d.toString());
+    req.on('end', () => {
+      try {
+        const payload = JSON.parse(body || '{}');
+        const version = String(payload.version || '').trim();
+        if (!version) throw new Error('Version manquante');
+        const tagName = 'v' + version;
+        // Vérifier si le tag existe déjà
+        try {
+          execSync(`git rev-parse ${tagName}`, { cwd: SITE_DIR, encoding: 'utf8', timeout: 3000 });
+          // Tag existe, le supprimer puis recréer
+          execSync(`git tag -d ${tagName}`, { cwd: SITE_DIR, encoding: 'utf8', timeout: 3000 });
+        } catch {}
+        const msg = payload.notes || 'Version ' + version;
+        execSync(`git tag -a ${tagName} -m "${msg.replace(/"/g, '\\"')}"`, { cwd: SITE_DIR, encoding: 'utf8', timeout: 5000 });
+        res.writeHead(200, { 'Content-Type': 'application/json' });
+        res.end(JSON.stringify({ ok: true, tag: tagName }));
+      } catch (err) {
+        res.writeHead(400, { 'Content-Type': 'application/json' });
+        res.end(JSON.stringify({ ok: false, error: err.message }));
+      }
+    });
+    return;
+  }
+
+  /* ── RESTAURER UNE VERSION (git checkout depuis un tag) ── */
+  if (url.pathname === '/api/versions/restore' && req.method === 'POST') {
+    let body = '';
+    req.on('data', d => body += d.toString());
+    req.on('end', () => {
+      try {
+        const payload = JSON.parse(body || '{}');
+        const version = String(payload.version || '').trim();
+        if (!version) throw new Error('Version manquante');
+        const tagName = 'v' + version;
+        // Vérifier que le tag existe
+        try {
+          execSync(`git rev-parse ${tagName}`, { cwd: SITE_DIR, encoding: 'utf8', timeout: 3000 });
+        } catch { throw new Error('Version ' + version + ' introuvable'); }
+        // Sauvegarder la version actuelle d'abord (si pas déjà taggée)
+        try {
+          const currentVer = JSON.parse(fs.readFileSync(VERSION_FILE, 'utf8')).version;
+          const currentTag = 'v' + currentVer;
+          try { execSync(`git rev-parse ${currentTag}`, { cwd: SITE_DIR, timeout: 3000 }); }
+          catch {
+            execSync(`git add -A`, { cwd: SITE_DIR, timeout: 5000 });
+            execSync(`git commit -m "Auto-save avant rollback" --allow-empty`, { cwd: SITE_DIR, timeout: 5000 });
+            execSync(`git tag -a ${currentTag} -m "Auto-save v${currentVer}"`, { cwd: SITE_DIR, timeout: 5000 });
+          }
+        } catch {}
+        // Restaurer les fichiers depuis le tag (sans changer de branche)
+        execSync(`git checkout ${tagName} -- .`, { cwd: SITE_DIR, encoding: 'utf8', timeout: 10000 });
+        // Lire la version restaurée
+        const restored = JSON.parse(fs.readFileSync(VERSION_FILE, 'utf8'));
+        res.writeHead(200, { 'Content-Type': 'application/json' });
+        res.end(JSON.stringify({ ok: true, restored: restored.version, tag: tagName }));
+      } catch (err) {
+        res.writeHead(400, { 'Content-Type': 'application/json' });
+        res.end(JSON.stringify({ ok: false, error: err.message }));
+      }
+    });
+    return;
+  }
+
+  /* ── SUPPRIMER UNE VERSION SAUVEGARDÉE (supprimer le git tag) ── */
+  if (url.pathname === '/api/versions/delete' && req.method === 'POST') {
+    let body = '';
+    req.on('data', d => body += d.toString());
+    req.on('end', () => {
+      try {
+        const payload = JSON.parse(body || '{}');
+        const version = String(payload.version || '').trim();
+        if (!version) throw new Error('Version manquante');
+        const tagName = 'v' + version;
+        // Vérifier que le tag existe
+        try {
+          execSync(`git rev-parse ${tagName}`, { cwd: SITE_DIR, encoding: 'utf8', timeout: 3000 });
+        } catch { throw new Error('Version ' + version + ' introuvable'); }
+        // Supprimer le tag local
+        execSync(`git tag -d ${tagName}`, { cwd: SITE_DIR, encoding: 'utf8', timeout: 3000 });
+        res.writeHead(200, { 'Content-Type': 'application/json' });
+        res.end(JSON.stringify({ ok: true, deleted: tagName }));
+      } catch (err) {
+        res.writeHead(400, { 'Content-Type': 'application/json' });
+        res.end(JSON.stringify({ ok: false, error: err.message }));
+      }
+    });
+    return;
+  }
+
   res.writeHead(404); res.end('Not found');
 });
+
+/* ── HELPERS ── */
+function getDirSize(dir) {
+  let total = 0;
+  try {
+    const entries = fs.readdirSync(dir, { withFileTypes: true });
+    for (const e of entries) {
+      const full = path.join(dir, e.name);
+      if (e.isDirectory()) total += getDirSize(full);
+      else try { total += fs.statSync(full).size; } catch {}
+    }
+  } catch {}
+  return total;
+}
+
+function getVersionTags() {
+  try {
+    const raw = execSync('git tag -l "v*" --sort=-v:refname --format="%(refname:short)|%(creatordate:iso-strict)|%(subject)"', {
+      cwd: SITE_DIR, encoding: 'utf8', timeout: 5000
+    }).trim();
+    if (!raw) return [];
+    return raw.split('\n').map(line => {
+      const [tag, date, ...msgParts] = line.split('|');
+      return {
+        version: tag.replace(/^v/, ''),
+        tag,
+        date: date || '',
+        notes: msgParts.join('|') || ''
+      };
+    });
+  } catch { return []; }
+}
 
 server.listen(PORT, '127.0.0.1', () => {
   console.log('╔═══════════════════════════════════════════════════╗');
