@@ -127,76 +127,83 @@
         <p class="text-muted mb-2">Gérez la version de votre application et consultez les statistiques globales.</p>
         <div id="device-badge" class="badge bg-light text-dark border mb-3" style="font-size:.78rem;"></div>
 
+        <!-- Version publiée (en production) -->
         <div class="v-card">
-          <h2><i class="bi bi-tag me-2 text-primary"></i>Numéro de version</h2>
+          <h2><i class="bi bi-broadcast-pin me-2 text-primary"></i>Version publiée</h2>
           <div class="ver-box">
             <div>
               <div class="small text-muted mb-1">Version actuelle</div>
               <div class="ver-number" id="ver-display">—</div>
             </div>
             <div class="flex-grow-1">
-              <span class="ver-badge" id="ver-badge">Stable</span>
+              <span class="ver-badge" id="ver-badge">En production</span>
               <div class="small text-muted mt-2" id="ver-date"></div>
             </div>
           </div>
-          <div class="row g-3 align-items-end mt-1">
-            <div class="col-sm-5">
+        </div>
+
+        <!-- Version en test (si staging) -->
+        <div class="v-card d-none" id="staged-card" style="border:2px solid #ffc107;">
+          <h2><i class="bi bi-flask me-2 text-warning"></i>Version en test</h2>
+          <div class="d-flex align-items-center gap-3 flex-wrap">
+            <div class="ver-number text-warning" id="staged-version" style="font-size:2rem;">—</div>
+            <span class="badge bg-warning text-dark">En test</span>
+            <div class="small text-muted flex-grow-1" id="staged-info"></div>
+          </div>
+          <div class="d-flex gap-2 flex-wrap mt-3">
+            <button class="btn btn-success btn-sm fw-semibold px-3" onclick="publishVersion()">
+              <i class="bi bi-check-circle me-1"></i>Publier pour tous
+            </button>
+            <button class="btn btn-outline-danger btn-sm" onclick="cancelStaged()">
+              <i class="bi bi-x-circle me-1"></i>Annuler
+            </button>
+          </div>
+        </div>
+
+        <!-- Préparer une mise à jour -->
+        <div class="v-card">
+          <h2><i class="bi bi-plus-circle me-2 text-primary"></i>Préparer une mise à jour</h2>
+          <div class="row g-3 align-items-end">
+            <div class="col-sm-4">
               <label class="form-label fw-semibold small">Numéro de version</label>
               <input type="text" class="form-control" id="ver-input" placeholder="ex: 1.0.0" />
+            </div>
+            <div class="col-sm-8">
+              <label class="form-label fw-semibold small">Notes de mise à jour</label>
+              <input type="text" class="form-control" id="ver-notes" placeholder="Décrivez les changements…" />
             </div>
             <div class="col-sm-4">
               <div class="form-check">
                 <input class="form-check-input" type="checkbox" id="ver-auto" onchange="toggleAutoVer(this)" />
-                <label class="form-check-label fw-semibold small" for="ver-auto">Génération automatique</label>
+                <label class="form-check-label fw-semibold small" for="ver-auto">Incrémentation auto</label>
               </div>
-              <div class="form-text">Incrémente automatiquement à chaque déploiement</div>
             </div>
-            <div class="col-sm-3">
-              <button class="btn btn-attt w-100" onclick="saveVersion()"><i class="bi bi-check me-1"></i>Enregistrer</button>
+            <div class="col-sm-4">
+              <button class="btn btn-warning w-100" onclick="stageVersion()"><i class="bi bi-flask me-1"></i>Mettre en test</button>
             </div>
-          </div>
-          <!-- Bouton Publier pour tous (mode manuel) -->
-          <div id="publish-bar" class="d-none mt-3 p-3 rounded-3" style="background:var(--cp-light,#e8edf5);border:2px dashed var(--cp);">
-            <div class="d-flex flex-wrap align-items-center gap-3">
-              <div class="flex-grow-1">
-                <i class="bi bi-eye-fill text-primary me-1"></i>
-                <strong>Mode test</strong> — Les modifications sont enregistrées localement. Testez sur localhost puis publiez.
-              </div>
-              <button class="btn btn-success btn-sm fw-semibold px-3" onclick="publishForAll()">
-                <i class="bi bi-cloud-upload me-1"></i>Publier pour tous
-              </button>
+            <div class="col-sm-4">
+              <button class="btn btn-attt w-100" onclick="saveAndPublish()"><i class="bi bi-rocket-takeoff me-1"></i>Publier directement</button>
             </div>
           </div>
           <div id="ver-alert" class="alert d-none mt-3 mb-0"></div>
         </div>
 
+        <!-- Statistiques -->
         <div class="v-card">
           <h2><i class="bi bi-bar-chart me-2 text-primary"></i>Statistiques de l'application</h2>
           <div class="d-flex flex-wrap gap-3" id="stats-row">
-            <div class="stat-pill"><div class="n" id="stat-pages">—</div><div class="l">Pages HTML</div></div>
-            <div class="stat-pill"><div class="n" id="stat-js">—</div><div class="l">Scripts JS</div></div>
+            <div class="stat-pill"><div class="n" id="stat-pages">32</div><div class="l">Pages HTML</div></div>
+            <div class="stat-pill"><div class="n" id="stat-js">18</div><div class="l">Scripts JS</div></div>
             <div class="stat-pill"><div class="n" id="stat-users">—</div><div class="l">Utilisateurs</div></div>
             <div class="stat-pill"><div class="n" id="stat-events">—</div><div class="l">Événements</div></div>
             <div class="stat-pill"><div class="n" id="stat-tables">16</div><div class="l">Collections DB</div></div>
           </div>
         </div>
 
+        <!-- Historique des mises à jour -->
         <div class="v-card">
-          <h2><i class="bi bi-clock-history me-2 text-primary"></i>Journal des versions</h2>
-          <div id="changelog-list">
-            <div class="d-flex align-items-start gap-3 mb-3">
-              <div style="width:8px;height:8px;border-radius:50%;background:var(--cp);margin-top:.35rem;flex-shrink:0;"></div>
-              <div><div class="fw-bold">v1.0.0 — Lancement initial</div>
-                <div class="small text-muted">Pages publiques, espace membres, messagerie, événements, offres, conventions, locations, voyages, votes</div></div>
-            </div>
-          </div>
-          <div class="mt-3">
-            <label class="form-label fw-semibold small">Ajouter une note de version</label>
-            <div class="d-flex gap-2">
-              <input type="text" class="form-control" id="changelog-note" placeholder="Description des modifications…" />
-              <button class="btn btn-oa btn-sm" onclick="addChangelog()"><i class="bi bi-plus me-1"></i>Ajouter</button>
-            </div>
-          </div>
+          <h2><i class="bi bi-clock-history me-2 text-primary"></i>Historique des mises à jour</h2>
+          <div id="changelog-list"></div>
         </div>
       </div>
 
@@ -626,177 +633,255 @@
     if (id === 'version') loadVersion();
   }
 
-  /* ══ VERSION ══ */
+  /* ══ DONNÉES PARTAGÉES ══ */
   var _isPC = !/Android|iPhone|iPad|iPod|Mobile/i.test(navigator.userAgent);
+  var DEPLOY_URL = 'http://127.0.0.1:8081';
 
+  function _getUpdatesData() {
+    try { return JSON.parse(localStorage.getItem('attt_updates') || '{}'); } catch { return {}; }
+  }
+  function _saveUpdatesData(data) {
+    localStorage.setItem('attt_updates', JSON.stringify(data));
+    if (typeof DB !== 'undefined' && DB.push) DB.push('attt_updates', data);
+  }
+  function _syncVersionJson(v, notes) {
+    var vj = {};
+    try { vj = JSON.parse(localStorage.getItem('attt_version_json') || '{}'); } catch { vj = {}; }
+    vj.version = v;
+    vj.datePublication = new Date().toISOString().slice(0,10);
+    vj.changelog = notes || 'Nouvelle version';
+    if (!vj.platforms) vj.platforms = {};
+    ['windows','android','pwa'].forEach(function(p) {
+      if (!vj.platforms[p]) vj.platforms[p] = {};
+      vj.platforms[p].version = v;
+    });
+    localStorage.setItem('attt_version_json', JSON.stringify(vj));
+    if (typeof DB !== 'undefined' && DB.push) DB.push('attt_version_json', vj);
+  }
+  function _syncMasterSettings(v) {
+    var ms = {};
+    try { ms = JSON.parse(localStorage.getItem('attt_master_settings') || '{}'); } catch { ms = {}; }
+    ms.version = v; ms.publishedAt = new Date().toISOString(); ms.showUpdateBanner = true;
+    localStorage.setItem('attt_master_settings', JSON.stringify(ms));
+    if (typeof DB !== 'undefined' && DB.push) DB.push('attt_master_settings', ms);
+  }
+  function _syncSiteSettings(v) {
+    if (typeof SITE_SETTINGS !== 'undefined' && SITE_SETTINGS.updateSettings) {
+      SITE_SETTINGS.updateSettings({ appVersion: v });
+    }
+  }
+
+  /* ══ CHARGEMENT VERSION ══ */
   function loadVersion() {
     DB_READY.then(() => {
-      const s = typeof SITE_SETTINGS !== 'undefined' && SITE_SETTINGS.getSettings ? SITE_SETTINGS.getSettings() : {};
-      const v = s.appVersion || '1.0.0';
-      document.getElementById('ver-display').textContent = v;
-      document.getElementById('ver-input').value = v;
-      document.getElementById('ver-auto').checked = !!s.autoVersion;
-      document.getElementById('ver-input').disabled = !!s.autoVersion;
+      var data = _getUpdatesData();
+      if (!data.history) data.history = [];
+      var current = data.currentVersion || '—';
+      var staged = data.stagedVersion || null;
 
-      // Afficher la vraie date de publication
+      // Version publiée
+      document.getElementById('ver-display').textContent = current;
+
+      // Date de publication
       var dateStr = '';
       try {
         var vj = JSON.parse(localStorage.getItem('attt_version_json') || '{}');
         if (vj.datePublication) dateStr = new Date(vj.datePublication + 'T00:00:00').toLocaleDateString('fr-TN', {day:'numeric', month:'long', year:'numeric'});
       } catch(e) {}
-      if (!dateStr) {
-        try {
-          var ud = JSON.parse(localStorage.getItem('attt_updates') || '{}');
-          if (ud.publishedDate) dateStr = new Date(ud.publishedDate).toLocaleDateString('fr-TN', {day:'numeric', month:'long', year:'numeric'});
-        } catch(e) {}
+      if (!dateStr && data.publishedDate) {
+        try { dateStr = new Date(data.publishedDate).toLocaleDateString('fr-TN', {day:'numeric', month:'long', year:'numeric'}); } catch(e) {}
       }
-      document.getElementById('ver-date').innerHTML = dateStr ? 'Publi\u00e9e le ' + dateStr : '';
+      document.getElementById('ver-date').innerHTML = dateStr ? 'Publiée le ' + dateStr : '';
+
+      // Pré-remplir le champ version avec la version courante
+      var verInput = document.getElementById('ver-input');
+      if (!verInput.value || verInput.value === '—') verInput.value = current !== '—' ? current : '';
 
       // Indicateur appareil
       var deviceBadge = document.getElementById('device-badge');
       if (deviceBadge) deviceBadge.innerHTML = _isPC
-        ? '<i class="bi bi-pc-display me-1"></i>PC — D\u00e9ploiement direct disponible'
-        : '<i class="bi bi-phone me-1"></i>Smartphone — Sauvegarde cloud uniquement';
+        ? '<i class="bi bi-pc-display me-1"></i>PC — Déploiement direct disponible'
+        : '<i class="bi bi-phone me-1"></i>Smartphone — Sauvegarde cloud, déploiement via PC';
+
+      // Version en test
+      var stagedCard = document.getElementById('staged-card');
+      if (staged) {
+        stagedCard.classList.remove('d-none');
+        document.getElementById('staged-version').textContent = staged;
+        var sInfo = '';
+        if (data.stagedDate) sInfo += '<i class="bi bi-clock me-1"></i>En test depuis : ' + data.stagedDate.slice(0,16).replace('T',' ');
+        if (data.stagedNotes) sInfo += '<br><i class="bi bi-card-text me-1"></i>' + data.stagedNotes;
+        document.getElementById('staged-info').innerHTML = sInfo;
+      } else {
+        stagedCard.classList.add('d-none');
+      }
+
+      // Auto-version checkbox
+      var s = typeof SITE_SETTINGS !== 'undefined' && SITE_SETTINGS.getSettings ? SITE_SETTINGS.getSettings() : {};
+      document.getElementById('ver-auto').checked = !!s.autoVersion;
 
       // Stats
       try { if (typeof AUTH !== 'undefined' && AUTH.getUsers) document.getElementById('stat-users').textContent = AUTH.getUsers().length; } catch(e){}
       try { if (typeof EVENTS !== 'undefined' && EVENTS.getEvents) document.getElementById('stat-events').textContent = EVENTS.getEvents().length; } catch(e){}
+
+      // Historique
+      renderHistory(data);
     });
   }
 
-  function toggleAutoVer(cb) {
-    document.getElementById('ver-input').disabled = cb.checked;
+  function renderHistory(data) {
+    var list = document.getElementById('changelog-list');
+    if (!data.history || !data.history.length) {
+      list.innerHTML = '<div class="text-muted small">Aucun historique pour le moment.</div>';
+      return;
+    }
+    list.innerHTML = data.history.slice().reverse().map(function(h) {
+      var badgeClass = h.action === 'publié' ? 'bg-success' : h.action === 'test' ? 'bg-warning text-dark' : 'bg-secondary';
+      return '<div class="d-flex align-items-start gap-3 mb-3 py-2 border-bottom">'
+        + '<div style="width:8px;height:8px;border-radius:50%;background:' + (h.action === 'publié' ? '#198754' : h.action === 'test' ? '#ffc107' : '#6c757d') + ';margin-top:.45rem;flex-shrink:0;"></div>'
+        + '<div class="flex-grow-1"><div class="fw-bold">v' + (h.version||'—') + ' <span class="badge ' + badgeClass + ' ms-2" style="font-size:.7rem;">' + (h.action||'') + '</span></div>'
+        + (h.notes ? '<div class="small text-muted">' + h.notes + '</div>' : '')
+        + '<div class="small text-muted">par ' + (h.by||'—') + ' — ' + (h.date||'').slice(0,16).replace('T',' ') + '</div></div></div>';
+    }).join('');
   }
 
-  function saveVersion() {
-    var auto = document.getElementById('ver-auto').checked;
-    var al = document.getElementById('ver-alert');
-    var v = document.getElementById('ver-input').value.trim();
+  function toggleAutoVer(cb) {
+    if (typeof SITE_SETTINGS !== 'undefined' && SITE_SETTINGS.updateSettings) {
+      SITE_SETTINGS.updateSettings({ autoVersion: cb.checked });
+    }
+  }
 
-    /* Mode Auto : incrémenter la version */
+  /* ══ METTRE EN TEST ══ */
+  function stageVersion() {
+    var v = document.getElementById('ver-input').value.trim();
+    var notes = document.getElementById('ver-notes').value.trim();
+    var auto = document.getElementById('ver-auto').checked;
     if (auto) {
-      var parts = (v || '1.0.0').split('.').map(Number);
+      var data = _getUpdatesData();
+      var current = data.currentVersion || v || '1.0.0';
+      var parts = current.split('.').map(Number);
       parts[2] = (parts[2] || 0) + 1;
       v = parts.join('.');
       document.getElementById('ver-input').value = v;
     }
-    if (!v) { al.className='alert alert-warning'; al.textContent='Veuillez saisir un numéro de version.'; al.classList.remove('d-none'); return; }
+    if (!v) { alert('Veuillez saisir un numéro de version.'); return; }
+    if (!confirm('Mettre la version ' + v + ' en test ?')) return;
 
-    try {
-      if (typeof SITE_SETTINGS !== 'undefined' && SITE_SETTINGS.updateSettings) {
-        SITE_SETTINGS.updateSettings({ appVersion: v, autoVersion: auto });
-      }
-      document.getElementById('ver-display').textContent = v;
-
-      /* Mettre à jour attt_version_json */
-      var vj = {};
-      try { vj = JSON.parse(localStorage.getItem('attt_version_json') || '{}'); } catch(e) { vj = {}; }
-      vj.version = v;
-      vj.datePublication = new Date().toISOString().slice(0,10);
-      if (!vj.changelog) vj.changelog = 'Nouvelle version disponible';
-      if (!vj.platforms) vj.platforms = {};
-      ['windows','android','pwa'].forEach(function(p) {
-        if (!vj.platforms[p]) vj.platforms[p] = {};
-        vj.platforms[p].version = v;
-      });
-      localStorage.setItem('attt_version_json', JSON.stringify(vj));
-      if (typeof DB !== 'undefined' && DB.push) DB.push('attt_version_json', vj);
-
-      /* Mettre à jour attt_master_settings */
-      var ms = {};
-      try { ms = JSON.parse(localStorage.getItem('attt_master_settings') || '{}'); } catch(e) { ms = {}; }
-      ms.version = v;
-      ms.publishedAt = new Date().toISOString();
-      localStorage.setItem('attt_master_settings', JSON.stringify(ms));
-      if (typeof DB !== 'undefined' && DB.push) DB.push('attt_master_settings', ms);
-
-      /* Mettre à jour attt_updates.currentVersion */
-      var ud = {};
-      try { ud = JSON.parse(localStorage.getItem('attt_updates') || '{}'); } catch(e) { ud = {}; }
-      ud.currentVersion = v;
-      ud.publishedDate = new Date().toISOString();
-      if (!ud.history) ud.history = [];
-      ud.history.push({ version: v, notes: 'Enregistré manuellement', action: 'publié', date: ud.publishedDate, by: 'master' });
-      localStorage.setItem('attt_updates', JSON.stringify(ud));
-      if (typeof DB !== 'undefined' && DB.push) DB.push('attt_updates', ud);
-    } catch(e) { al.className='alert alert-danger'; al.textContent='Erreur : ' + e.message; al.classList.remove('d-none'); return; }
-
-    if (auto) {
-      /* ═══ MODE AUTO : mettre à jour version.json + déployer sur GitHub ═══ */
-      al.className='alert alert-info';
-      al.innerHTML = '<span class="spinner-border spinner-border-sm me-2"></span>Déploiement v' + v + ' vers GitHub…';
-      al.classList.remove('d-none');
-
-      /* Vérifier si le serveur local est joignable */
-      fetch(DEPLOY_URL + '/api/status').then(function() {
-        /* Serveur joignable → déployer */
-        fetch(DEPLOY_URL + '/api/version', {
-          method: 'POST',
-          headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify({ version: v, changelog: vj.changelog || '' })
-        }).catch(function() {}).finally(function() {
-          _deployToGitHub('v' + v, function(ok, msg) {
-            if (ok) {
-              al.className = 'alert alert-success';
-              al.innerHTML = '<i class="bi bi-check-circle me-1"></i>Version <strong>' + v + '</strong> déployée. Les utilisateurs verront la nouvelle version automatiquement.';
-            } else {
-              al.className = 'alert alert-danger';
-              al.innerHTML = '<i class="bi bi-x-circle me-1"></i>' + msg;
-            }
-            document.getElementById('publish-bar').classList.add('d-none');
-          });
-        });
-      }).catch(function() {
-        /* Serveur inaccessible (smartphone, etc.) → sauvegarder dans Firestore seulement */
-        al.className = 'alert alert-success';
-        al.innerHTML = '<i class="bi bi-cloud-check me-1"></i>Version <strong>' + v + '</strong> enregistr\u00e9e et synchronis\u00e9e dans le cloud.'
-          + '<br><small class="text-muted"><i class="bi bi-info-circle me-1"></i>Pour publier en ligne : ouvrez cette page depuis le PC avec <code>demarrer.bat</code> lanc\u00e9, la version sera automatiquement d\u00e9ploy\u00e9e.</small>';
-        al.classList.remove('d-none');
-      });
-    } else {
-      /* ═══ MODE MANUEL : sauvegarder localement, PAS de déploiement ═══ */
-      al.className = 'alert alert-warning';
-      al.innerHTML = '<i class="bi bi-eye me-1"></i>Version <strong>' + v + '</strong> enregistrée localement. Les fichiers ne sont <strong>pas encore en ligne</strong>.<br>Testez sur <code>localhost:8080</code> puis cliquez <strong>Publier pour tous</strong>.';
-      al.classList.remove('d-none');
-      document.getElementById('publish-bar').classList.remove('d-none');
-    }
-  }
-
-  /* ── Publier pour tous (mode manuel) : déployer sur GitHub ── */
-  function publishForAll() {
-    var v = document.getElementById('ver-input').value.trim();
-    if (!v) { alert('Aucune version à publier.'); return; }
-    if (!confirm('Déployer la version ' + v + ' sur GitHub ?\n\nTous les utilisateurs verront les modifications.')) return;
+    var data = _getUpdatesData();
+    if (!data.history) data.history = [];
+    data.stagedVersion = v;
+    data.stagedNotes = notes;
+    data.stagedDate = new Date().toISOString();
+    data.stagedBy = user.login || user.id;
+    data.history.push({ version: v, notes: notes, action: 'test', date: data.stagedDate, by: data.stagedBy });
+    _saveUpdatesData(data);
 
     var al = document.getElementById('ver-alert');
+    al.className = 'alert alert-warning';
+    al.innerHTML = '<i class="bi bi-flask me-1"></i>Version <strong>' + v + '</strong> mise en test. Vérifiez puis cliquez <strong>Publier pour tous</strong>.';
+    al.classList.remove('d-none');
+    loadVersion();
+  }
+
+  /* ══ PUBLIER (depuis staging ou directement) ══ */
+  function publishVersion() {
+    var data = _getUpdatesData();
+    if (!data.stagedVersion) { alert('Aucune version en test.'); return; }
+    if (!confirm('Publier la version ' + data.stagedVersion + ' pour tous les utilisateurs ?')) return;
+    _doPublish(data.stagedVersion, data.stagedNotes || '');
+  }
+
+  function saveAndPublish() {
+    var v = document.getElementById('ver-input').value.trim();
+    var notes = document.getElementById('ver-notes').value.trim();
+    var auto = document.getElementById('ver-auto').checked;
+    if (auto) {
+      var data = _getUpdatesData();
+      var current = data.currentVersion || v || '1.0.0';
+      var parts = current.split('.').map(Number);
+      parts[2] = (parts[2] || 0) + 1;
+      v = parts.join('.');
+      document.getElementById('ver-input').value = v;
+    }
+    if (!v) { alert('Veuillez saisir un numéro de version.'); return; }
+    if (!confirm('Publier la version ' + v + ' directement ?')) return;
+    _doPublish(v, notes);
+  }
+
+  function _doPublish(v, notes) {
+    var al = document.getElementById('ver-alert');
+    var now = new Date().toISOString();
+
+    // 1. Mettre à jour attt_updates
+    var data = _getUpdatesData();
+    if (!data.history) data.history = [];
+    data.history.push({ version: v, notes: notes, action: 'publié', date: now, by: user.login || user.id });
+    data.currentVersion = v;
+    data.publishedDate = now;
+    data.publishedBy = user.login || user.id;
+    data.stagedVersion = null;
+    data.stagedNotes = '';
+    data.stagedDate = '';
+    data.stagedBy = '';
+    _saveUpdatesData(data);
+
+    // 2. Synchroniser version_json, master_settings, site_settings
+    _syncVersionJson(v, notes);
+    _syncMasterSettings(v);
+    _syncSiteSettings(v);
+
+    // 3. Marquer la version vue (pas de bannière pour le maître)
+    localStorage.setItem('attt_seen_site_version', v);
+    localStorage.setItem('attt_seen_publish_time', now);
+
+    // 4. Tenter le déploiement GitHub (PC only)
     al.className = 'alert alert-info';
-    al.innerHTML = '<span class="spinner-border spinner-border-sm me-2"></span>Déploiement v' + v + ' vers GitHub…';
+    al.innerHTML = '<span class="spinner-border spinner-border-sm me-2"></span>Publication v' + v + '…';
     al.classList.remove('d-none');
 
-    fetch(DEPLOY_URL + '/api/status').then(function() {
+    fetch(DEPLOY_URL + '/api/status', { signal: AbortSignal.timeout(3000) }).then(function() {
+      // Serveur joignable → mettre à jour version.json + déployer
       fetch(DEPLOY_URL + '/api/version', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ version: v })
+        body: JSON.stringify({ version: v, changelog: notes })
       }).catch(function() {}).finally(function() {
-        _deployToGitHub('v' + v, function(ok, msg) {
+        _deployToGitHub('v' + v + ' — ' + (notes || 'Mise à jour'), function(ok, msg) {
           if (ok) {
             al.className = 'alert alert-success';
-            al.innerHTML = '<i class="bi bi-check-circle me-1"></i>Version <strong>' + v + '</strong> déployée. Tous les utilisateurs verront la nouvelle version.';
-            document.getElementById('publish-bar').classList.add('d-none');
+            al.innerHTML = '<i class="bi bi-check-circle me-1"></i>Version <strong>' + v + '</strong> publiée et déployée ! Tous les utilisateurs verront la mise à jour.';
           } else {
             al.className = 'alert alert-danger';
             al.innerHTML = '<i class="bi bi-x-circle me-1"></i>' + msg;
           }
+          loadVersion();
         });
       });
     }).catch(function() {
-      al.className = 'alert alert-danger';
-      al.innerHTML = '<i class="bi bi-exclamation-triangle me-1"></i>Le déploiement nécessite le PC avec <code>demarrer.bat</code> lancé. Impossible depuis cet appareil.';
+      // Smartphone ou serveur off → cloud uniquement
+      al.className = 'alert alert-success';
+      al.innerHTML = '<i class="bi bi-cloud-check me-1"></i>Version <strong>' + v + '</strong> publiée et synchronisée dans le cloud.'
+        + (_isPC ? '<br><small class="text-muted">Lancez <code>demarrer.bat</code> puis allez dans <strong>Déploiement</strong> pour mettre en ligne.</small>'
+                  : '<br><small class="text-muted">Le déploiement en ligne se fera depuis le PC.</small>');
+      al.classList.remove('d-none');
+      loadVersion();
     });
   }
 
-  /* ── Déployer vers GitHub via deploy-server (localhost:8081) ── */
+  /* ══ ANNULER LE TEST ══ */
+  function cancelStaged() {
+    var data = _getUpdatesData();
+    if (!data.stagedVersion) return;
+    if (!confirm('Annuler la mise en test de la version ' + data.stagedVersion + ' ?')) return;
+    if (!data.history) data.history = [];
+    data.history.push({ version: data.stagedVersion, notes: data.stagedNotes || '', action: 'annulé', date: new Date().toISOString(), by: user.login || user.id });
+    data.stagedVersion = null; data.stagedNotes = ''; data.stagedDate = ''; data.stagedBy = '';
+    _saveUpdatesData(data);
+    document.getElementById('ver-alert').classList.add('d-none');
+    loadVersion();
+  }
+
+  /* ══ DÉPLOYER VERS GITHUB ══ */
   function _deployToGitHub(comment, callback) {
     fetch(DEPLOY_URL + '/api/deploy', {
       method: 'POST',
@@ -830,20 +915,6 @@
     }).catch(function(err) {
       callback(false, 'Impossible de joindre le serveur (localhost:8081). Lancez <code>demarrer.bat</code> puis réessayez.');
     });
-  }
-
-  function addChangelog() {
-    const note = document.getElementById('changelog-note').value.trim();
-    if (!note) return;
-    const ver = document.getElementById('ver-input').value || '—';
-    const list = document.getElementById('changelog-list');
-    const div = document.createElement('div');
-    div.className = 'd-flex align-items-start gap-3 mb-3';
-    div.innerHTML = `<div style="width:8px;height:8px;border-radius:50%;background:var(--cp);margin-top:.35rem;flex-shrink:0;"></div>
-      <div><div class="fw-bold">v${ver} — ${new Date().toLocaleDateString('fr-TN')}</div>
-      <div class="small text-muted">${note}</div></div>`;
-    list.prepend(div);
-    document.getElementById('changelog-note').value = '';
   }
 
   /* ══ DB SCHEMA ══ */
@@ -904,7 +975,6 @@
   }
 
   /* ══ DEPLOY ══ */
-  const DEPLOY_URL = 'http://127.0.0.1:8081';
 
   function checkServerStatus() {
     const badge = document.getElementById('srv-status');
